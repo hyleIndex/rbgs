@@ -191,7 +191,11 @@ Module MonoidalClosureTheory (C : CategoryWithOp) (M : MonoidalStructure C)
   Theorem curry_natural :
     forall {A1 A2 B C1 C2} (x : A1 ~~> A2) (f : A2 * B ~~> C1) (y : C1 ~~> C2),
       curry (y @ f @ (x * id B)) = fmap (id B) y @ curry f @ x.
-  Admitted.
+  Proof.
+    intros.
+    rewrite curry_natural_r, curry_natural_l.
+    reflexivity.
+  Qed.
 
   (* Theorem uncurry_natural :
     .... *)

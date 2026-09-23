@@ -863,9 +863,13 @@ Module SigComp (B : SigTensReq).
     Next Obligation.
       unfold compose, hmap, amap, id. cbn.
       apply functional_extensionality_dep. intros [[ ] m]. cbn.
-      f_equal.
-      apply aeq.
-    Admitted.
+      assert (Hm : m = fun _ => m tt).
+      { apply functional_extensionality. intros [ ]. reflexivity. }
+      rewrite Hm. cbn.
+      apply f_equal.
+      apply functional_extensionality. intros [[ ] n].
+      reflexivity.
+    Qed.
 
     Program Definition runit E : iso (E ⊳ unit) E :=
       {|
@@ -875,8 +879,13 @@ Module SigComp (B : SigTensReq).
     Next Obligation.
       unfold compose, hmap, amap, id. cbn.
       apply functional_extensionality_dep. intros [m k]. cbn.
-      cbn in *.
-    Admitted.
+      assert (Hk : k = fun _ => tt).
+      { apply functional_extensionality. intros n. destruct (k n). reflexivity. }
+      subst k. cbn.
+      apply f_equal.
+      apply functional_extensionality. intros [n [ ]].
+      reflexivity.
+    Qed.
 
     (** Naturality properties *)
 

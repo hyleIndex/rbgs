@@ -2432,70 +2432,10 @@ Module LinCCALExample.
     implementation deadlocks are still possible in a case where all
     threads are waiting on [LinCCAL.Spec.blocked]. In the absence of a
     liveness requirement, this behavior would be considered correct
-    even if the overlay specification expected a result.
-
-    To illustrate this, we show that any overlay can be implemented in
-    terms of the following "deadlock" underlay. *)
-
-  Variant Edeadlock_op :=
-    | deadlock.
-
-  Canonical Structure Edeadlock :=
-    {|
-      Sig.op := Edeadlock_op;
-      Sig.ar _ := Empty_set;
-    |}.
-
-  Definition Σdeadlock : LinCCAL.Spec.t Edeadlock := 
-    {| LinCCAL.Spec.next _ _ := LinCCAL.Spec.blocked |}.
-
-  Definition Ldeadlock : LinCCAL.t :=
-    {| LinCCAL.li_spec := Σdeadlock |}.
-
-  Definition dead_impl {X} : Sig.term Edeadlock X :=
-    deadlock >= e => match e with end.
-
-  Variant dead_thread {E} : option (LinCCAL.threadstate Edeadlock E) -> Prop :=
-    | dead_ready :
-      dead_thread None
-    | dead_locked q :
-      dead_thread (Some (LinCCAL.mkts (F:=E) q dead_impl None)).
-
-  Variant dead_state {E} {Σ : LinCCAL.spec E} : _ -> Prop :=
-    dead_state_intro s :
-      (forall i, dead_thread (LinCCAL.TMap.find i s)) ->
-      dead_state (LinCCAL.mkst Σ s Σdeadlock).
-
-  Proposition dead_correct E (Σ : LinCCAL.spec E) :
-    LinCCAL.cal Σdeadlock (fun q => dead_impl) Σ.
-  Proof.
-    intros.
-    eapply LinCCAL.correctness_invariant_sound with (P := dead_state).
-    - split.
-      + intros _ [s Hs] _ i q r R Hsi. cbn in *.
-        specialize (Hs i).
-        dependent destruction Hs; unfold dead_impl in *; try congruence.
-        rewrite Hsi in x. dependent destruction x.
-      + intros _ [s Hs] _ i q m k R Hsi. cbn in Hsi |- *.
-        specialize (Hs i). cbn in Hs. rewrite Hsi in Hs.
-        dependent destruction Hs; cbn; try congruence.
-      + (* liveness cannot be proven *)
-        admit.
-      + intros _ [s Hs] _ s' Hs'.
-        dependent destruction Hs'.
-        * (* incoming call *)
-          apply LinCCAL.reachable_base. constructor.
-          intro i. destruct (classic (i = t)); subst.
-          -- rewrite LinCCAL.TMap.gss. constructor; auto.
-          -- rewrite LinCCAL.TMap.gso; auto.
-        * (* return *)
-          specialize (Hs t). setoid_rewrite H in Hs.
-          dependent destruction Hs.
-    - (* initial state *)
-      constructor.
-      intro i.
-      rewrite LinCCAL.TMap.gempty.
-      constructor.
-  Abort.
+    even if the overlay specification expected a result: a "deadlock"
+    underlay whose only primitive is always [blocked] would implement
+    any overlay, since the [ci_valid], [ci_safe] and [ci_next]
+    conditions of [correctness_invariant] all hold vacuously for it.
+    Only [ci_live] rules this out. *)
 
 End LinCCALExample.
