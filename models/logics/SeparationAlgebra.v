@@ -36,7 +36,41 @@ Class SeparationAlgebraUnit (worlds: Type) {J : Join worlds} (SA: SeparationAlge
   unit_spec: unit_element ue
 }.
 
+(** Cancellation is not part of the minimal separation-algebra interface,
+    but it lets precision/fence arguments align the complementary pieces of
+    two decompositions. *)
+Class JoinLeftCancellative (worlds : Type) {J : Join worlds} : Prop := {
+  join_left_cancel : forall owned frame1 frame2 whole,
+    join owned frame1 whole ->
+    join owned frame2 whole ->
+    frame1 = frame2
+}.
+
 #[global] Hint Resolve unit_join unit_spec : core.
+
+(** Small, implementation-independent unit API.  Clients of RGSimLin should
+    use these lemmas rather than destructing [SeparationAlgebraUnit]. *)
+Section UnitLemmas.
+  Context {worlds : Type} {J : Join worlds}.
+  Context {SA : @SeparationAlgebra worlds J}.
+  Context {U : @SeparationAlgebraUnit worlds J SA}.
+
+  Lemma unit_join_left (n : worlds) : join ue n n.
+  Proof. apply join_comm, unit_join. Qed.
+
+  Lemma unit_element_eq (e : worlds) : unit_element e -> e = ue.
+  Proof.
+    intro He. exact (eq_sym (He ue e (unit_join e))).
+  Qed.
+
+  Lemma join_unit_right_inv (n n' : worlds) :
+    join n ue n' -> n = n'.
+  Proof. intro H; apply join_comm in H; apply unit_spec in H; exact H. Qed.
+
+  Lemma join_unit_left_inv (n n' : worlds) :
+    join ue n n' -> n = n'.
+  Proof. intro H; apply unit_spec in H; exact H. Qed.
+End UnitLemmas.
 
 (***********************************)
 (* Separation Algebra Generators   *)
@@ -255,6 +289,3 @@ Section productSA.
   Defined.
 
 End productSA.
-
-
-

@@ -56,6 +56,175 @@ Section TMapSA.
       inversion H1; subst; try tauto.
   Qed.
 
+  Lemma tree_join_disjoint :
+    forall t1 t2 t, tree_join t1 t2 t ->
+      forall a b1 b2,
+        LinCCAL.TMap.find a t1 = Some b1 ->
+        LinCCAL.TMap.find a t2 = Some b2 -> False.
+  Proof.
+    induction 1; intros; auto.
+    - destruct a; simpl in *; congruence.
+    - destruct a; simpl in *; congruence.
+    - destruct a; simpl in *; eauto.
+      subst. inversion H1; subst; contradiction.
+  Qed.
+
+  Lemma option_trivial_join_determ : forall o1 o2 o o',
+    @option_join A trivial_Join o1 o2 o ->
+    @option_join A trivial_Join o1 o2 o' -> o = o'.
+  Proof.
+    intros o1 o2 o o' Hjoin Hjoin'.
+    destruct o1, o2; inversion Hjoin; inversion Hjoin'; subst; auto.
+    all: match goal with
+         | Hfalse : @join _ trivial_Join _ _ _ |- _ =>
+             change False in Hfalse; exact (False_ind _ Hfalse)
+         end.
+  Qed.
+
+  Lemma tree_join_determ : forall t1 t2 t t',
+    tree_join t1 t2 t -> tree_join t1 t2 t' -> t = t'.
+  Proof.
+    intros t1 t2 t t' Hjoin. revert t'.
+    induction Hjoin; intros t' Hjoin'; inversion Hjoin'; subst; auto.
+    f_equal; eauto using option_trivial_join_determ.
+  Qed.
+
+  (** Stable lookup-oriented API for the exclusive partial-map algebra. *)
+  Lemma linmap_join_find_none t1 t2 t : tree_join t1 t2 t ->
+    forall k, LinCCAL.TMap.find k t = None <->
+      LinCCAL.TMap.find k t1 = None /\ LinCCAL.TMap.find k t2 = None.
+  Proof. apply tree_join_none. Qed.
+
+  Lemma linmap_join_find_left t1 t2 t : tree_join t1 t2 t ->
+    forall k x, LinCCAL.TMap.find k t1 = Some x -> LinCCAL.TMap.find k t = Some x.
+  Proof. apply tree_join_increasing. Qed.
+
+  Lemma linmap_join_find_right t1 t2 t : tree_join t1 t2 t ->
+    forall k x, LinCCAL.TMap.find k t2 = Some x -> LinCCAL.TMap.find k t = Some x.
+  Proof.
+    induction 1; intros; auto.
+    - destruct k; simpl in *; congruence.
+    - destruct k; simpl in *; auto; subst.
+      inversion H1; subst; simpl in *; intuition.
+  Qed.
+
+  Lemma linmap_join_exclusive t1 t2 t : tree_join t1 t2 t ->
+    forall k x y,
+      LinCCAL.TMap.find k t1 = Some x -> LinCCAL.TMap.find k t2 = Some y -> False.
+  Proof. apply tree_join_disjoint. Qed.
+
+  Lemma tree_join_add_empty_left : forall k x t,
+    LinCCAL.TMap.find k t = None ->
+    tree_join (LinCCAL.TMap.add k x (LinCCAL.TMap.empty A)) t
+              (LinCCAL.TMap.add k x t).
+  Proof.
+    induction k; intros x t Hnone; destruct t; simpl in *.
+    - constructor.
+    - constructor.
+      + constructor.
+      + apply IHk; auto.
+      + destruct o; constructor.
+    - constructor.
+    - constructor.
+      + apply IHk; auto.
+      + constructor.
+      + destruct o; constructor.
+    - constructor.
+    - subst o. constructor; constructor.
+  Qed.
+
+  Lemma linmap_add_remove_same : forall k (x : A) (t : LinCCAL.tmap A),
+    LinCCAL.TMap.find k t = Some x ->
+    LinCCAL.TMap.add k x (LinCCAL.TMap.remove k t) = t.
+  Proof.
+    induction k; intros x t Hfind; destruct t as [|l o r];
+      simpl in *; try discriminate.
+    - destruct l; destruct o; simpl in *; try rewrite IHk by assumption;
+        try reflexivity.
+      pose proof (IHk x r Hfind) as Heq.
+      destruct (LinCCAL.TMap.remove k r); simpl in *; congruence.
+    - destruct o; destruct r; simpl in *; try rewrite IHk by assumption;
+        try reflexivity.
+      pose proof (IHk x l Hfind) as Heq.
+      destruct (LinCCAL.TMap.remove k l); simpl in *; congruence.
+    - subst o. destruct l; destruct r; reflexivity.
+  Qed.
+
+  Lemma tree_join_singleton_remove : forall k (x : A) (t : LinCCAL.tmap A),
+    LinCCAL.TMap.find k t = Some x ->
+    tree_join (LinCCAL.TMap.add k x (LinCCAL.TMap.empty A))
+              (LinCCAL.TMap.remove k t) t.
+  Proof.
+    intros k x t Hfind.
+    rewrite <- (linmap_add_remove_same k x t Hfind) at 2.
+    apply tree_join_add_empty_left.
+    apply LinCCAL.TMap.grs.
+  Qed.
+
+  Lemma linmap_join_add_left : forall t1 t2 t,
+    tree_join t1 t2 t -> forall k x,
+    LinCCAL.TMap.find k t2 = None ->
+    tree_join (LinCCAL.TMap.add k x t1) t2 (LinCCAL.TMap.add k x t).
+  Proof.
+    intros t1 t2 t Hj. induction Hj; intros k x Hnone.
+    - apply tree_join_add_empty_left; auto.
+    - constructor.
+    - destruct k; simpl in *.
+      + constructor; [exact Hj1|apply IHHj2; exact Hnone|assumption].
+      + constructor; [apply IHHj1; exact Hnone|exact Hj2|assumption].
+      + subst o'. constructor; [exact Hj1|exact Hj2|constructor].
+  Qed.
+
+  Lemma linmap_join_remove_lookup : forall t1 t2 t,
+    tree_join t1 t2 t -> forall k,
+    LinCCAL.TMap.find k t2 = None ->
+    LinCCAL.TMap.find k (LinCCAL.TMap.remove k t1) = None /\
+    LinCCAL.TMap.find k (LinCCAL.TMap.remove k t) = None.
+  Proof. intros; split; apply LinCCAL.TMap.grs. Qed.
+
+  Lemma linmap_join_lookup : forall t1 t2 t,
+    tree_join t1 t2 t -> forall k,
+    @option_join A trivial_Join
+      (LinCCAL.TMap.find k t1) (LinCCAL.TMap.find k t2)
+      (LinCCAL.TMap.find k t).
+  Proof.
+    induction 1; intros k.
+    - rewrite LinCCAL.TMap.gleaf. destruct (LinCCAL.TMap.find k t); constructor.
+    - rewrite LinCCAL.TMap.gleaf. destruct (LinCCAL.TMap.find k t); constructor.
+    - destruct k; simpl; auto.
+  Qed.
+
+  (** Removal is exposed extensionally because [PositiveMap.remove] may
+      normalize an empty internal node.  This is the representation-stable
+      frame theorem clients need for response updates. *)
+  Lemma linmap_join_remove_left : forall t1 t2 t,
+    tree_join t1 t2 t -> forall k,
+    LinCCAL.TMap.find k t2 = None -> forall q,
+    @option_join A trivial_Join
+      (LinCCAL.TMap.find q (LinCCAL.TMap.remove k t1))
+      (LinCCAL.TMap.find q t2)
+      (LinCCAL.TMap.find q (LinCCAL.TMap.remove k t)).
+  Proof.
+    intros t1 t2 t Hj k Hnone q.
+    destruct (Pos.eq_dec q k); subst.
+    - rewrite !LinCCAL.TMap.grs, Hnone. constructor.
+    - rewrite !LinCCAL.TMap.gro; auto. apply linmap_join_lookup; auto.
+  Qed.
+
+  Lemma linmap_join_remove_right : forall t1 t2 t,
+    tree_join t1 t2 t -> forall k,
+    LinCCAL.TMap.find k t1 = None -> forall q,
+    @option_join A trivial_Join
+      (LinCCAL.TMap.find q t1)
+      (LinCCAL.TMap.find q (LinCCAL.TMap.remove k t2))
+      (LinCCAL.TMap.find q (LinCCAL.TMap.remove k t)).
+  Proof.
+    intros t1 t2 t Hj k Hnone q.
+    destruct (Pos.eq_dec q k); subst.
+    - rewrite !LinCCAL.TMap.grs, Hnone. constructor.
+    - rewrite !LinCCAL.TMap.gro; auto. apply linmap_join_lookup; auto.
+  Qed.
+
   #[global] Instance tmap_Join : Join (LinCCAL.tmap A) := tree_join.
   #[global] Program Instance tmap_SA : SeparationAlgebra (LinCCAL.tmap A).
   Next Obligation.
@@ -85,6 +254,16 @@ Section TMapSA.
     intros ? ? ?.
     inversion H; subst; auto.
   Qed.
+
+  Lemma linmap_join_add_right : forall t1 t2 t,
+    tree_join t1 t2 t -> forall k x,
+    LinCCAL.TMap.find k t1 = None ->
+    tree_join t1 (LinCCAL.TMap.add k x t2) (LinCCAL.TMap.add k x t).
+  Proof.
+    intros t1 t2 t Hj k x Hnone.
+    apply join_comm.
+    apply linmap_join_add_left; [apply join_comm; exact Hj|exact Hnone].
+  Qed.
 End TMapSA.
 
 Existing Instance tmap_Join.
@@ -96,6 +275,99 @@ Module Semantics.
   Import LinCCALBase.
   Import LTSSpec.
   Import Lang.
+
+  Definition ThreadDomain : Type := tid -> Prop.
+
+  Definition domain_equiv (A B : ThreadDomain) : Prop :=
+    forall t, A t <-> B t.
+
+  Definition domain_empty : ThreadDomain := fun _ => False.
+  Definition domain_add (t : tid) (A : ThreadDomain) : ThreadDomain :=
+    fun t' => t' = t \/ A t'.
+  Definition domain_remove (t : tid) (A : ThreadDomain) : ThreadDomain :=
+    fun t' => t' <> t /\ A t'.
+  Definition domain_union (A B : ThreadDomain) : ThreadDomain :=
+    fun t => A t \/ B t.
+  Definition domain_disjoint (A B : ThreadDomain) : Prop :=
+    forall t, A t -> B t -> False.
+
+  Definition map_domain {X} (pi : tmap X) : ThreadDomain :=
+    fun t => exists x, TMap.find t pi = Some x.
+
+  Lemma domain_equiv_refl : forall A, domain_equiv A A.
+  Proof. firstorder. Qed.
+  Lemma domain_equiv_symm : forall A B, domain_equiv A B -> domain_equiv B A.
+  Proof. firstorder. Qed.
+  Lemma domain_equiv_trans : forall A B C,
+      domain_equiv A B -> domain_equiv B C -> domain_equiv A C.
+  Proof. firstorder. Qed.
+  Lemma domain_union_comm : forall A B,
+      domain_equiv (domain_union A B) (domain_union B A).
+  Proof. firstorder. Qed.
+  Lemma domain_union_assoc : forall A B C,
+      domain_equiv (domain_union (domain_union A B) C)
+                   (domain_union A (domain_union B C)).
+  Proof. firstorder. Qed.
+  Lemma domain_union_empty_l : forall A,
+      domain_equiv (domain_union domain_empty A) A.
+  Proof. firstorder. Qed.
+  Lemma domain_union_empty_r : forall A,
+      domain_equiv (domain_union A domain_empty) A.
+  Proof. firstorder. Qed.
+
+  Lemma map_domain_empty {X} :
+    domain_equiv (map_domain (TMap.empty X)) domain_empty.
+  Proof.
+    intros t; unfold map_domain, domain_empty.
+    rewrite TMap.gempty. split; [intros [? H]; discriminate|tauto].
+  Qed.
+
+  Lemma map_domain_add {X} (pi : tmap X) t x :
+    domain_equiv (map_domain (TMap.add t x pi))
+                 (domain_add t (map_domain pi)).
+  Proof.
+    intros t'; unfold map_domain, domain_add.
+    destruct (Pos.eq_dec t' t); subst.
+    - rewrite TMap.gss. split; [tauto|intros; eauto].
+    - rewrite TMap.gso; auto. firstorder.
+  Qed.
+
+  Lemma map_domain_remove {X} (pi : tmap X) t :
+    domain_equiv (map_domain (TMap.remove t pi))
+                 (domain_remove t (map_domain pi)).
+  Proof.
+    intros t'; unfold map_domain, domain_remove.
+    destruct (Pos.eq_dec t' t); subst.
+    - rewrite TMap.grs. split; [intros [? H]; discriminate|tauto].
+    - rewrite TMap.gro; auto. firstorder.
+  Qed.
+
+  Lemma map_domain_join {X} (pi1 pi2 pi : tmap X) :
+    @join _ tmap_Join pi1 pi2 pi ->
+    domain_equiv (map_domain pi)
+                 (domain_union (map_domain pi1) (map_domain pi2)).
+  Proof.
+    intros Hj t; unfold map_domain, domain_union.
+    split.
+    - intros [x Hx].
+      pose proof (tree_join_none _ _ _ Hj t) as Hnone.
+      destruct (TMap.find t pi1) eqn:H1; [left; eauto|].
+      destruct (TMap.find t pi2) eqn:H2; [right; eauto|].
+      assert (TMap.find t pi = None) as Hout.
+      { apply (proj2 Hnone). split; auto. }
+      congruence.
+    - intros [[x Hx]|[x Hx]].
+      + exists x. eapply tree_join_increasing; eauto.
+      + exists x. eapply tree_join_increasing; [apply join_comm; exact Hj|exact Hx].
+  Qed.
+
+  Lemma map_domain_join_disjoint {X} (pi1 pi2 pi : tmap X) :
+    @join _ tmap_Join pi1 pi2 pi ->
+    domain_disjoint (map_domain pi1) (map_domain pi2).
+  Proof.
+    intros Hj t [x Hx] [y Hy].
+    eapply tree_join_disjoint; eauto.
+  Qed.
 
   Section Semantics.
     Context {E : Op.t}.
@@ -114,6 +386,9 @@ Module Semantics.
     }.
 
     Definition ThreadPoolState : Type := tmap ThreadState.
+
+    Definition pool_domain (c : ThreadPoolState) : ThreadDomain :=
+      map_domain c.
 
     Variant ts_step (f : Sig.op F) : ThreadEvent -> State VE -> ThreadState -> State VE -> ThreadState -> Prop :=
     | ts_inv t op k s1 s2
@@ -371,29 +646,15 @@ Module Semantics.
   Section AbstractConfig.
     Context {F : Op.t} {VF : @LTS F}.
 
-    
-    Definition DomExact {A} (π1 π2 : tmap A) : Prop :=
-      forall t, TMap.find t π1 = None <-> TMap.find t π2 = None.
-      
-    Program Instance Equivalence_DomExact : Equivalence (@DomExact (@LinState F)).
-    Next Obligation. constructor; auto. Defined.
-    Next Obligation. constructor; apply H. Defined.
-    Next Obligation. constructor; unfold DomExact in *.
-      - rewrite H, H0. auto.
-      - rewrite H, H0. auto.
-    Defined.
-    
     Definition AbstractConfigProp : Type := State VF -> tmap (@LinState F) -> Prop.
 
     Record AbstractConfig : Type := mkAC {
+      ac_active : ThreadDomain;
       ac_prop :> State VF -> tmap (@LinState F) -> Prop;
       ac_nonempty : exists ρ π, ac_prop ρ π;
-      ac_domexact : forall ρ1 π1 ρ2 π2, ac_prop ρ1 π1 -> ac_prop ρ2 π2 ->
-                      DomExact π1 π2
+      ac_domain : forall ρ π, ac_prop ρ π ->
+                    domain_equiv (map_domain π) ac_active
     }.
-
-    Definition Δ_domexact (Δ1 Δ2 : AbstractConfigProp) : Prop :=
-      forall ρ1 π1 ρ2 π2, Δ1 ρ1 π1 -> Δ2 ρ2 π2 -> DomExact π1 π2.
 
     Definition ac_equiv (Δ1 Δ2 : AbstractConfig) : Prop :=
       forall ρ π, Δ1 ρ π <-> Δ2 ρ π.
@@ -410,6 +671,79 @@ Module Semantics.
     Definition ac_subset (Δ1 Δ2 : AbstractConfig) : Prop :=
       forall ρ π, Δ1 ρ π -> Δ2 ρ π.
 
+    Lemma ac_equiv_active : forall Δ1 Δ2,
+      ac_equiv Δ1 Δ2 -> domain_equiv (ac_active Δ1) (ac_active Δ2).
+    Proof.
+      intros Δ1 Δ2 Heq.
+      destruct (ac_nonempty Δ1) as [ρ [π Hposs]].
+      pose proof (ac_domain Δ1 _ _ Hposs) as Hdom1.
+      pose proof (ac_domain Δ2 _ _ (proj1 (Heq _ _) Hposs)) as Hdom2.
+      firstorder.
+    Qed.
+
+    Lemma ac_subset_active : forall Δ1 Δ2,
+      ac_subset Δ1 Δ2 -> domain_equiv (ac_active Δ1) (ac_active Δ2).
+    Proof.
+      intros Δ1 Δ2 Hsub.
+      destruct (ac_nonempty Δ1) as [ρ [π Hposs]].
+      pose proof (ac_domain Δ1 _ _ Hposs) as Hdom1.
+      pose proof (ac_domain Δ2 _ _ (Hsub _ _ Hposs)) as Hdom2.
+      firstorder.
+    Qed.
+
+    Lemma ac_find_some_iff : forall (Δ : AbstractConfig) ρ π t,
+      Δ ρ π ->
+      (ac_active Δ t <-> exists ls, TMap.find t π = Some ls).
+    Proof.
+      intros Δ ρ π t Hposs.
+      symmetry. apply ac_domain with (ρ := ρ); auto.
+    Qed.
+
+    Lemma ac_find_none_iff : forall (Δ : AbstractConfig) ρ π t,
+      Δ ρ π ->
+      (~ ac_active Δ t <-> TMap.find t π = None).
+    Proof.
+      intros Δ ρ π t Hposs.
+      rewrite ac_find_some_iff with (ρ := ρ) (π := π); auto.
+      destruct (TMap.find t π); firstorder congruence.
+    Qed.
+
+    Lemma ac_find_none_same : forall (Δ : AbstractConfig)
+      ρ1 π1 ρ2 π2 t,
+      Δ ρ1 π1 -> Δ ρ2 π2 ->
+      TMap.find t π1 = None -> TMap.find t π2 = None.
+    Proof.
+      intros Δ ρ1 π1 ρ2 π2 t H1 H2 Hnone.
+      apply (proj1 (ac_find_none_iff Δ ρ2 π2 t H2)).
+      apply (proj2 (ac_find_none_iff Δ ρ1 π1 t H1)).
+      exact Hnone.
+    Qed.
+
+    Lemma ac_find_none_equiv : forall (Δ : AbstractConfig)
+      ρ1 π1 ρ2 π2,
+      Δ ρ1 π1 -> Δ ρ2 π2 ->
+      forall t, TMap.find t π1 = None <-> TMap.find t π2 = None.
+    Proof.
+      intros Δ ρ1 π1 ρ2 π2 H1 H2 t; split; intro Hnone.
+      - exact (ac_find_none_same Δ ρ1 π1 ρ2 π2 t H1 H2 Hnone).
+      - exact (ac_find_none_same Δ ρ2 π2 ρ1 π1 t H2 H1 Hnone).
+    Qed.
+
+    Lemma AbstractConfig_ext : forall Δ1 Δ2,
+      ac_equiv Δ1 Δ2 -> Δ1 = Δ2.
+    Proof.
+      intros [A1 P1 Hn1 Hd1] [A2 P2 Hn2 Hd2] Heq; simpl in *.
+      assert (A1 = A2) as HA.
+      { apply functional_extensionality; intros t.
+        apply propositional_extensionality.
+        exact (ac_equiv_active _ _ Heq t). }
+      assert (P1 = P2) as HP.
+      { apply functional_extensionality_dep; intros ρ.
+        apply functional_extensionality_dep; intros π.
+        apply propositional_extensionality. apply Heq. }
+      subst. f_equal; apply proof_irrelevance.
+    Qed.
+
     Definition ac_empty_prop : AbstractConfigProp :=
       fun _ _ => False.
 
@@ -417,31 +751,62 @@ Module Semantics.
     | ACSingle : ac_singleton_prop ρ π ρ π.
 
     Program Definition ac_singleton ρ π : AbstractConfig :=
-      {| ac_prop := ac_singleton_prop ρ π |}.
+      {| ac_active := map_domain π;
+         ac_prop := ac_singleton_prop ρ π |}.
     Next Obligation. exists ρ, π. constructor. Qed.
-    Next Obligation.
-      inversion H; inversion H0; subst.
-      intro. reflexivity.
-    Qed.
+    Next Obligation. inversion H; subst; apply domain_equiv_refl. Qed.
+
+    Lemma ac_singleton_active : forall ρ π,
+      domain_equiv (ac_active (ac_singleton ρ π)) (map_domain π).
+    Proof. intros; apply domain_equiv_refl. Qed.
 
     Variant ac_union_prop (Δ1 Δ2 : AbstractConfigProp) : AbstractConfigProp :=
     | ACUnionLeft ρ π: Δ1 ρ π -> ac_union_prop Δ1 Δ2 ρ π
     | ACUnionRight ρ π: Δ2 ρ π -> ac_union_prop Δ1 Δ2 ρ π.
-    Program Definition ac_union (Δ1 Δ2 : AbstractConfig) {Hdomexact: Δ_domexact Δ1 Δ2} : AbstractConfig :=
-      {| ac_prop := ac_union_prop Δ1 Δ2 |}.
+    Program Definition ac_union (Δ1 Δ2 : AbstractConfig)
+      {Hactive : domain_equiv (ac_active Δ1) (ac_active Δ2)} : AbstractConfig :=
+      {| ac_active := ac_active Δ1;
+         ac_prop := ac_union_prop Δ1 Δ2 |}.
     Next Obligation.
       pose proof ac_nonempty Δ1 as [ρ [π ?]].
       exists ρ, π.
       apply ACUnionLeft; auto.
     Qed.
     Next Obligation.
-     (* eapply ac_domexact Δ1. *)
-      inversion H; inversion H0; subst.
-      - eapply (ac_domexact Δ1); eauto.
-      - eapply Hdomexact; eauto.
-      - symmetry. eapply Hdomexact; eauto.
-      - eapply (ac_domexact Δ2); eauto.
+      inversion H; subst.
+      - eapply ac_domain; eauto.
+      - eapply domain_equiv_trans; [eapply ac_domain; eauto|].
+        apply domain_equiv_symm; exact Hactive.
     Defined.
+
+    Lemma ac_union_active : forall Δ1 Δ2 Hactive,
+      domain_equiv (ac_active (@ac_union Δ1 Δ2 Hactive)) (ac_active Δ1).
+    Proof. intros; apply domain_equiv_refl. Qed.
+
+    Lemma ac_union_left : forall (Δ1 Δ2 : AbstractConfig) Hactive ρ π,
+      Δ1 ρ π -> @ac_union Δ1 Δ2 Hactive ρ π.
+    Proof. intros; constructor; auto. Qed.
+
+    Lemma ac_union_right : forall (Δ1 Δ2 : AbstractConfig) Hactive ρ π,
+      Δ2 ρ π -> @ac_union Δ1 Δ2 Hactive ρ π.
+    Proof. intros; apply ACUnionRight; auto. Qed.
+
+    Lemma ac_union_cases : forall (Δ1 Δ2 : AbstractConfig) Hactive ρ π,
+      @ac_union Δ1 Δ2 Hactive ρ π -> Δ1 ρ π \/ Δ2 ρ π.
+    Proof. intros; inversion H; subst; auto. Qed.
+
+    Lemma ac_union_comm : forall (Δ1 Δ2 : AbstractConfig)
+        (Hactive : domain_equiv (ac_active Δ1) (ac_active Δ2)),
+      ac_equiv (@ac_union Δ1 Δ2 Hactive)
+        (@ac_union Δ2 Δ1 (domain_equiv_symm _ _ Hactive)).
+    Proof.
+      intros Δ1 Δ2 Hactive ρ π; split; intro Hposs;
+        inversion Hposs; subst.
+      - apply ac_union_right; auto.
+      - apply ac_union_left; auto.
+      - apply ac_union_right; auto.
+      - apply ac_union_left; auto.
+    Qed.
 
     Variant ac_intersect_prop (Δ1 Δ2 : AbstractConfigProp) : AbstractConfigProp :=
     | ACIntersect ρ π: Δ1 ρ π -> Δ2 ρ π -> ac_intersect_prop Δ1 Δ2 ρ π.
@@ -451,19 +816,34 @@ Module Semantics.
         ac_inv_prop Δ t f ρ (TMap.add t (ls_inv f) π).
       
     Program Definition ac_inv (Δ : AbstractConfig) t f : AbstractConfig :=
-      {| ac_prop := ac_inv_prop Δ t f |}.
+      {| ac_active := domain_add t (ac_active Δ);
+         ac_prop := ac_inv_prop Δ t f |}.
     Next Obligation.
       destruct (ac_nonempty Δ) as [ρ [π H]].
       exists ρ, (TMap.add t0 (ls_inv f) π). constructor. auto.
     Qed.
     Next Obligation.
-      intros ?.
-      inversion H; inversion H0; subst.
-      destruct (Pos.eq_dec t1 t0); subst.
-      - do 2 rewrite PositiveMap.gss. split; discriminate.
-      - do 2 (rewrite PositiveMap.gso; auto).
-        rewrite (ac_domexact Δ _ _ _ _ Hposs Hposs0 t1).
-        reflexivity.
+      inversion H; subst.
+      eapply domain_equiv_trans; [apply map_domain_add|].
+      unfold domain_add. intros t1. rewrite (ac_domain Δ _ _ Hposs t1).
+      reflexivity.
+    Qed.
+
+    Lemma ac_inv_active : forall Δ t f,
+      domain_equiv (ac_active (ac_inv Δ t f))
+                   (domain_add t (ac_active Δ)).
+    Proof. intros; apply domain_equiv_refl. Qed.
+
+    Lemma ac_inv_find_eq : forall Δ t f ρ π,
+      ac_inv Δ t f ρ π -> TMap.find t π = Some (ls_inv f).
+    Proof. intros; inversion H; subst; apply TMap.gss. Qed.
+
+    Lemma ac_inv_find_neq : forall Δ t f ρ π t',
+      ac_inv Δ t f ρ π -> t' <> t ->
+      exists π0, Δ ρ π0 /\ TMap.find t' π = TMap.find t' π0.
+    Proof.
+      intros; inversion H; subst. eexists; split; eauto.
+      rewrite TMap.gso; auto.
     Qed.
 
     Variant ac_res_prop (Δ : AbstractConfigProp) t : AbstractConfigProp :=
@@ -471,19 +851,34 @@ Module Semantics.
         ac_res_prop Δ t ρ (TMap.remove t π).
     
     Program Definition ac_res (Δ : AbstractConfig) t : AbstractConfig :=
-      {| ac_prop := ac_res_prop Δ t |}.
+      {| ac_active := domain_remove t (ac_active Δ);
+         ac_prop := ac_res_prop Δ t |}.
     Next Obligation.
       destruct (ac_nonempty Δ) as [ρ [π H]].
       exists ρ, (TMap.remove t0 π). constructor. auto.
     Qed.
     Next Obligation.
-      intros ?.
-      inversion H; inversion H0; subst.
-      destruct (Pos.eq_dec t1 t0); subst.
-      - do 2 rewrite PositiveMap.grs. split; auto.
-      - do 2 (rewrite PositiveMap.gro; auto).
-        rewrite (ac_domexact Δ _ _ _ _ Hposs Hposs0 t1).
-        reflexivity.
+      inversion H; subst.
+      eapply domain_equiv_trans; [apply map_domain_remove|].
+      unfold domain_remove. intros t1. rewrite (ac_domain Δ _ _ Hposs t1).
+      reflexivity.
+    Qed.
+
+    Lemma ac_res_active : forall Δ t,
+      domain_equiv (ac_active (ac_res Δ t))
+                   (domain_remove t (ac_active Δ)).
+    Proof. intros; apply domain_equiv_refl. Qed.
+
+    Lemma ac_res_find_eq : forall Δ t ρ π,
+      ac_res Δ t ρ π -> TMap.find t π = None.
+    Proof. intros; inversion H; subst; apply TMap.grs. Qed.
+
+    Lemma ac_res_find_neq : forall Δ t ρ π t',
+      ac_res Δ t ρ π -> t' <> t ->
+      exists π0, Δ ρ π0 /\ TMap.find t' π = TMap.find t' π0.
+    Proof.
+      intros; inversion H; subst. eexists; split; eauto.
+      rewrite TMap.gro; auto.
     Qed.
 
     Variant ac_steps_prop (Δ : AbstractConfigProp) : AbstractConfigProp :=
@@ -491,20 +886,19 @@ Module Semantics.
         (Hpstep : poss_steps (PossOk ρ π) (PossOk ρ' π')):
         ac_steps_prop Δ ρ' π'.
 
-    Lemma poss_step_domexact : forall ρ π ρ' π',
+    Lemma poss_step_domain : forall ρ π ρ' π',
       @poss_step _ VF (PossOk ρ π) (PossOk ρ' π') ->
-      DomExact π π'.
+      domain_equiv (map_domain π) (map_domain π').
     Proof.
-      inversion 1; subst; intro;
-      (destruct (Pos.eq_dec t1 t0); subst;
-        [rewrite PositiveMap.gss
-        | rewrite PositiveMap.gso]; auto;
-        split; try congruence).
+      inversion 1; subst; intros t'; unfold map_domain.
+      all: destruct (Pos.eq_dec t' t0); subst.
+      all: try (rewrite TMap.gss; split; [intros; eauto|intros; eauto]).
+      all: rewrite TMap.gso; auto; reflexivity.
     Qed.
 
-    Lemma poss_steps_domexact : forall ρ π ρ' π',
+    Lemma poss_steps_domain : forall ρ π ρ' π',
       @poss_steps _ VF (PossOk ρ π) (PossOk ρ' π') ->
-      DomExact π π'.
+      domain_equiv (map_domain π) (map_domain π').
     Proof.
       intros.
       remember (PossOk ρ π) as p.
@@ -512,30 +906,28 @@ Module Semantics.
       revert ρ' π' Heqp'.
       apply clos_rt_rtn1 in H.
       induction H; intros; subst.
-      - inversion Heqp'; subst. reflexivity.
+      - inversion Heqp'; subst. apply domain_equiv_refl.
       - inversion H; subst;
         specialize (IHclos_refl_trans_n1 _ _ eq_refl);
-        (eapply Equivalence_Transitive; eauto;
-          intro;
-          destruct (Pos.eq_dec t1 t0); subst;
-          [rewrite PositiveMap.gss
-          | rewrite PositiveMap.gso]; auto;
-          split; intros; try congruence).
+        eapply domain_equiv_trans; eauto; eapply poss_step_domain; eauto.
     Qed.
 
     Program Definition ac_steps (Δ : AbstractConfig) : AbstractConfig :=
-      {| ac_prop := ac_steps_prop Δ |}.
+      {| ac_active := ac_active Δ;
+         ac_prop := ac_steps_prop Δ |}.
     Next Obligation.
       destruct (ac_nonempty Δ) as [ρ [π H]].
       exists ρ, π. econstructor; eauto. apply rt_refl.
     Qed.
     Next Obligation.
-      inversion H; inversion H0; subst. clear H H0.
-      apply poss_steps_domexact in Hpstep, Hpstep0.
-      pose proof (ac_domexact _ _ _ _ _ Hposs Hposs0).
-      do 2 (eapply Equivalence_Transitive; eauto).
-      symmetry. auto.
+      inversion H; subst.
+      eapply domain_equiv_trans; [apply domain_equiv_symm; eapply poss_steps_domain; eauto|].
+      eapply ac_domain; eauto.
     Qed.
+
+    Lemma ac_steps_active : forall Δ,
+      domain_equiv (ac_active (ac_steps Δ)) (ac_active Δ).
+    Proof. intros; apply domain_equiv_refl. Qed.
 
     Lemma ac_steps_refl : forall Δ, ac_subset Δ (ac_steps Δ).
     Proof.
@@ -544,26 +936,62 @@ Module Semantics.
       apply rt_refl.
     Qed.
 
+    Lemma ac_steps_subset_trans : forall Δ1 Δ2 Δ3,
+      ac_subset Δ2 (ac_steps Δ1) ->
+      ac_subset Δ3 (ac_steps Δ2) ->
+      ac_subset Δ3 (ac_steps Δ1).
+    Proof.
+      intros Δ1 Δ2 Δ3 H12 H23 ρ3 π3 H3.
+      specialize (H23 _ _ H3).
+      inversion H23 as [ρ2 π2 ρ3' π3' H2 Hsteps23]; subst.
+      specialize (H12 _ _ H2).
+      inversion H12 as [ρ1 π1 ρ2' π2' H1 Hsteps12]; subst.
+      econstructor; eauto.
+      eapply rt_trans; eauto.
+    Qed.
+
+    Lemma ac_union_steps_subset : forall Δ1 Δ2 Δ1' Δ2'
+        (Hactive : domain_equiv (ac_active Δ1) (ac_active Δ2))
+        (Hactive' : domain_equiv (ac_active Δ1') (ac_active Δ2')),
+      ac_subset Δ1' (ac_steps Δ1) ->
+      ac_subset Δ2' (ac_steps Δ2) ->
+      ac_subset (@ac_union Δ1' Δ2' Hactive')
+        (ac_steps (@ac_union Δ1 Δ2 Hactive)).
+    Proof.
+      intros Δ1 Δ2 Δ1' Δ2' Hactive Hactive' Hsteps1 Hsteps2
+        ρ' π' Hposs.
+      inversion Hposs as [ρ π Hleft | ρ π Hright]; subst.
+      - specialize (Hsteps1 _ _ Hleft).
+        inversion Hsteps1 as [ρ0 π0 ρ1 π1 Hsource Hreach]; subst.
+        econstructor; [apply ac_union_left; exact Hsource|exact Hreach].
+      - specialize (Hsteps2 _ _ Hright).
+        inversion Hsteps2 as [ρ0 π0 ρ1 π1 Hsource Hreach]; subst.
+        econstructor; [apply ac_union_right; exact Hsource|exact Hreach].
+    Qed.
+
     Variant ac_steps_π_prop (Δ : AbstractConfigProp) t ls1 ls2 ρf
       (Hpstep : forall ρ π, Δ ρ π -> poss_steps (PossOk ρ π) (PossOk (ρf ρ) (TMap.add t ls2 (TMap.add t ls1 π)))) : AbstractConfigProp :=
     | ACSteps_π ρ π (Hposs : Δ ρ π):
         ac_steps_π_prop Δ t ls1 ls2 ρf Hpstep (ρf ρ) (TMap.add t ls2 (TMap.add t ls1 π)).
     
     Program Definition ac_steps_π (Δ : AbstractConfig) t ls1 ls2 ρf Hpstep : AbstractConfig :=
-      {| ac_prop := ac_steps_π_prop Δ t ls1 ls2 ρf Hpstep |}.
+      {| ac_active := ac_active Δ;
+         ac_prop := ac_steps_π_prop Δ t ls1 ls2 ρf Hpstep |}.
     Next Obligation.
       pose proof ac_nonempty Δ as [? [? ?]].
       do 2 eexists. econstructor; eauto.
     Qed.
     Next Obligation.
-      inversion H; inversion H0; subst.
-      pose proof (Hpstep _ _ Hposs).
-      pose proof (Hpstep _ _ Hposs0).
-      eapply poss_steps_domexact in H1, H2.
-      pose proof ac_domexact _ _ _ _ _ Hposs Hposs0.
-      do 2 (eapply Equivalence_Transitive; eauto).
-      symmetry. auto.
+      inversion H; subst.
+      pose proof (Hpstep _ _ Hposs) as Hsteps.
+      eapply domain_equiv_trans; [apply domain_equiv_symm; eapply poss_steps_domain; eauto|].
+      eapply ac_domain; eauto.
     Defined.
+
+    Lemma ac_steps_π_active : forall Δ t ls1 ls2 ρf Hpstep,
+      domain_equiv (ac_active (ac_steps_π Δ t ls1 ls2 ρf Hpstep))
+                   (ac_active Δ).
+    Proof. intros; apply domain_equiv_refl. Qed.
 
     Variant ac_branch_prop (Δ : AbstractConfigProp) ρ π ρ' π' : AbstractConfigProp :=
     | ACBranch
@@ -574,15 +1002,23 @@ Module Semantics.
       Program Definition ac_branch (Δ : AbstractConfig) ρ π ρ' π' 
         (Hposs : Δ ρ π)
         (Hpstep : poss_steps (PossOk ρ π) (PossOk ρ' π')): AbstractConfig :=
-        {| ac_prop := ac_branch_prop Δ ρ π ρ' π' |}.
+        {| ac_active := ac_active Δ;
+           ac_prop := ac_branch_prop Δ ρ π ρ' π' |}.
       Next Obligation.
         exists ρ', π'.
         econstructor; eauto.
       Qed.
       Next Obligation.
-        inversion H; inversion H0; subst.
-        reflexivity.
+        inversion H; subst.
+        eapply domain_equiv_trans; [apply domain_equiv_symm; eapply poss_steps_domain; eauto|].
+        eapply ac_domain; eauto.
       Defined.
+
+    Lemma ac_branch_active : forall Δ ρ π ρ' π' Hposs Hpstep,
+      domain_equiv
+        (ac_active (ac_branch Δ ρ π ρ' π' Hposs Hpstep))
+        (ac_active Δ).
+    Proof. intros; apply domain_equiv_refl. Qed.
 
     Lemma ac_branch_subset_steps : forall (Δ : AbstractConfig) ρ π ρ' π' 
         Hposs Hpstep,
@@ -604,7 +1040,8 @@ Module Semantics.
         Hposs Hpstep
         (oΔ' : option AbstractConfig)
         (Htrylinchoice : ac_trylin_choice Δ oΔ') : AbstractConfig :=
-      {| ac_prop := match oΔ' with
+      {| ac_active := ac_active Δ;
+         ac_prop := match oΔ' with
                     | Some Δ' => ac_union_prop Δ' (ac_branch Δ ρ π ρ' π' Hposs Hpstep)
                     | None => ac_branch Δ ρ π ρ' π' Hposs Hpstep
                     end |}.
@@ -615,23 +1052,19 @@ Module Semantics.
     Qed.
     Next Obligation.
       inversion Htrylinchoice; subst; simpl in *.
-      - inversion H; inversion H0; subst.
-        + eapply (ac_domexact Δ'); eauto.
-        + apply H1 in H2.
-          inversion H2; inversion H5; subst.
-          apply poss_steps_domexact in Hpstep0, Hpstep1.
-          eapply (ac_domexact Δ) in Hposs0; eauto.
-          etransitivity; eauto.
-          symmetry. etransitivity; eauto.
-        + apply H1 in H5.
-          inversion H2; inversion H5; subst.
-          apply poss_steps_domexact in Hpstep0, Hpstep1.
-          eapply (ac_domexact Δ) in Hposs1; [|exact Hposs0].
-          etransitivity; eauto.
-          etransitivity; eauto. symmetry; auto.
-        + eapply (ac_domexact (ac_branch Δ ρ π ρ' π' Hposs Hpstep)); eauto.
-      - eapply (ac_domexact (ac_branch Δ ρ π ρ' π' Hposs Hpstep)); eauto.
+      - inversion H; subst.
+        + eapply domain_equiv_trans; [eapply ac_domain; eauto|].
+          eapply domain_equiv_trans; [apply ac_subset_active; exact H0|].
+          apply ac_steps_active.
+        + exact (ac_domain (ac_branch Δ ρ π ρ' π' Hposs Hpstep) _ _ H1).
+      - exact (ac_domain (ac_branch Δ ρ π ρ' π' Hposs Hpstep) _ _ H).
     Defined.
+
+    Lemma ac_trylin_active : forall Δ ρ π ρ' π' Hposs Hpstep oΔ' Hchoice,
+      domain_equiv
+        (ac_active (ac_trylin Δ ρ π ρ' π' Hposs Hpstep oΔ' Hchoice))
+        (ac_active Δ).
+    Proof. intros; apply domain_equiv_refl. Qed.
 
     Lemma ac_trylin_single : forall Δ ρ π ρ' π' Hposs Hstep Hnext,
       ac_equiv (ac_trylin Δ ρ π ρ' π' Hposs Hstep None Hnext) (ac_singleton ρ' π').
@@ -707,22 +1140,44 @@ Module Semantics.
           ac_join_prop ac1 ac2 ρ π.
       Program Definition ac_join (ac1 ac2 : AbstractConfig)
         (Hdisjoint : ac_disjoint ac1 ac2) : AbstractConfig :=
-        {| ac_prop := ac_join_prop ac1 ac2 |}.
+        {| ac_active := domain_union (ac_active ac1) (ac_active ac2);
+           ac_prop := ac_join_prop ac1 ac2 |}.
       Next Obligation.
         destruct_disjoint Hdisjoint.
         do 2 eexists; econstructor; eauto.
       Qed.
       Next Obligation.
-        inversion H; inversion H0; subst.
-        pose proof ac_domexact _ _ _ _ _ H1 H7.
-        pose proof ac_domexact _ _ _ _ _ H2 H8.
-        clear dependent ρ0. clear dependent ρ1.
-        clear dependent ρ2. clear dependent ρ3.
-        clear dependent ρ4. clear dependent ρ5.
-        intros ?. specialize (H5 t0). specialize (H6 t0).
-        eapply tree_join_none with (a:=t0) in H4, H10.
-        tauto.
+        inversion H; subst.
+        eapply domain_equiv_trans; [eapply map_domain_join; eauto|].
+        unfold domain_union. intros t0.
+        rewrite (ac_domain ac1 _ _ H0 t0), (ac_domain ac2 _ _ H1 t0).
+        reflexivity.
       Qed.
+
+      Lemma ac_compatible_domain_disjoint : forall (ac1 ac2 : AbstractConfig),
+        ac_disjoint ac1 ac2 ->
+        domain_disjoint (ac_active ac1) (ac_active ac2).
+      Proof.
+        intros ac1 ac2 Hd.
+        destruct_disjoint Hd.
+        pose proof (map_domain_join_disjoint _ _ _ H2) as Hmap.
+        pose proof (ac_domain ac1 _ _ H) as Hdom1.
+        pose proof (ac_domain ac2 _ _ H0) as Hdom2.
+        intros t Ha1 Ha2. eapply Hmap.
+        - apply (proj2 (Hdom1 t)); exact Ha1.
+        - apply (proj2 (Hdom2 t)); exact Ha2.
+      Qed.
+
+      Lemma ac_join_active : forall (ac1 ac2 : AbstractConfig)
+        (Hd : ac_disjoint ac1 ac2),
+        domain_equiv (ac_active (ac_join ac1 ac2 Hd))
+                     (domain_union (ac_active ac1) (ac_active ac2)).
+      Proof. intros; apply domain_equiv_refl. Qed.
+
+      Lemma ac_join_active_disjoint : forall (ac1 ac2 : AbstractConfig)
+        (Hd : ac_disjoint ac1 ac2),
+        domain_disjoint (ac_active ac1) (ac_active ac2).
+      Proof. intros; eapply ac_compatible_domain_disjoint; eauto. Qed.
 
       Lemma ac_join_comm: forall ac1 ac2 Hd1 Hd2 ρ π,
         ac_join ac1 ac2 Hd1 ρ π -> ac_join ac2 ac1 Hd2 ρ π.
@@ -756,6 +1211,168 @@ Module Semantics.
         fun ac1 ac2 ac => 
           exists (Hdisjoint : ac_disjoint ac1 ac2),
           ac_equiv ac (ac_join ac1 ac2 Hdisjoint).
+
+      Lemma join_ac_active : forall ac1 ac2 ac,
+        join ac1 ac2 ac ->
+        domain_equiv (ac_active ac)
+                     (domain_union (ac_active ac1) (ac_active ac2)).
+      Proof.
+        intros ac1 ac2 ac [Hd Heq].
+        eapply domain_equiv_trans; [apply ac_equiv_active; exact Heq|].
+        apply ac_join_active.
+      Qed.
+
+      Lemma join_ac_active_disjoint : forall ac1 ac2 ac,
+        join ac1 ac2 ac ->
+        domain_disjoint (ac_active ac1) (ac_active ac2).
+      Proof.
+        intros ac1 ac2 ac [Hd Heq].
+        exact (ac_join_active_disjoint ac1 ac2 Hd).
+      Qed.
+
+      (** The appendix construction is the nonempty set of all compatible
+          cross-products.  These two directions are the stable API for that
+          fact and avoid exposing the proof argument of [ac_join]. *)
+      Lemma join_ac_decompose : forall (ac1 ac2 ac : AbstractConfig) ρ π,
+        join ac1 ac2 ac -> ac ρ π ->
+        exists ρ1 ρ2 π1 π2,
+          ac1 ρ1 π1 /\ ac2 ρ2 π2 /\
+          join ρ1 ρ2 ρ /\ @join _ tmap_Join π1 π2 π.
+      Proof.
+        intros ac1 ac2 ac ρ π [Hd Heq] Hposs.
+        apply Heq in Hposs. inversion Hposs; subst; eauto 8.
+      Qed.
+
+      Lemma join_ac_compose : forall (ac1 ac2 ac : AbstractConfig)
+        ρ1 ρ2 π1 π2 ρ π,
+        join ac1 ac2 ac ->
+        ac1 ρ1 π1 -> ac2 ρ2 π2 ->
+        join ρ1 ρ2 ρ -> @join _ tmap_Join π1 π2 π ->
+        ac ρ π.
+      Proof.
+        intros ac1 ac2 ac ρ1 ρ2 π1 π2 ρ π [Hd Heq] H1 H2 Hρ Hπ.
+        apply Heq. econstructor; eauto.
+      Qed.
+
+      (** Splitting a decided thread cell out of every possibility leaves the
+          abstract machine state and all other thread cells in [ac_res]. *)
+      Lemma ac_singleton_res_join : forall (Δ : AbstractConfig) t ls,
+        (forall ρ π, Δ ρ π -> TMap.find t π = Some ls) ->
+        join
+          (ac_singleton ue
+            (TMap.add t ls (TMap.empty (@LinState F))))
+          (ac_res Δ t) Δ.
+      Proof.
+        intros Δ t ls Hlin.
+        econstructor. Unshelve.
+        - split; intros Hposs.
+          + econstructor.
+            * constructor.
+            * constructor. exact Hposs.
+            * apply unit_join_left.
+            * apply tree_join_singleton_remove. eapply Hlin; eauto.
+          + inversion Hposs; subst.
+            inversion H; subst.
+            inversion H0; subst.
+            apply join_unit_left_inv in H1; subst.
+            pose proof (tree_join_singleton_remove t ls π0 (Hlin _ _ Hposs0))
+              as Hreconstruct.
+            pose proof (tree_join_determ _ _ _ _ H2 Hreconstruct). subst.
+            exact Hposs0.
+        - destruct (ac_nonempty Δ) as (ρ & π & Hposs).
+          exists ue, ρ, ρ,
+            (TMap.add t ls (TMap.empty (@LinState F))),
+            (TMap.remove t π), π.
+          split; [constructor|].
+          split; [constructor; exact Hposs|].
+          split; [apply unit_join_left|].
+          apply tree_join_singleton_remove. eapply Hlin; eauto.
+      Qed.
+
+      Lemma join_ac_nonempty : forall (ac1 ac2 ac : AbstractConfig),
+        join ac1 ac2 ac -> exists ρ π, ac ρ π.
+      Proof. intros; apply ac_nonempty. Qed.
+
+      Definition ac_domain_preserving
+          (T : AbstractConfig -> AbstractConfig) : Prop :=
+        forall Δ, domain_equiv (ac_active (T Δ)) (ac_active Δ).
+
+      Lemma ac_domain_preserving_frame_active :
+        forall (T : AbstractConfig -> AbstractConfig) owned frame whole,
+          ac_domain_preserving T ->
+          join owned frame whole ->
+          domain_equiv (ac_active (T whole))
+            (domain_union (ac_active (T owned)) (ac_active frame)).
+      Proof.
+        intros T owned frame whole HT Hjoin t.
+        pose proof (HT whole t) as HTwhole.
+        pose proof (HT owned t) as HTowned.
+        pose proof (join_ac_active _ _ _ Hjoin t) as Hwhole.
+        unfold domain_union in *. tauto.
+      Qed.
+
+      Lemma ac_domain_preserving_frame_disjoint :
+        forall (T : AbstractConfig -> AbstractConfig) owned frame whole,
+          ac_domain_preserving T ->
+          join owned frame whole ->
+          domain_disjoint (ac_active (T owned)) (ac_active frame).
+      Proof.
+        intros T owned frame whole HT Hjoin t HTown Hframe.
+        eapply (join_ac_active_disjoint _ _ _ Hjoin t); [|exact Hframe].
+        apply (proj1 (HT owned t)); exact HTown.
+      Qed.
+
+      Lemma ac_steps_frame_active : forall owned frame whole,
+        join owned frame whole ->
+        domain_equiv (ac_active (ac_steps whole))
+          (domain_union (ac_active (ac_steps owned)) (ac_active frame)).
+      Proof.
+        intros. eapply ac_domain_preserving_frame_active; [exact ac_steps_active|eauto].
+      Qed.
+
+      Lemma ac_steps_frame_active_disjoint : forall owned frame whole,
+        join owned frame whole ->
+        domain_disjoint (ac_active (ac_steps owned)) (ac_active frame).
+      Proof.
+        intros. eapply ac_domain_preserving_frame_disjoint;
+          [exact ac_steps_active|eauto].
+      Qed.
+
+      Lemma ac_inv_frame_active : forall owned frame whole t f,
+        join owned frame whole -> ~ ac_active frame t ->
+        domain_equiv (ac_active (ac_inv whole t f))
+          (domain_union (ac_active (ac_inv owned t f)) (ac_active frame)).
+      Proof.
+        intros owned frame whole t f Hjoin Hfresh x.
+        pose proof (ac_inv_active whole t f x) as HIwhole.
+        pose proof (ac_inv_active owned t f x) as HIowned.
+        pose proof (join_ac_active _ _ _ Hjoin x) as Hwhole.
+        unfold domain_add, domain_union in *. firstorder congruence.
+      Qed.
+
+      Lemma ac_inv_frame_active_disjoint : forall owned frame whole t f,
+        join owned frame whole -> ~ ac_active frame t ->
+        domain_disjoint (ac_active (ac_inv owned t f)) (ac_active frame).
+      Proof.
+        intros owned frame whole t f Hjoin Hfresh x Howned Hframe.
+        apply (proj1 (ac_inv_active owned t f x)) in Howned.
+        unfold domain_add in Howned. destruct Howned; subst.
+        - contradiction.
+        - eapply (join_ac_active_disjoint _ _ _ Hjoin x); eauto.
+      Qed.
+
+      Lemma ac_res_frame_active : forall owned frame whole t,
+        join owned frame whole -> ac_active owned t ->
+        domain_equiv (ac_active (ac_res whole t))
+          (domain_union (ac_active (ac_res owned t)) (ac_active frame)).
+      Proof.
+        intros owned frame whole t Hjoin Howned x.
+        pose proof (join_ac_active_disjoint _ _ _ Hjoin t Howned) as Hfresh.
+        pose proof (ac_res_active whole t x) as HRwhole.
+        pose proof (ac_res_active owned t x) as HRowned.
+        pose proof (join_ac_active _ _ _ Hjoin x) as Hwhole.
+        unfold domain_remove, domain_union in *. firstorder congruence.
+      Qed.
 
       #[global] Program Instance ac_SA : SeparationAlgebra AbstractConfig.
       Next Obligation.
@@ -829,6 +1446,12 @@ Module Semantics.
           + apply (@unit_join _ _ _ tmap_unit).
       Qed.
 
+      Lemma ac_unit_active :
+        domain_equiv
+          (ac_active (ac_singleton ue (LinCCAL.TMap.Leaf LinState)))
+          domain_empty.
+      Proof. apply map_domain_empty. Qed.
+
       #[global] Program Instance ac_unit : SeparationAlgebraUnit AbstractConfig ac_SA :=
         {| ue := ac_singleton ue (LinCCAL.TMap.Leaf _) |}.
       Next Obligation.
@@ -837,26 +1460,16 @@ Module Semantics.
       Next Obligation.
         intros ? ? ?.
         inversion H; subst.
-        destruct n. destruct n'.
-        simpl in *.
-        assert (ac_prop0 = ac_prop1).
-        {
-          apply functional_extensionality_dep; intros ρ.
-          apply functional_extensionality_dep; intros π.
-          apply propositional_extensionality.
-          unfold ac_equiv in H0. simpl in H0.
-          rewrite H0.
-          split; intros.
-          - econstructor; eauto.
-            + constructor.
-            + apply (@join_comm _ _ tmap_SA), (@unit_join _ _ tmap_SA tmap_unit π).
+        apply AbstractConfig_ext.
+        unfold ac_equiv in *. intros ρ π.
+        rewrite H0. split; intros.
+        - econstructor; eauto.
+          + constructor.
+          + apply (@join_comm _ _ tmap_SA), (@unit_join _ _ tmap_SA tmap_unit π).
         - inversion H1; subst.
-            inversion H2; subst.
-            apply unit_spec in H4; subst.
-            apply (@unit_spec _ _ _ tmap_unit) in H5; subst; auto.
-        }
-        subst.
-        f_equal; apply proof_irrelevance.
+          inversion H2; subst.
+          apply unit_spec in H4; subst.
+          apply (@unit_spec _ _ _ tmap_unit) in H5; subst; auto.
       Defined.
     End ACSA.
 
@@ -865,7 +1478,6 @@ Module Semantics.
   Arguments AbstractConfigProp {F} VF.
   Arguments AbstractConfig {F} VF.
 
-  #[global] Existing Instance Equivalence_DomExact.
   #[global] Existing Instance Equivalence_ACEquiv.
 
   Delimit Scope ac_scope with AbstractConfig.

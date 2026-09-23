@@ -92,36 +92,82 @@ Module CompLinSound.
        (e.g. "thread not already active") for the shadow [idImpl]
        execution. *)
     Definition dom_match (c : @ThreadPoolState E F) (Delta : AbstractConfig VF) : Prop :=
-      forall rho pi, Delta rho pi ->
-        forall t, TMap.find t c = None <-> TMap.find t pi = None.
+      domain_equiv (pool_domain c) (ac_active Delta).
+
+    Lemma dom_match_find_none c Delta rho pi t :
+      dom_match c Delta -> Delta rho pi ->
+      (TMap.find t c = None <-> TMap.find t pi = None).
+    Proof.
+      intros Hdm Hposs.
+      pose proof (Hdm t) as Hactive.
+      pose proof (ac_find_some_iff Delta rho pi t Hposs) as Hfind.
+      unfold pool_domain, map_domain in Hactive.
+      split; intros Hnone.
+      - destruct (TMap.find t pi) eqn:Hpi; auto.
+        exfalso.
+        assert (ac_active Delta t).
+        { apply (proj2 Hfind). eauto. }
+        apply (proj2 Hactive) in H. destruct H as [x Hx]. congruence.
+      - destruct (TMap.find t c) eqn:Hc; auto.
+        exfalso.
+        assert (ac_active Delta t).
+        { apply (proj1 Hactive). eauto. }
+        apply (proj1 Hfind) in H. destruct H as [x Hx]. congruence.
+    Qed.
+
+    Lemma pool_domain_preserved (c c' : @ThreadPoolState E F) :
+      (forall t, TMap.find t c = None <-> TMap.find t c' = None) ->
+      domain_equiv (pool_domain c) (pool_domain c').
+    Proof.
+      intros Hnone t. specialize (Hnone t).
+      unfold pool_domain, map_domain.
+      split; intros [x Hx].
+      - destruct (TMap.find t c') eqn:Hc'; [eauto|].
+        assert (TMap.find t c = None) by (apply (proj2 Hnone); reflexivity).
+        congruence.
+      - destruct (TMap.find t c) eqn:Hc; [eauto|].
+        assert (TMap.find t c' = None) by (apply (proj1 Hnone); reflexivity).
+        congruence.
+    Qed.
+
+    Lemma dom_match_pool_preserved c c' Delta :
+      dom_match c Delta ->
+      (forall t, TMap.find t c = None <-> TMap.find t c' = None) ->
+      dom_match c' Delta.
+    Proof.
+      intros Hdm Hpres.
+      eapply domain_equiv_trans; [|exact Hdm].
+      apply domain_equiv_symm, pool_domain_preserved; exact Hpres.
+    Qed.
 
     Lemma dom_match_init (rho0 : State VF) :
       dom_match (TMap.empty _) (ac_init rho0).
     Proof.
-      intros rho pi Hposs t. inversion Hposs; subst.
-      rewrite !TMap.gempty. tauto.
+      unfold dom_match, pool_domain, ac_init. simpl.
+      eapply domain_equiv_trans; [apply map_domain_empty|].
+      apply domain_equiv_symm, map_domain_empty.
     Qed.
 
     Lemma dom_match_ac_inv c Delta t f ts :
       dom_match c Delta ->
       dom_match (TMap.add t ts c) (ac_inv Delta t f).
     Proof.
-      intros Hdm rho pi Hposs t'.
-      inversion Hposs as [rho0 pi0 Hposs0]; subst.
-      destruct (Pos.eq_dec t' t); subst.
-      - rewrite !TMap.gss. split; intro Hc; discriminate Hc.
-      - rewrite !TMap.gso; auto. exact (Hdm _ _ Hposs0 t').
+      intros Hdm t'.
+      pose proof (map_domain_add c t ts t') as Hpool.
+      pose proof (ac_inv_active Delta t f t') as Habs.
+      specialize (Hdm t').
+      unfold pool_domain, domain_add in *. firstorder.
     Qed.
 
     Lemma dom_match_ac_res c Delta t :
       dom_match c Delta ->
       dom_match (TMap.remove t c) (ac_res Delta t).
     Proof.
-      intros Hdm rho pi Hposs t'.
-      inversion Hposs as [rho0 pi0 Hposs0]; subst.
-      destruct (Pos.eq_dec t' t); subst.
-      - rewrite !TMap.grs. tauto.
-      - rewrite !TMap.gro; auto. exact (Hdm _ _ Hposs0 t').
+      intros Hdm t'.
+      pose proof (map_domain_remove c t t') as Hpool.
+      pose proof (ac_res_active Delta t t') as Habs.
+      specialize (Hdm t').
+      unfold pool_domain, domain_remove in *. firstorder.
     Qed.
 
     Lemma dom_match_ac_steps c Delta Delta' :
@@ -129,10 +175,10 @@ Module CompLinSound.
       (Delta' ⊆ ac_steps Delta)%AbstractConfig ->
       dom_match c Delta'.
     Proof.
-      intros Hdm Hsub rho pi Hposs t.
-      apply Hsub in Hposs. inversion Hposs as [rho0 pi0 rho' pi' Hposs0 Hpstep]; subst.
-      pose proof (poss_steps_domexact _ _ _ _ Hpstep) as Hde.
-      specialize (Hdm _ _ Hposs0 t). specialize (Hde t). tauto.
+      intros Hdm Hsub t.
+      pose proof (ac_subset_active _ _ Hsub t) as Hsubdom.
+      pose proof (ac_steps_active Delta t) as Hsteps.
+      specialize (Hdm t). firstorder.
     Qed.
 
     (* Library ([ustep]) and silent ([taustep]) steps only ever update the
@@ -420,6 +466,25 @@ Module CompLinSound.
 
     Definition abs_reaches := clos_refl_trans _ abs_step.
 
+    Lemma abstract_update_steps_dom_match c Delta Delta' :
+      dom_match c Delta -> TPSimulation.AbstractUpdateSteps Delta Delta' ->
+      dom_match c Delta'.
+    Proof.
+      intros Hdom Hsteps. induction Hsteps.
+      - exact Hdom.
+      - apply IHHsteps. eapply dom_match_ac_steps; eauto.
+    Qed.
+
+    Lemma abstract_update_steps_abs_reaches s Delta Delta' :
+      TPSimulation.AbstractUpdateSteps Delta Delta' ->
+      abs_reaches (mkACTr s Delta) (mkACTr s Delta').
+    Proof.
+      intro Hsteps. induction Hsteps.
+      - apply rt_refl.
+      - eapply rt_trans; [apply rt_step; apply AbsStepSteps; exact H|].
+        exact IHHsteps.
+    Qed.
+
     Lemma abs_step_app_witness :
       forall X Y, abs_step X Y -> exists tl, actr_trace Y = actr_trace X ++ tl.
     Proof.
@@ -464,96 +529,169 @@ Module CompLinSound.
       refine (clos_refl_trans_ind_right _ (trace_step M)
         (fun X => match X with
          | mkTraceConfig s0 sigma0 c0 =>
-             forall Delta0, TPSimulation M sigma0 c0 Delta0 -> dom_match c0 Delta0 ->
-               (exists Delta', abs_reaches (mkACTr s0 Delta0) (mkACTr s Delta')) \/
+             forall Delta0,
+               TPSimulation M sigma0 c0 Delta0 ->
+               dom_match c0 Delta0 ->
+               (exists Delta',
+                  abs_reaches
+                    (mkACTr s0 Delta0)
+                    (mkACTr s Delta')) \/
                (exists s1 f tl Delta', s = s1 ++ tl /\
-                 abs_reaches (mkACTr s0 Delta0) (mkACTr (s1 ++ TErr f :: nil) Delta'))
+                  abs_reaches
+                    (mkACTr s0 Delta0)
+                    (mkACTr
+                       (s1 ++ TErr f :: nil) Delta'))
          end)
-        (mkTraceConfig s sigma' c') _ _ (mkTraceConfig nil sigma c) Htrace).
+        (mkTraceConfig s sigma' c') _ _
+        (mkTraceConfig nil sigma c) Htrace).
       - intros Delta0 Hsim0 Hdm0. left. exists Delta0. apply rt_refl.
       - intros X Y HXY IH HYZ.
         destruct X as [s0 sigma0 c0].
         intros Delta0 Hsim0 Hdm0.
-        destruct Hsim0 as [rho0 pi0 Hposs0 Herror0 | tpsim_invstep tpsim_retstep tpsim_ustep tpsim_linstep tpsim_taustep tpsim_noerror].
-        + (* Delta0 already errors: record the error right here, at s0 *)
-          right.
-          destruct (poss_steps_error_last rho0 pi0 Herror0) as [t [f [rho1 [pi1 [Hsteps [Herr Hlin]]]]]].
-          assert (Hchain : trace_steps M (mkTraceConfig s0 sigma0 c0) (mkTraceConfig s sigma' c')).
-          { unfold trace_steps. eapply rt_trans; [apply rt_step; exact HXY | exact HYZ]. }
+        destruct (simulation_normalizes M sigma0 c0 Delta0 Hsim0)
+          as [DeltaN [Hupdates Hterminal]].
+        pose proof
+          (abstract_update_steps_abs_reaches s0 Delta0 DeltaN Hupdates)
+          as Hprefix.
+        pose proof
+          (abstract_update_steps_dom_match c0 Delta0 DeltaN Hdm0 Hupdates)
+          as HdmN.
+        destruct Hterminal as [Herror | Hcontinue].
+        + (* A finite update prefix reaches an abstract error before the
+             pending concrete trace step. *)
+          right. destruct Herror as [rho0 [pi0 [Hposs0 Herror0]]].
+          destruct (poss_steps_error_last
+                      rho0 pi0 Herror0)
+            as [t [f [rho1 [pi1 [Hsteps [Herr Hlin]]]]]].
+          assert (Hchain : trace_steps M
+                    (mkTraceConfig s0 sigma0 c0)
+                    (mkTraceConfig s sigma' c')).
+          { unfold trace_steps. eapply rt_trans;
+              [apply rt_step; exact HXY | exact HYZ]. }
           destruct (trace_steps_monotone _ _ Hchain) as [tl Heqtl].
           simpl in Heqtl.
-          exists s0, f, tl, Delta0. split; [exact Heqtl|].
-          apply rt_step. eapply (AbsStepError s0 Delta0 rho0 pi0 t f rho1 pi1 Hposs0 Hsteps Herr Hlin).
-        + dependent destruction HXY.
-          * (* TraceStepInv *)
+          exists s0, f, tl, DeltaN. split; [exact Heqtl |].
+          eapply rt_trans; [exact Hprefix |].
+          apply rt_step.
+          eapply (AbsStepError
+                    s0 DeltaN rho0 pi0 t f rho1 pi1
+                    Hposs0 Hsteps Herr Hlin).
+        + destruct Hcontinue as
+            [Hinv Hret Hu Htau Hnoerror].
+          dependent destruction HXY.
+          * (* invocation *)
             rename t0 into thr. rename c'0 into c1.
-            pose proof (tpsim_invstep thr f c1 Hstep) as Hcont.
+            pose proof (Hinv thr f c1 Hstep) as Hcont.
             inversion Hstep as [Hfind Hupd].
-            assert (Hdm1 : dom_match c1 (ac_inv Delta0 thr f))
-              by (rewrite Hupd; apply dom_match_ac_inv; exact Hdm0).
-            destruct (IH (ac_inv Delta0 thr f) Hcont Hdm1) as
-              [[Delta' Hreach] | [s1 [f0 [tl [Delta' [Heqs Hreach]]]]]].
+            assert (Hdm1 :
+              dom_match c1
+                (ac_inv DeltaN thr f)).
+            { rewrite Hupd.
+              eapply (dom_match_ac_inv); exact HdmN. }
+            destruct (IH (ac_inv DeltaN thr f) Hcont Hdm1) as
+              [[Delta' Hreach] |
+               [s1 [f0 [tl [Delta' [Heqs Hreach]]]]]].
             -- left. exists Delta'.
+               eapply rt_trans; [exact Hprefix |].
                eapply rt_trans with
-                 (y := mkACTr (s0 ++ (TEvent (Build_ThreadEvent thr (InvEv f)) :: nil)) (ac_inv Delta0 thr f)).
-               ++ apply rt_step. apply AbsStepInv.
-                  intros rho pi Hposs. specialize (Hdm0 rho pi Hposs thr). tauto.
+                 (y := mkACTr
+                   (s0 ++ TEvent (Build_ThreadEvent thr (InvEv f)) :: nil)
+                   (ac_inv DeltaN thr f)).
+               ++ apply rt_step.
+                  apply AbsStepInv.
+                  intros rho pi Hposs.
+                  apply (proj1
+                    (dom_match_find_none c0 DeltaN rho pi thr HdmN Hposs)).
+                  exact Hfind.
                ++ exact Hreach.
-            -- right. exists s1, f0, tl, Delta'. split; [exact Heqs|].
+            -- right. exists s1, f0, tl, Delta'. split; [exact Heqs |].
+               eapply rt_trans; [exact Hprefix |].
                eapply rt_trans with
-                 (y := mkACTr (s0 ++ (TEvent (Build_ThreadEvent thr (InvEv f)) :: nil)) (ac_inv Delta0 thr f)).
-               ++ apply rt_step. apply AbsStepInv.
-                  intros rho pi Hposs. specialize (Hdm0 rho pi Hposs thr). tauto.
+                 (y := mkACTr
+                   (s0 ++ TEvent (Build_ThreadEvent thr (InvEv f)) :: nil)
+                   (ac_inv DeltaN thr f)).
+               ++ apply rt_step.
+                  apply AbsStepInv.
+                  intros rho pi Hposs.
+                  apply (proj1
+                    (dom_match_find_none c0 DeltaN rho pi thr HdmN Hposs)).
+                  exact Hfind.
                ++ exact Hreach.
-          * (* TraceStepRet *)
+          * (* return *)
             rename t0 into thr. rename c'0 into c1.
-            destruct (tpsim_retstep thr f ret c1 Hstep) as [Hlin Hcont].
+            destruct (Hret thr f ret c1 Hstep) as [Hlin Hcont].
             inversion Hstep as [Hfind Hupd].
-            assert (Hdm1 : dom_match c1 (ac_res Delta0 thr))
-              by (rewrite Hupd; apply dom_match_ac_res; exact Hdm0).
-            destruct (IH (ac_res Delta0 thr) Hcont Hdm1) as
-              [[Delta' Hreach] | [s1 [f0 [tl [Delta' [Heqs Hreach]]]]]].
+            assert (Hdm1 :
+              dom_match c1
+                (ac_res DeltaN thr)).
+            { rewrite Hupd.
+              apply (dom_match_ac_res). exact HdmN. }
+            destruct (IH (ac_res DeltaN thr) Hcont Hdm1) as
+              [[Delta' Hreach] |
+               [s1 [f0 [tl [Delta' [Heqs Hreach]]]]]].
             -- left. exists Delta'.
+               eapply rt_trans; [exact Hprefix |].
                eapply rt_trans with
-                 (y := mkACTr (s0 ++ (TEvent (Build_ThreadEvent thr (ResEv f ret)) :: nil)) (ac_res Delta0 thr)).
-               ++ apply rt_step. apply AbsStepRet. exact Hlin.
+                 (y := mkACTr
+                   (s0 ++ TEvent (Build_ThreadEvent thr (ResEv f ret)) :: nil)
+                   (ac_res DeltaN thr)).
+               ++ apply rt_step.
+                  apply AbsStepRet. exact Hlin.
                ++ exact Hreach.
-            -- right. exists s1, f0, tl, Delta'. split; [exact Heqs|].
+            -- right. exists s1, f0, tl, Delta'. split; [exact Heqs |].
+               eapply rt_trans; [exact Hprefix |].
                eapply rt_trans with
-                 (y := mkACTr (s0 ++ (TEvent (Build_ThreadEvent thr (ResEv f ret)) :: nil)) (ac_res Delta0 thr)).
-               ++ apply rt_step. apply AbsStepRet. exact Hlin.
+                 (y := mkACTr
+                   (s0 ++ TEvent (Build_ThreadEvent thr (ResEv f ret)) :: nil)
+                   (ac_res DeltaN thr)).
+               ++ apply rt_step.
+                  apply AbsStepRet. exact Hlin.
                ++ exact Hreach.
-          * (* TraceStepU *)
-            destruct (tpsim_ustep ev sigma'0 c'0 Hstep) as [Delta1 [Hsub Hcont]].
-            assert (Hdm1 : dom_match c'0 Delta1).
-            { intros rho pi Hposs t.
-              apply Hsub in Hposs. inversion Hposs as [rho1 pi1 rho2 pi2 Hposs1 Hpstep]; subst.
-              pose proof (poss_steps_domexact _ _ _ _ Hpstep) as Hde.
-              pose proof (ustep_dom_preserved ev sigma0 c0 sigma'0 c'0 Hstep t) as Hpres.
-              specialize (Hdm0 _ _ Hposs1 t). specialize (Hde t). tauto. }
+          * (* visible library step *)
+            destruct (Hu ev sigma'0 c'0 Hstep)
+              as [Delta1 [Hsub Hcont]].
+            assert (Hdm1 :
+              dom_match c'0 Delta1).
+            { eapply (dom_match_pool_preserved).
+              - eapply (dom_match_ac_steps); eauto.
+              - exact (ustep_dom_preserved
+                         ev sigma0 c0 sigma'0 c'0 Hstep). }
             destruct (IH Delta1 Hcont Hdm1) as
-              [[Delta' Hreach] | [s1 [f0 [tl [Delta' [Heqs Hreach]]]]]].
+              [[Delta' Hreach] |
+               [s1 [f0 [tl [Delta' [Heqs Hreach]]]]]].
             -- left. exists Delta'.
-               eapply rt_trans with (y := mkACTr s0 Delta1).
-               ++ apply rt_step. apply AbsStepSteps. exact Hsub.
+               eapply rt_trans; [exact Hprefix |].
+               eapply rt_trans with
+                 (y := mkACTr s0 Delta1).
+               ++ apply rt_step.
+                  apply AbsStepSteps. exact Hsub.
                ++ exact Hreach.
-            -- right. exists s1, f0, tl, Delta'. split; [exact Heqs|].
-               eapply rt_trans with (y := mkACTr s0 Delta1).
-               ++ apply rt_step. apply AbsStepSteps. exact Hsub.
+            -- right. exists s1, f0, tl, Delta'. split; [exact Heqs |].
+               eapply rt_trans; [exact Hprefix |].
+               eapply rt_trans with
+                 (y := mkACTr s0 Delta1).
+               ++ apply rt_step.
+                  apply AbsStepSteps. exact Hsub.
                ++ exact Hreach.
-          * (* TraceStepTau *)
+          * (* Tau is a concrete step and does not create an abstract
+               possibility update. *)
             rename t0 into thr. rename c'0 into c1.
-            pose proof (tpsim_taustep thr c1 Hstep) as Hcont.
-            assert (Hdm1 : dom_match c1 Delta0).
-            { intros rho pi Hposs t.
-              pose proof (taustep_dom_preserved thr c0 c1 Hstep t) as Hpres.
-              specialize (Hdm0 _ _ Hposs t). tauto. }
-            destruct (IH Delta0 Hcont Hdm1) as
-              [[Delta' Hreach] | [s1 [f0 [tl [Delta' [Heqs Hreach]]]]]].
-            -- left. exists Delta'. exact Hreach.
-            -- right. exists s1, f0, tl, Delta'. split; [exact Heqs | exact Hreach].
-          * (* TraceStepError: impossible since Delta0 is not already erroring *)
-            exfalso. eapply tpsim_noerror. econstructor; eassumption.
+            pose proof (Htau thr c1 Hstep) as Hcont.
+            assert (Hdm1 :
+              dom_match c1 DeltaN).
+            { eapply (dom_match_pool_preserved);
+                [exact HdmN |].
+              exact (taustep_dom_preserved
+                       thr c0 c1 Hstep). }
+            destruct (IH DeltaN Hcont Hdm1) as
+              [[Delta' Hreach] |
+               [s1 [f0 [tl [Delta' [Heqs Hreach]]]]]].
+            -- left. exists Delta'.
+               eapply rt_trans; [exact Hprefix | exact Hreach].
+            -- right. exists s1, f0, tl, Delta'. split; [exact Heqs |].
+               eapply rt_trans; [exact Hprefix | exact Hreach].
+          * (* concrete error contradicts the exposed continue core *)
+            exfalso. eapply Hnoerror. econstructor; eassumption.
     Qed.
 
     (* Layer 2: replay a set-level [abs_reaches] judgement into a single,

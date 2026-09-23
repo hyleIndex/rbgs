@@ -44,6 +44,8 @@ models/logics/SeparationAlgebra.v
 models/logics/Logics.v
 
 models/simlin/LTS.v
+models/simlin/LTSLocality.v
+models/simlin/TensorSeparation.v
 models/simlin/RelaxedLTS.v
 models/simlin/RelaxedPossibility.v
 models/simlin/RelaxedLang.v
@@ -67,14 +69,34 @@ models/simlin/RGILogic.v
 models/simlin/TPSimulationSet.v
 models/simlin/RGISimulationSet.v
 models/simlin/RGILogicSet.v
+models/simlin/SingletonPossibility.v
 
 models/simlin/CompLinSound.v
+models/simlin/RGILogicSetTests.v
 models/simlin/CompLinLayer.v
+models/simlin/PaperTheorems.v
 
 examples/Common/AtomicLTS.v
 examples/Common/Heap.v
 examples/Common/MemSpec.v
 examples/Common/OwnedMemSpec.v
+examples/Common/ThreadDomain.v
+examples/Common/IndexedFamilySpec.v
+examples/Common/IndexedFamily.v
+examples/Common/IndexedFamilyProof.v
+examples/TSStack/ProgIterator.v
+examples/TSStack/TimestampSpec.v
+examples/TSStack/NodeMemSpec.v
+examples/TSStack/SPListSpec.v
+examples/TSStack/ListPoolSpec.v
+examples/TSStack/TryStackAuxSpec.v
+examples/TSStack/TryStackAuxGhost.v
+examples/TSStack/TryStackSpec.v
+examples/TSStack/TSStackSpec.v
+examples/TSStack/SPListFamilySpec.v
+examples/TSStack/SPListArraySpec.v
+examples/CustomStateSA.v
+examples/FrameRule.v
 examples/Relaxed/SemanticsExamples.v
 examples/Relaxed/MemoryLitmusExamples.v
 examples/FAI/FAISpec.v
@@ -83,6 +105,7 @@ examples/Registers/RegSpec.v
 examples/Stacks/StackSpec.v
 examples/Locks/TicketSpec.v
 examples/LazyCoin/CoinSpec.v
+examples/LazyCoin/Speculation.v
 examples/CAS/CASRegSpec.v
 examples/CCAS/CCASSpec.v
 examples/CCAS/CASTaskSpec.v
@@ -92,6 +115,24 @@ examples/Locks/TicketDispenser.v
 examples/Locks/TicketLock.v
 examples/Stacks/TreiberStack.v
 examples/Stacks/TryStack.v
+examples/FAI/FAISet.v
+examples/TSStack/SPList.v
+examples/TSStack/SPListArray.v
+examples/TSStack/SPListArrayProof.v
+examples/TSStack/ListPool.v
+examples/TSStack/Timestamp.v
+examples/TSStack/TryStackAux.v
+examples/TSStack/TryStack.v
+examples/TSStack/TSStack.v
+examples/TSStack/TimestampProof.v
+examples/TSStack/ListPoolProof.v
+examples/TSStack/TryStackAuxProof.v
+examples/TSStack/TryStackLinearization.v
+examples/TSStack/TryStackTrace.v
+examples/TSStack/TryStackProof.v
+examples/TSStack/TSStackProof.v
+examples/TSStack/SPListProof.v
+examples/TSStack/SPListFamily.v
 
 examples/CCAS/CCASCommon.v
 examples/CCAS/CASTask.v
@@ -100,4 +141,6 @@ examples/CCAS/CCAS.v
 examples/Exchanger/ExchangerSpec.v
 examples/Exchanger/Exchanger.v
 examples/Stacks/EBStack.v
+examples/Stacks/EBStackSep.v
+examples/Stacks/EBStackSepProof.v
 examples/Stacks/EBStack_TopLevel.v
