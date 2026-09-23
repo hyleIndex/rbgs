@@ -23,6 +23,7 @@ models/Sets.v
 models/FreeCategories.v
 models/Signature.v
 models/EffectSignatures.v
+models/RelaxedSignature.v
 models/IntSpec.v
 models/Coherence.v
 models/DCPO.v
@@ -43,6 +44,15 @@ models/logics/SeparationAlgebra.v
 models/logics/Logics.v
 
 models/simlin/LTS.v
+models/simlin/RelaxedLTS.v
+models/simlin/RelaxedPossibility.v
+models/simlin/RelaxedLang.v
+models/simlin/RelaxedSemantics.v
+models/simlin/RelaxedModuleSemantics.v
+models/simlin/RelaxedRGISimulation.v
+models/simlin/RelaxedAssertion.v
+models/simlin/RelaxedProofState.v
+models/simlin/RelaxedLogic.v
 
 models/simlin/Lang.v
 models/simlin/Semantics.v
@@ -65,6 +75,8 @@ examples/Common/AtomicLTS.v
 examples/Common/Heap.v
 examples/Common/MemSpec.v
 examples/Common/OwnedMemSpec.v
+examples/Relaxed/SemanticsExamples.v
+examples/Relaxed/MemoryLitmusExamples.v
 examples/FAI/FAISpec.v
 examples/Locks/LockSpec.v
 examples/Registers/RegSpec.v
