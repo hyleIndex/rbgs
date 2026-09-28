@@ -1,6 +1,7 @@
 (** Thread-local semantics for programs with explicit futures. *)
 
 Require Import Coq.Lists.List.
+Require Import Coq.micromega.Lia.
 Require Import Coq.Relations.Relation_Operators.
 
 Require Import models.EffectSignatures.
@@ -210,6 +211,16 @@ Module RelaxedSemantics.
             (k (MkFutureRef op h))
             (add_pending h op H))
 
+    (** The positional semantics ignores dependency tags. *)
+    | program_futureD op deps k h H
+        (Hfresh : handle_fresh h H) :
+        program_step t
+          (Emit (Build_ThreadEvent t (InvEv h op)))
+          (Build_ProgramConfig (FutureD op deps k) H)
+          (Build_ProgramConfig
+            (k (MkFutureRef op h))
+            (add_pending h op H))
+
     | program_wait_resolved op h ret k H
         (Hresolved : resolved_at h op ret H) :
         program_step t Silent
@@ -320,6 +331,347 @@ Module RelaxedSemantics.
     Qed.
 
   End ProgramSemantics.
+
+  (** ** Dependency-tagged program traces (WSC edit, 2026-09-28)
+
+      The paper's local semantics produces \emph{tagged} event lists: every
+      invocation event carries the set of handles it depends on, and the
+      module-level scheduler emits from a dag frontier in which a response
+      blocks only the invocations tagged with it.  [program_step] above is
+      the untagged (positional) semantics; the tagged semantics below
+      mirrors it rule by rule and records, on every invocation event, its
+      effective tag: for [FutureD op deps k] the handles of [deps] that are
+      resolved at the time of the invocation (an unresolved handle cannot
+      have contributed a value, which is the paper's side condition that
+      the arguments of an invocation are values), and for an untagged
+      [Future op k] every handle resolved so far. *)
+
+  Record TaggedEvent (E : RelaxedSig.t) : Type := {
+    tev_ev : RelaxedLTSSpec.ThreadEvent E;
+    tev_deps : RelaxedSig.handle E -> Prop;
+  }.
+
+  Arguments TaggedEvent _ : clear implicits.
+  Arguments Build_TaggedEvent {E} _ _.
+  Arguments tev_ev {E} _.
+  Arguments tev_deps {E} _.
+
+  (** Tags are erased when an event enters a global trace. *)
+  Definition untag {E} (m : TaggedEvent E) : RelaxedLTSSpec.ThreadEvent E :=
+    tev_ev m.
+
+  Definition no_deps {E} : RelaxedSig.handle E -> Prop := fun _ => False.
+
+  Definition resolved_in {E} (H : FutureStore E) (h : RelaxedSig.handle E) : Prop :=
+    exists op ret, resolved_at h op ret H.
+
+  Inductive TAction (E : RelaxedSig.t) : Type :=
+  | TSilent
+  | TEmit (m : TaggedEvent E).
+
+  Arguments TAction _ : clear implicits.
+  Arguments TSilent {E}.
+  Arguments TEmit {E} _.
+
+  Definition untag_action {E} (a : TAction E) : Action E :=
+    match a with
+    | TSilent => Silent
+    | TEmit m => Emit (untag m)
+    end.
+
+  Section TaggedProgramSemantics.
+    Context {E : RelaxedSig.t}.
+    Context {R : Type}.
+
+    Inductive program_step_tagged (t : tid) :
+        TAction E -> ProgramConfig E R -> ProgramConfig E R -> Prop :=
+    | tagged_future op k h H
+        (Hfresh : handle_fresh h H) :
+        program_step_tagged t
+          (TEmit (Build_TaggedEvent (Build_ThreadEvent t (InvEv h op)) (resolved_in H)))
+          (Build_ProgramConfig (Future op k) H)
+          (Build_ProgramConfig
+            (k (MkFutureRef op h))
+            (add_pending h op H))
+
+    | tagged_futureD op deps k h H
+        (Hfresh : handle_fresh h H) :
+        program_step_tagged t
+          (TEmit (Build_TaggedEvent (Build_ThreadEvent t (InvEv h op))
+                    (fun q => deps q /\ resolved_in H q)))
+          (Build_ProgramConfig (FutureD op deps k) H)
+          (Build_ProgramConfig
+            (k (MkFutureRef op h))
+            (add_pending h op H))
+
+    | tagged_wait_resolved op h ret k H
+        (Hresolved : resolved_at h op ret H) :
+        program_step_tagged t TSilent
+          (Build_ProgramConfig
+            (Wait (MkFutureRef op h) k) H)
+          (Build_ProgramConfig (k ret) H)
+
+    | tagged_wait_pending op h ret k H H'
+        (Hresolve : resolve_store h op ret H H') :
+        program_step_tagged t
+          (TEmit (Build_TaggedEvent (Build_ThreadEvent t (ResEv h op ret)) no_deps))
+          (Build_ProgramConfig
+            (Wait (MkFutureRef op h) k) H)
+          (Build_ProgramConfig (k ret) H')
+
+    | tagged_resolve op h ret p H H'
+        (Hresolve : resolve_store h op ret H H') :
+        program_step_tagged t
+          (TEmit (Build_TaggedEvent (Build_ThreadEvent t (ResEv h op ret)) no_deps))
+          (Build_ProgramConfig p H)
+          (Build_ProgramConfig p H')
+
+    | tagged_tau p H :
+        program_step_tagged t TSilent
+          (Build_ProgramConfig (Tau p) H)
+          (Build_ProgramConfig p H).
+
+    Inductive program_execution_tagged (t : tid) :
+        ProgramConfig E R ->
+        list (TaggedEvent E) ->
+        ProgramConfig E R -> Prop :=
+    | tagged_execution_refl c :
+        program_execution_tagged t c [] c
+    | tagged_execution_silent c1 c2 c3 trace
+        (Hstep : program_step_tagged t TSilent c1 c2)
+        (Hexec : program_execution_tagged t c2 trace c3) :
+        program_execution_tagged t c1 trace c3
+    | tagged_execution_emit c1 c2 c3 m trace
+        (Hstep : program_step_tagged t (TEmit m) c1 c2)
+        (Hexec : program_execution_tagged t c2 trace c3) :
+        program_execution_tagged t c1 (m :: trace) c3.
+
+    Definition program_produces_tagged
+        (t : tid)
+        (p : RelaxedLang.Prog E R)
+        (trace : list (TaggedEvent E))
+        (r : R) : Prop :=
+      exists c',
+        program_execution_tagged t (initial_program p) trace c' /\
+        program_terminal c' r.
+
+    (** *** Erasure: a tagged step is an untagged step *)
+
+    Lemma program_step_tagged_untag t a c c' :
+      program_step_tagged t a c c' -> program_step t (untag_action a) c c'.
+    Proof.
+      intros Hstep. inversion Hstep; subst; cbn.
+      - apply program_future; auto.
+      - apply program_futureD; auto.
+      - apply program_wait_resolved; auto.
+      - apply program_wait_pending; auto.
+      - apply program_resolve; auto.
+      - apply program_tau.
+    Qed.
+
+    Lemma program_execution_tagged_untag t c trace c' :
+      program_execution_tagged t c trace c' ->
+      program_execution t c (map untag trace) c'.
+    Proof.
+      intros Hexec. induction Hexec.
+      - apply program_execution_refl.
+      - eapply program_execution_silent; eauto.
+        apply (program_step_tagged_untag _ _ _ _ Hstep).
+      - cbn. eapply program_execution_emit; eauto.
+        apply (program_step_tagged_untag _ _ _ _ Hstep).
+    Qed.
+
+    Lemma program_produces_tagged_untag t p trace r :
+      program_produces_tagged t p trace r ->
+      program_produces t p (map untag trace) r.
+    Proof.
+      intros (c' & Hexec & Hterm). exists c'. split; auto.
+      apply program_execution_tagged_untag. exact Hexec.
+    Qed.
+
+    (** *** Lifting: every untagged step has a tagged counterpart *)
+
+    Lemma program_step_untag_tagged t a c c' :
+      program_step t a c c' ->
+      exists a', program_step_tagged t a' c c' /\ untag_action a' = a.
+    Proof.
+      intros Hstep. inversion Hstep; subst.
+      - eexists. split; [apply tagged_future; auto | reflexivity].
+      - eexists. split; [apply tagged_futureD; auto | reflexivity].
+      - eexists. split; [apply tagged_wait_resolved; eauto | reflexivity].
+      - eexists. split; [apply tagged_wait_pending; eauto | reflexivity].
+      - eexists. split; [apply tagged_resolve; eauto | reflexivity].
+      - eexists. split; [apply tagged_tau | reflexivity].
+    Qed.
+
+    Lemma program_execution_untag_tagged t c trace c' :
+      program_execution t c trace c' ->
+      exists trace', program_execution_tagged t c trace' c' /\ map untag trace' = trace.
+    Proof.
+      intros Hexec. induction Hexec as [c | c1 c2 c3 trace Hstep Hexec IH | c1 c2 c3 ev trace Hstep Hexec IH].
+      - exists []. split; [apply tagged_execution_refl | reflexivity].
+      - destruct IH as (trace' & Hexec' & Heq).
+        destruct (program_step_untag_tagged _ _ _ _ Hstep) as (a' & Hstep' & Ha').
+        destruct a' as [| m]; cbn in Ha'; [| discriminate].
+        exists trace'. split; auto. eapply tagged_execution_silent; eauto.
+      - destruct IH as (trace' & Hexec' & Heq).
+        destruct (program_step_untag_tagged _ _ _ _ Hstep) as (a' & Hstep' & Ha').
+        destruct a' as [| m]; cbn in Ha'; [discriminate |].
+        inversion Ha'; subst ev.
+        exists (m :: trace'). split; [eapply tagged_execution_emit; eauto | cbn; congruence].
+    Qed.
+
+    Lemma program_produces_untag_tagged t p trace r :
+      program_produces t p trace r ->
+      exists trace', program_produces_tagged t p trace' r /\ map untag trace' = trace.
+    Proof.
+      intros (c' & Hexec & Hterm).
+      destruct (program_execution_untag_tagged _ _ _ _ Hexec) as (trace' & Hexec' & Heq).
+      exists trace'. split; auto. exists c'. auto.
+    Qed.
+
+    (** *** Dependency soundness at the local level (Lemma lem:wsc-dep, first half)
+
+        A handle in the tag of an emitted invocation was resolved when the
+        invocation was issued, and a handle becomes resolved only by a step
+        that emits its response.  Hence the response of every handle an
+        invocation depends on precedes the invocation in the local trace. *)
+
+    Definition is_response_of {E'} (q : RelaxedSig.handle E') (ev : RelaxedLTSSpec.ThreadEvent E') : Prop :=
+      match te_ev E' ev with
+      | ResEv h _ _ => h = q
+      | InvEv _ _ => False
+      end.
+
+    Lemma resolved_in_add_pending (H : FutureStore E) h op q :
+      resolved_in (add_pending h op H) q -> resolved_in H q.
+    Proof.
+      intros (op' & ret & Hin). unfold add_pending in Hin. cbn in Hin.
+      destruct Hin as [Heq | Hin]; [discriminate |]. exists op', ret. exact Hin.
+    Qed.
+
+    Lemma resolved_in_resolve_store (H H' : FutureStore E) h op ret q :
+      resolve_store h op ret H H' -> resolved_in H' q -> q = h \/ resolved_in H q.
+    Proof.
+      intros Hres. induction Hres as [tail | h' cell H H' Hneq Hres IH]; intros (op' & ret' & Hin).
+      - cbn in Hin. destruct Hin as [Heq | Hin].
+        + inversion Heq; subst. left. reflexivity.
+        + right. exists op', ret'. right. exact Hin.
+      - cbn in Hin. destruct Hin as [Heq | Hin].
+        + right. exists op', ret'. left. exact Heq.
+        + destruct (IH (ex_intro _ op' (ex_intro _ ret' Hin))) as [Hq | (op'' & ret'' & Hin'')].
+          * left. exact Hq.
+          * right. exists op'', ret''. right. exact Hin''.
+    Qed.
+
+    (** Along a tagged execution from a configuration whose resolved
+        handles all have their response in a prefix [pre], every handle
+        resolved later has its response in the trace, before the position
+        where it first appears resolved. *)
+    Lemma tagged_execution_resolved_emitted t c trace c' :
+      program_execution_tagged t c trace c' ->
+      forall i m q,
+        nth_error trace i = Some m ->
+        tev_deps m q ->
+        resolved_in (pc_futures c) q \/
+        exists j r, j < i /\ nth_error trace j = Some r /\ is_response_of q (untag r).
+    Proof.
+      intros Hexec. induction Hexec as [c | c1 c2 c3 trace Hstep Hexec IH | c1 c2 c3 m0 trace Hstep Hexec IH];
+        intros i m q Hi Hq.
+      - destruct i; discriminate.
+      - (* silent steps do not change the store's resolved handles *)
+        destruct (IH i m q Hi Hq) as [Hres | Hres]; [| right; exact Hres].
+        left. inversion Hstep; subst; cbn in *; exact Hres.
+      - destruct i as [| i]; cbn in Hi.
+        + inversion Hi; subst m0. clear Hi.
+          (* the emitted event's tag refers to handles resolved before the step *)
+          left. inversion Hstep; subst; cbn in *.
+          * exact Hq.
+          * destruct Hq as [_ Hq]. exact Hq.
+          * destruct Hq.
+          * destruct Hq.
+        + destruct (IH i m q Hi Hq) as [Hres | (j & r & Hj & Hjr & Hresp)].
+          * inversion Hstep; subst; cbn in *.
+            -- left. eapply resolved_in_add_pending. exact Hres.
+            -- left. eapply resolved_in_add_pending. exact Hres.
+            -- destruct (resolved_in_resolve_store _ _ _ _ _ _ Hresolve Hres) as [-> | Hres'].
+               ++ right. exists 0. eexists. split; [lia | split; [reflexivity | cbn; reflexivity]].
+               ++ left. exact Hres'.
+            -- destruct (resolved_in_resolve_store _ _ _ _ _ _ Hresolve Hres) as [-> | Hres'].
+               ++ right. exists 0. eexists. split; [lia | split; [reflexivity | cbn; reflexivity]].
+               ++ left. exact Hres'.
+          * right. exists (S j), r. split; [lia | auto].
+    Qed.
+
+    Lemma program_step_tagged_emit_tid t m c c' :
+      program_step_tagged t (TEmit m) c c' -> te_tid E (untag m) = t.
+    Proof. intro Hstep. inversion Hstep; reflexivity. Qed.
+
+    Lemma program_execution_tagged_trace_tid t c trace c' :
+      program_execution_tagged t c trace c' ->
+      Forall (fun m => te_tid E (untag m) = t) trace.
+    Proof.
+      intro Hexec. induction Hexec.
+      - constructor.
+      - exact IHHexec.
+      - constructor; [eapply program_step_tagged_emit_tid; eauto | exact IHHexec].
+    Qed.
+
+    Lemma program_produces_tagged_trace_tid t p trace r :
+      program_produces_tagged t p trace r ->
+      Forall (fun m => te_tid E (untag m) = t) trace.
+    Proof.
+      intros (c' & Hexec & _). eapply program_execution_tagged_trace_tid; eauto.
+    Qed.
+
+    (** Responses carry no dependencies. *)
+    Definition is_invocation {E'} (ev : RelaxedLTSSpec.ThreadEvent E') : Prop :=
+      match te_ev E' ev with
+      | InvEv _ _ => True
+      | ResEv _ _ _ => False
+      end.
+
+    Lemma program_step_tagged_deps_invocation t m c c' q :
+      program_step_tagged t (TEmit m) c c' -> tev_deps m q -> is_invocation (untag m).
+    Proof.
+      intros Hstep Hq. inversion Hstep; subst; cbn in *; try exact I; destruct Hq.
+    Qed.
+
+    Lemma program_execution_tagged_deps_invocation t c trace c' :
+      program_execution_tagged t c trace c' ->
+      Forall (fun m => forall q, tev_deps m q -> is_invocation (untag m)) trace.
+    Proof.
+      intro Hexec. induction Hexec.
+      - constructor.
+      - exact IHHexec.
+      - constructor; [intros q Hq; eapply program_step_tagged_deps_invocation; eauto | exact IHHexec].
+    Qed.
+
+    Lemma program_produces_tagged_deps_invocation t p trace r :
+      program_produces_tagged t p trace r ->
+      Forall (fun m => forall q, tev_deps m q -> is_invocation (untag m)) trace.
+    Proof.
+      intros (c' & Hexec & _). eapply program_execution_tagged_deps_invocation; eauto.
+    Qed.
+
+    Lemma resolved_in_empty q : ~ resolved_in (@empty_store E) q.
+    Proof. intros (op & ret & Hin). inversion Hin. Qed.
+
+    (** In a trace produced from the initial configuration, the response of
+        every handle an invocation is tagged with precedes the invocation. *)
+    Lemma program_produces_tagged_dependency t p trace r :
+      program_produces_tagged t p trace r ->
+      forall i m q,
+        nth_error trace i = Some m ->
+        tev_deps m q ->
+        exists j r', j < i /\ nth_error trace j = Some r' /\ is_response_of q (untag r').
+    Proof.
+      intros (c' & Hexec & _) i m q Hi Hq.
+      destruct (tagged_execution_resolved_emitted _ _ _ _ Hexec i m q Hi Hq) as [Hres | Hres]; auto.
+      exfalso. eapply resolved_in_empty. exact Hres.
+    Qed.
+
+  End TaggedProgramSemantics.
 
   (** ** Thread-local configurations linked to an underlay LTS *)
 

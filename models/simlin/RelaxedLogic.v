@@ -171,6 +171,8 @@ Module RelaxedLogic.
       intros Hprimitive A config config' event Hstep.
       inversion Hstep; subst.
       - now apply (future_obligation owner thread Hprimitive).
+      - (* [FutureD]: the positional semantics ignores the tag *)
+        now apply (future_obligation owner thread Hprimitive).
       - now apply (response_obligation owner thread Hprimitive).
       - now apply (response_obligation owner thread Hprimitive).
     Qed.

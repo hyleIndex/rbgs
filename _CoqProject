@@ -7,6 +7,7 @@
 -R models models
 -R examples examples
 -R interfaces interfaces
+-R memory memory
 
 structures/Poset.v
 models/Sets.v
@@ -85,6 +86,7 @@ examples/CustomStateSA.v
 examples/FrameRule.v
 examples/Relaxed/SemanticsExamples.v
 examples/Relaxed/MemoryLitmusExamples.v
+examples/Relaxed/DependencyFrontierExamples.v
 examples/FAI/FAISpec.v
 examples/Locks/LockSpec.v
 examples/Registers/RegSpec.v
@@ -130,3 +132,16 @@ examples/Stacks/EBStack.v
 examples/Stacks/EBStackSep.v
 examples/Stacks/EBStackSepProof.v
 examples/Stacks/EBStack_TopLevel.v
+
+# Buffered memory and its declarative characterization (Appendix L)
+memory/Prelude.v
+memory/Cell.v
+memory/Declarative.v
+memory/Pending.v
+memory/Extraction.v
+memory/Realization.v
+memory/Equivalence.v
+memory/Consequences.v
+memory/RC11.v
+memory/ARM.v
+memory/TSO.v
