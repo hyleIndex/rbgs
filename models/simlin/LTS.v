@@ -1,6 +1,6 @@
 Require Import models.EffectSignatures.
 Require Import LinCCAL.
-Require Import Coq.Program.Equality.
+Require Import Stdlib.Program.Equality.
 
 Module LTSSpec.
   Import Reg.

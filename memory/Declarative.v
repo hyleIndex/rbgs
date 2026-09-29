@@ -9,14 +9,14 @@
     mode, value and handle, so "presents" (Def. mem:def:present) becomes a
     permutation, and the bijection of the paper is the identity. *)
 
-Require Import Coq.Lists.List.
-Require Import Coq.Arith.Arith.
-Require Import Coq.micromega.Lia.
-Require Import Coq.PArith.PArith.
-Require Import Coq.Sorting.Permutation.
-Require Import Coq.Logic.Classical.
-Require Import Coq.Relations.Relation_Definitions.
-Require Import Coq.Relations.Relation_Operators.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Arith.Arith.
+Require Import Stdlib.micromega.Lia.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.Sorting.Permutation.
+Require Import Stdlib.Logic.Classical.
+Require Import Stdlib.Relations.Relation_Definitions.
+Require Import Stdlib.Relations.Relation_Operators.
 
 Require Import models.RelaxedSignature.
 Require Import memory.Prelude.
@@ -33,9 +33,9 @@ Module Decl.
   Section Decl.
     Context (C : Cfg).
 
-    Notation block := (block C).
-    Notation cell_op := (cell_op C).
-    Notation trace := (trace C).
+    Abbreviation block := (block C).
+    Abbreviation cell_op := (cell_op C).
+    Abbreviation trace := (trace C).
 
     (** ** Execution candidates (Def. mem:def:cand) *)
 

@@ -26,10 +26,10 @@
 
     so (D1) together with acyclic(Dc ∪ S) implies ARM consistency. *)
 
-Require Import Coq.Lists.List.
-Require Import Coq.Relations.Relation_Definitions.
-Require Import Coq.Relations.Relation_Operators.
-Require Import Coq.Logic.Classical.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Relations.Relation_Definitions.
+Require Import Stdlib.Relations.Relation_Operators.
+Require Import Stdlib.Logic.Classical.
 
 Require Import models.RelaxedSignature.
 Require Import memory.Prelude.
@@ -45,11 +45,11 @@ Module ARM.
 
   Section ARM.
     Context (Loc : Type) (dec : forall x y : Loc, {x = y} + {x <> y}).
-    Notation C := (RC_cfg dec).
-    Notation block := (block C).
-    Notation I := (mode_indep (C := C)).
-    Notation is_rel := (Consequences.is_rel Loc dec).
-    Notation is_acq := (Consequences.is_acq Loc dec).
+    Abbreviation C := (RC_cfg dec).
+    Abbreviation block := (block C).
+    Abbreviation I := (mode_indep (C := C)).
+    Abbreviation is_rel := (Consequences.is_rel Loc dec).
+    Abbreviation is_acq := (Consequences.is_acq Loc dec).
 
     Variable X : cand C.
     Hypothesis HX : wf_cand X.
@@ -78,15 +78,15 @@ Module ARM.
     Hypothesis HW_dep : forall a b, dep a b -> pre a b.
     Hypothesis HW_dep_po : forall a b c, dep a b -> po X b c -> pre a c.
 
-    Notation Dc := (Dc X I w pre).
+    Abbreviation Dc := (Dc X I w pre).
 
-    Notation pre0_pre := (Consequences.pre0_pre Loc dec X HX pre Hadm w).
-    Notation acq_po_Dc := (Consequences.acq_po_Dc Loc dec X HX pre Hadm w).
-    Notation po_rel_Dc := (Consequences.po_rel_Dc Loc dec X HX pre Hadm w).
-    Notation rfe_Dc := (Consequences.rfe_Dc Loc dec X HX pre Hadm w).
-    Notation mo_Dc := (Consequences.mo_Dc Loc dec X HX pre Hadm w).
-    Notation rb_Dc := (Consequences.rb_Dc Loc dec X HX pre Hadm w).
-    Notation read_pre_Dc := (Consequences.read_pre_Dc Loc dec X HX pre Hadm w).
+    Abbreviation pre0_pre := (Consequences.pre0_pre Loc dec X HX pre Hadm w).
+    Abbreviation acq_po_Dc := (Consequences.acq_po_Dc Loc dec X HX pre Hadm w).
+    Abbreviation po_rel_Dc := (Consequences.po_rel_Dc Loc dec X HX pre Hadm w).
+    Abbreviation rfe_Dc := (Consequences.rfe_Dc Loc dec X HX pre Hadm w).
+    Abbreviation mo_Dc := (Consequences.mo_Dc Loc dec X HX pre Hadm w).
+    Abbreviation rb_Dc := (Consequences.rb_Dc Loc dec X HX pre Hadm w).
+    Abbreviation read_pre_Dc := (Consequences.read_pre_Dc Loc dec X HX pre Hadm w).
 
     (** ** The ARMv8 relations on the fragment *)
 

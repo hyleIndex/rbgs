@@ -1,9 +1,9 @@
-Require Import FMapPositive.
-Require Import Relation_Operators Operators_Properties.
-Require Import Coq.PArith.PArith.
-Require Import Coq.Program.Equality.
-Require Import Lia.
-Require Import PeanoNat.
+Require Import Stdlib.FSets.FMapPositive.
+Require Import Stdlib.Relations.Relation_Operators Stdlib.Relations.Operators_Properties.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.Program.Equality.
+Require Import Stdlib.micromega.Lia.
+Require Import Stdlib.Arith.PeanoNat.
 
 Require Import coqrel.LogicalRelations.
 Require Import models.EffectSignatures.
@@ -301,12 +301,12 @@ Module TicketLockImpl.
             (* + intros; subst.
               specialize (H0 _ eq_refl) as [? ?]; subst.
               exists (x ++ t1 :: nil). auto.
-            + rewrite app_length, H1. simpl.
+            + rewrite length_app, H1. simpl.
               destruct hd; simpl; lia. *)
           - unfold InQueue. simpl. split.
             + intros. unfold OwnedBy, TicketOwnedBy in *. simpl in *.
               apply H0 in H as [? ?]; subst. simpl. eauto.
-            + rewrite app_length, H1. simpl.
+            + rewrite length_app, H1. simpl.
               destruct hd; simpl; lia.
               (* rewrite <- H1, nth_error_app2; try lia.
               destruct (length q - length q) eqn:eq; split; try lia; auto. *)

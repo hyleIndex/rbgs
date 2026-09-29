@@ -1,9 +1,9 @@
-Require Import FMapPositive.
-Require Import Coq.Lists.List.
-Require Import Coq.Logic.Classical_Prop.
-Require Import Coq.Logic.ClassicalChoice.
-Require Import Coq.Program.Equality.
-Require Import Relation_Operators.
+Require Import Stdlib.FSets.FMapPositive.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Logic.Classical_Prop.
+Require Import Stdlib.Logic.ClassicalChoice.
+Require Import Stdlib.Program.Equality.
+Require Import Stdlib.Relations.Relation_Operators.
 
 Require Import models.EffectSignatures.
 Require Import LinCCAL.

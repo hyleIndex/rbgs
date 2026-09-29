@@ -1,5 +1,5 @@
-Require Import FMapPositive.
-Require Import Coq.Program.Equality.
+Require Import Stdlib.FSets.FMapPositive.
+Require Import Stdlib.Program.Equality.
 
 Require Import coqrel.LogicalRelations.
 Require Import models.EffectSignatures.

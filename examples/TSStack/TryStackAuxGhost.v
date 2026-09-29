@@ -1,8 +1,8 @@
-Require Import FMapPositive.
-Require Import Coq.Arith.PeanoNat.
-Require Import Coq.PArith.PArith.
-Require Import Lia.
-Require Import Coq.Logic.Classical_Prop.
+Require Import Stdlib.FSets.FMapPositive.
+Require Import Stdlib.Arith.PeanoNat.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.micromega.Lia.
+Require Import Stdlib.Logic.Classical_Prop.
 
 Require Import models.EffectSignatures.
 Require Import examples.Common.Heap.

@@ -1,6 +1,6 @@
-Require Import FMapPositive.
-Require Import Coq.PArith.PArith.
-Require Import Coq.Program.Equality.
+Require Import Stdlib.FSets.FMapPositive.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.Program.Equality.
 
 Require Import models.EffectSignatures.
 Require Import models.LinCCAL.

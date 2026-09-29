@@ -9,14 +9,14 @@
     for [RC.I]; also true of [TSO.I] and [PSO.I]), which is all the
     proofs of Section L.6 use about [RC.I]. *)
 
-Require Import Coq.Lists.List.
-Require Import Coq.Arith.Arith.
-Require Import Coq.micromega.Lia.
-Require Import Coq.PArith.PArith.
-Require Import Coq.Sorting.Permutation.
-Require Import Coq.Logic.Classical.
-Require Import Coq.Relations.Relation_Definitions.
-Require Import Coq.Relations.Relation_Operators.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Arith.Arith.
+Require Import Stdlib.micromega.Lia.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.Sorting.Permutation.
+Require Import Stdlib.Logic.Classical.
+Require Import Stdlib.Relations.Relation_Definitions.
+Require Import Stdlib.Relations.Relation_Operators.
 
 Require Import memory.Prelude.
 Require Import memory.Cell.
@@ -32,8 +32,8 @@ Module Extraction.
   Section Extraction.
     Context (C : Cfg).
 
-    Notation block := (block C).
-    Notation trace := (trace C).
+    Abbreviation block := (block C).
+    Abbreviation trace := (trace C).
 
     Variable I : cell_op C -> cell_op C -> Prop.
     Hypothesis HI : forall m m', I m m' -> op_loc m <> op_loc m'.
@@ -306,15 +306,15 @@ Module Extraction.
       Lemma Henb : forall x, enabled_along x sb.
       Proof. intros x. apply VBuf_proj_iff. apply HVb. Qed.
 
-      Notation at_idx := (Pending.at_idx C sb).
-      Notation pfx := (Pending.pfx C sb).
-      Notation pending := (Pending.pending C sb).
-      Notation head_at := (Pending.head_at C sb).
-      Notation last_at := (Pending.last_at C sb).
-      Notation flush_at := (Pending.flush_at C sb).
-      Notation removes := (Pending.removes C sb).
-      Notation last_flush_before := (Pending.last_flush_before C sb).
-      Notation no_flush_before := (Pending.no_flush_before C sb).
+      Abbreviation at_idx := (Pending.at_idx C sb).
+      Abbreviation pfx := (Pending.pfx C sb).
+      Abbreviation pending := (Pending.pending C sb).
+      Abbreviation head_at := (Pending.head_at C sb).
+      Abbreviation last_at := (Pending.last_at C sb).
+      Abbreviation flush_at := (Pending.flush_at C sb).
+      Abbreviation removes := (Pending.removes C sb).
+      Abbreviation last_flush_before := (Pending.last_flush_before C sb).
+      Abbreviation no_flush_before := (Pending.no_flush_before C sb).
 
       (** *** Indices *)
 

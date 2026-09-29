@@ -1,8 +1,8 @@
 (** Litmus tests for the handle-aware relaxed possibility semantics. *)
 
-Require Import Coq.Lists.List.
-Require Import Coq.PArith.PArith.
-Require Import Coq.Relations.Relation_Operators.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.Relations.Relation_Operators.
 
 Require Import models.EffectSignatures.
 Require Import models.RelaxedSignature.

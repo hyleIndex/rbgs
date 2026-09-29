@@ -1,10 +1,10 @@
-Require Import FMapPositive.
-Require Import Coq.Arith.PeanoNat.
-Require Import Coq.Arith.Arith.
-Require Import Coq.PArith.PArith.
-Require Import Coq.Logic.Classical_Prop.
-Require Import Coq.Relations.Relation_Operators.
-Require Import Lia.
+Require Import Stdlib.FSets.FMapPositive.
+Require Import Stdlib.Arith.PeanoNat.
+Require Import Stdlib.Arith.Arith.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.Logic.Classical_Prop.
+Require Import Stdlib.Relations.Relation_Operators.
+Require Import Stdlib.micromega.Lia.
 
 Require Import models.EffectSignatures.
 Require Import LinCCAL.
@@ -1121,9 +1121,9 @@ Module TryStackLinearization.
   Section Replay.
     Context {A : Type} (D : ThreadDomain.t).
 
-    Notation VF := (@VTryStack A D).
-    Notation psteps := (@poss_steps ETryStack VF).
-    Notation Ok rho pi := (@PossOk ETryStack VF rho pi).
+    Abbreviation VF := (@VTryStack A D).
+    Abbreviation psteps := (@poss_steps ETryStack VF).
+    Abbreviation Ok rho pi := (@PossOk ETryStack VF rho pi).
 
     (** Replaying the abstract push-inv of [n] placed at [P]. *)
     Lemma replay_inv s phi h P pd n v rho pi :

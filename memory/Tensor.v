@@ -35,12 +35,12 @@
     factors is the intended reading of Def. mem:def:tensor but none of
     the equations below needs it. *)
 
-Require Import Coq.Lists.List.
-Require Import Coq.Bool.Bool.
-Require Import Coq.Arith.Arith.
-Require Import Coq.micromega.Lia.
-Require Import Coq.Sorting.Permutation.
-Require Import Coq.PArith.PArith.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Bool.Bool.
+Require Import Stdlib.Arith.Arith.
+Require Import Stdlib.micromega.Lia.
+Require Import Stdlib.Sorting.Permutation.
+Require Import Stdlib.PArith.PArith.
 
 Require Import models.EffectSignatures.
 Require Import models.RelaxedSignature.
@@ -56,12 +56,12 @@ Module Tensor.
   Section Tensor.
     Context (C : Cfg).
 
-    Notation Loc := (Loc C).
-    Notation block := (block C).
-    Notation trace := (trace C).
-    Notation proj := (proj (C := C)).
-    Notation at_loc := (at_loc (C := C)).
-    Notation loc_eqb := (loc_eqb (C := C)).
+    Abbreviation Loc := (Loc C).
+    Abbreviation block := (block C).
+    Abbreviation trace := (trace C).
+    Abbreviation proj := (proj (C := C)).
+    Abbreviation at_loc := (at_loc (C := C)).
+    Abbreviation loc_eqb := (loc_eqb (C := C)).
 
     (** ** Location sets *)
 
@@ -440,8 +440,8 @@ Module Tensor.
     (** ** The flush contract is closed under projection *)
 
     Section Contract.
-      Notation pend := (pend (C := C)).
-      Notation remove_first_at := (remove_first_at (C := C)).
+      Abbreviation pend := (pend (C := C)).
+      Abbreviation remove_first_at := (remove_first_at (C := C)).
 
       Lemma proj_set_remove_first_at A x l :
         proj_set A (remove_first_at x l) =

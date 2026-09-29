@@ -18,6 +18,7 @@ End PropositionalLogic.
 #[global] Hint Unfold APure TT FF : core.
 
 
+Declare Scope assertion_scope.
 Delimit Scope assertion_scope with Assertion.
 Bind Scope assertion_scope with Assertion.
 

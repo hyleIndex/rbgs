@@ -1,6 +1,6 @@
 (** Labelled transition systems over relaxed effect signatures. *)
 
-Require Import Coq.Program.Equality.
+Require Import Stdlib.Program.Equality.
 
 Require Import models.EffectSignatures.
 Require Import models.RelaxedSignature.

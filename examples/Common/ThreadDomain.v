@@ -1,5 +1,5 @@
-Require Import Coq.Lists.List.
-Require Import Coq.PArith.PArith.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.PArith.PArith.
 
 Require Import LinCCAL.
 

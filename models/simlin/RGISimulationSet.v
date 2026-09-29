@@ -1,10 +1,10 @@
-Require Import FMapPositive.
-Require Import Coq.PArith.PArith.
-Require Import Coq.Program.Equality.
-Require Import Coq.Lists.List.
-Require Import Coq.Arith.Arith.
-Require Import Lia.
-Require Import Classical.
+Require Import Stdlib.FSets.FMapPositive.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.Program.Equality.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Arith.Arith.
+Require Import Stdlib.micromega.Lia.
+Require Import Stdlib.Logic.Classical.
 
 Require Import models.EffectSignatures.
 Require Import LinCCAL.

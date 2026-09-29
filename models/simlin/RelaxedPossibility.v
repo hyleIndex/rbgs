@@ -1,7 +1,7 @@
 (** Handle-aware abstract possibilities for relaxed simulation. *)
 
-Require Import Coq.Lists.List.
-Require Import Coq.Relations.Relation_Operators.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Relations.Relation_Operators.
 
 Require Import models.EffectSignatures.
 Require Import models.RelaxedSignature.

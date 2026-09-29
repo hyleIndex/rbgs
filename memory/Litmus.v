@@ -19,13 +19,13 @@
     within a thread; witnesses are given by lists of pairs.  Acyclicity is
     shown by potentials, RC11's COHERENCE by the normal form of [eco]. *)
 
-Require Import Coq.Lists.List.
-Require Import Coq.Relations.Relation_Definitions.
-Require Import Coq.Relations.Relation_Operators.
-Require Import Coq.PArith.PArith.
-Require Import Coq.Arith.Arith.
-Require Import Coq.micromega.Lia.
-Require Import Coq.Logic.Classical.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Relations.Relation_Definitions.
+Require Import Stdlib.Relations.Relation_Operators.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.Arith.Arith.
+Require Import Stdlib.micromega.Lia.
+Require Import Stdlib.Logic.Classical.
 
 Require Import models.RelaxedSignature.
 Require Import memory.Prelude.
@@ -34,7 +34,7 @@ Require Import memory.Declarative.
 Require Import memory.Consequences.
 Require Import memory.RC11.
 Require Import memory.ARM.
-Require Import Coq.Sorting.Permutation.
+Require Import Stdlib.Sorting.Permutation.
 Require Import memory.Equivalence.
 Require Import memory.Tensor.
 
@@ -51,10 +51,10 @@ Module Litmus.
   Definition Loc4_dec : forall a b : Loc4, {a = b} + {a <> b}.
   Proof. decide equality. Defined.
 
-  Notation C := (RC_cfg Loc4_dec).
-  Notation block := (block C).
-  Notation I := (mode_indep (C := C)).
-  Notation pre0_iff := (pre0_iff Loc4 Loc4_dec).
+  Abbreviation C := (RC_cfg Loc4_dec).
+  Abbreviation block := (block C).
+  Abbreviation I := (mode_indep (C := C)).
+  Abbreviation pre0_iff := (pre0_iff Loc4 Loc4_dec).
 
   (** ** Candidates from lists, witnesses from pair lists *)
 
@@ -731,8 +731,8 @@ Module Litmus.
 
     Import Tensor.
 
-    Notation lsx := (lsingle (C := C) lx).
-    Notation lsy := (lsingle (C := C) ly).
+    Abbreviation lsx := (lsingle (C := C) lx).
+    Abbreviation lsy := (lsingle (C := C) ly).
 
     Lemma proj_lx : proj_set lsx l = [wx; rx].
     Proof. reflexivity. Qed.

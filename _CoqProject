@@ -3,7 +3,6 @@
 
 -R coqrel coqrel
 -R structures structures
--R lattices lattices
 -R models models
 -R examples examples
 -R interfaces interfaces

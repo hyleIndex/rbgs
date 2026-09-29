@@ -30,11 +30,11 @@
     The dependency relations are parameters, as in [ARM.v]; the proof uses
     only that [data] targets writes, true of ARM's syntactic dependencies. *)
 
-Require Import Coq.Lists.List.
-Require Import Coq.Relations.Relation_Definitions.
-Require Import Coq.Relations.Relation_Operators.
-Require Import Coq.PArith.PArith.
-Require Import Coq.Logic.Classical.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Relations.Relation_Definitions.
+Require Import Stdlib.Relations.Relation_Operators.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.Logic.Classical.
 
 Require Import models.RelaxedSignature.
 Require Import memory.Prelude.
@@ -51,11 +51,11 @@ Module ARMDecl.
 
   Section ARMDecl.
     Context (Loc : Type) (dec : forall x y : Loc, {x = y} + {x <> y}).
-    Notation C := (RC_cfg dec).
-    Notation block := (block C).
-    Notation I := (mode_indep (C := C)).
-    Notation is_rel := (Consequences.is_rel Loc dec).
-    Notation is_acq := (Consequences.is_acq Loc dec).
+    Abbreviation C := (RC_cfg dec).
+    Abbreviation block := (block C).
+    Abbreviation I := (mode_indep (C := C)).
+    Abbreviation is_rel := (Consequences.is_rel Loc dec).
+    Abbreviation is_acq := (Consequences.is_acq Loc dec).
 
     Variable X : cand C.
     Hypothesis HX : wf_cand X.
@@ -70,15 +70,15 @@ Module ARMDecl.
         [ob] edge [data;[R]] would have nothing to be redirected to). *)
     Hypothesis Hdata_write : forall a b, data a b -> is_write b.
 
-    Notation obs := (ARM.obs Loc dec X w).
-    Notation dob := (ARM.dob Loc dec X w addr data ctrl).
-    Notation S := (ARM.S Loc dec X).
-    Notation bob0 := (ARM.bob0 Loc dec X w).
-    Notation bob := (ARM.bob Loc dec X w).
-    Notation ob := (ARM.ob Loc dec X w addr data ctrl).
-    Notation internal := (ARM.internal Loc dec X w).
-    Notation external := (ARM.external Loc dec X w addr data ctrl).
-    Notation arm_consistent := (ARM.arm_consistent Loc dec X w addr data ctrl).
+    Abbreviation obs := (ARM.obs Loc dec X w).
+    Abbreviation dob := (ARM.dob Loc dec X w addr data ctrl).
+    Abbreviation S := (ARM.S Loc dec X).
+    Abbreviation bob0 := (ARM.bob0 Loc dec X w).
+    Abbreviation bob := (ARM.bob Loc dec X w).
+    Abbreviation ob := (ARM.ob Loc dec X w addr data ctrl).
+    Abbreviation internal := (ARM.internal Loc dec X w).
+    Abbreviation external := (ARM.external Loc dec X w addr data ctrl).
+    Abbreviation arm_consistent := (ARM.arm_consistent Loc dec X w addr data ctrl).
 
     (** ** The ARM-shaped global axiom *)
 
@@ -146,11 +146,11 @@ Module ARMDecl.
         + destruct Hrelmoi as (y & [Hpo Hrel] & Hmoi). eapply g_po_rel_moi; eassumption.
     Qed.
 
-    Notation rf_tgt_read := (Consequences.rf_tgt_read C X w Hw).
-    Notation mo_src_write := (Consequences.mo_src_write C X w Hw).
-    Notation mo_tgt_write := (Consequences.mo_tgt_write C X w Hw).
-    Notation rb_src_read := (Consequences.rb_src_read C X w).
-    Notation rb_tgt_write := (Consequences.rb_tgt_write C X w).
+    Abbreviation rf_tgt_read := (Consequences.rf_tgt_read C X w Hw).
+    Abbreviation mo_src_write := (Consequences.mo_src_write C X w Hw).
+    Abbreviation mo_tgt_write := (Consequences.mo_tgt_write C X w Hw).
+    Abbreviation rb_src_read := (Consequences.rb_src_read C X w).
+    Abbreviation rb_tgt_write := (Consequences.rb_tgt_write C X w).
 
     (** ** Internal communication edges *)
 
@@ -382,9 +382,9 @@ Module ARMDecl.
 
   Section Containment.
     Context (Loc : Type) (dec : forall x y : Loc, {x = y} + {x <> y}).
-    Notation C := (RC_cfg dec).
-    Notation block := (block C).
-    Notation I := (mode_indep (C := C)).
+    Abbreviation C := (RC_cfg dec).
+    Abbreviation block := (block C).
+    Abbreviation I := (mode_indep (C := C)).
 
     Variable X : cand C.
     Hypothesis HX : wf_cand X.
@@ -398,9 +398,9 @@ Module ARMDecl.
     Hypothesis HW_dep : forall a b, ARM.dep Loc dec addr data ctrl a b -> pre a b.
     Hypothesis HW_dep_po : forall a b c, ARM.dep Loc dec addr data ctrl a b -> po X b c -> pre a c.
 
-    Notation Dc := (Dc X I w pre).
-    Notation S := (ARM.S Loc dec X).
-    Notation Dc_ARM := (Dc_ARM Loc dec X w addr data ctrl).
+    Abbreviation Dc := (Dc X I w pre).
+    Abbreviation S := (ARM.S Loc dec X).
+    Abbreviation Dc_ARM := (Dc_ARM Loc dec X w addr data ctrl).
 
     Theorem Dc_ARM_Dc_S : Dc_ARM ⊆ (Dc ∪ S)⁺.
     Proof.

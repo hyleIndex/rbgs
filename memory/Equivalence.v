@@ -10,8 +10,8 @@
     (Def. mem:def:instances), so the theorem is stated for the mode-induced
     relation of every instance ([declarative_instances]). *)
 
-Require Import Coq.Lists.List.
-Require Import Coq.Relations.Relation_Definitions.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Relations.Relation_Definitions.
 
 Require Import models.RelaxedSignature.
 Require Import memory.Prelude.

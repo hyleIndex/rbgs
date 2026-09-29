@@ -1,7 +1,7 @@
 (* Relaxed effect signatures. *)
 
-Require Import Coq.Relations.Relation_Definitions.
-Require Import Coq.Classes.RelationClasses.
+Require Import Stdlib.Relations.Relation_Definitions.
+Require Import Stdlib.Classes.RelationClasses.
 Require Import models.EffectSignatures.
 
 

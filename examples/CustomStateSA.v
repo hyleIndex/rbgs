@@ -1,4 +1,4 @@
-Require Import Coq.micromega.Lia.
+Require Import Stdlib.micromega.Lia.
 Require Import models.EffectSignatures.
 Require Import models.LinCCAL.
 Require Import models.logics.SeparationAlgebra.

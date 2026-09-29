@@ -1,10 +1,10 @@
-Require Import Coq.Lists.List.
-Require Import Coq.PArith.PArith.
-Require Import Lia.
-Require Import FMapPositive.
-Require Import Relation_Operators Operators_Properties.
-Require Import Coq.Program.Equality.
-Require Import Logic.FunctionalExtensionality.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.micromega.Lia.
+Require Import Stdlib.FSets.FMapPositive.
+Require Import Stdlib.Relations.Relation_Operators Stdlib.Relations.Operators_Properties.
+Require Import Stdlib.Program.Equality.
+Require Import Stdlib.Logic.FunctionalExtensionality.
 
 Require Import models.EffectSignatures.
 Require Import LinCCAL.
@@ -71,7 +71,7 @@ Module CompLinHComp.
           assert (n = List.length (tc_trace X)) by lia.
           repeat split; [apply rt_refl | apply rt_step; exact Hstep | lia].
         + assert (Hlen : List.length (tc_trace Z) = (List.length (tc_trace X) + 1)%nat).
-          { rewrite Heq, app_length. simpl. lia. }
+          { rewrite Heq, length_app. simpl. lia. }
           assert (Hn : n = List.length (tc_trace X) \/ n = List.length (tc_trace Z)) by lia.
           destruct Hn as [Hn | Hn].
           * exists X. repeat split; [apply rt_refl | apply rt_step; exact Hstep | lia].
@@ -139,7 +139,7 @@ Module CompLinHComp.
       induction Htr as [A B Hstep | A | A Y B Htr1 IH1 Htr2 IH2]; intros Heq.
       - exists A, B. repeat split; auto; [apply rt_refl | apply rt_refl].
       - exfalso. apply (f_equal (@List.length _)) in Heq.
-        rewrite app_length in Heq. simpl in Heq. lia.
+        rewrite length_app in Heq. simpl in Heq. lia.
       - destruct (trace_steps_monotone A Y Htr1) as [tlY HeqY].
         destruct (trace_steps_monotone Y B Htr2) as [tlB HeqB].
         assert (Hcomb : tlY ++ tlB = it :: nil).
@@ -1094,9 +1094,9 @@ Module CompLinHComp.
                            | s sigma c ev sigma' c' Hstep | s sigma c t c' Hstep
                            | s sigma c f0 ev ts Hfind Herror]; simpl in *.
         + exfalso. inversion Hstep as [Hfind Hupd]; subst.
-          apply (f_equal (@List.length _)) in Heq. rewrite app_length in Heq. simpl in Heq. lia.
+          apply (f_equal (@List.length _)) in Heq. rewrite length_app in Heq. simpl in Heq. lia.
         + exfalso. inversion Hstep as [Hfind Hupd]; subst.
-          apply (f_equal (@List.length _)) in Heq. rewrite app_length in Heq. simpl in Heq. lia.
+          apply (f_equal (@List.length _)) in Heq. rewrite length_app in Heq. simpl in Heq. lia.
         + (* TraceStepU *)
           inversion Hstep as [f0 ts1 ts2 Hfind Hstep0 Hupd]; subst.
           pose proof (Hp (te_tid ev)) as Ht. simpl in Ht.
@@ -1158,7 +1158,7 @@ Module CompLinHComp.
             -- apply hpools_update_left; auto.
           * rewrite HeqL in Hfind. discriminate.
         + exfalso.
-          apply (f_equal (@List.length _)) in Heq. rewrite app_length in Heq. simpl in Heq. lia.
+          apply (f_equal (@List.length _)) in Heq. rewrite length_app in Heq. simpl in Heq. lia.
       - exists cX. split; [apply rt_refl | exact Hp].
       - assert (HeqY : tc_trace Y = tc_trace A).
         { eapply trace_steps_flat_mid.
@@ -1190,9 +1190,9 @@ Module CompLinHComp.
                            | s sigma c ev sigma' c' Hstep | s sigma c t c' Hstep
                            | s sigma c f0 ev ts Hfind Herror]; simpl in *.
         + exfalso. inversion Hstep as [Hfind Hupd]; subst.
-          apply (f_equal (@List.length _)) in Heq. rewrite app_length in Heq. simpl in Heq. lia.
+          apply (f_equal (@List.length _)) in Heq. rewrite length_app in Heq. simpl in Heq. lia.
         + exfalso. inversion Hstep as [Hfind Hupd]; subst.
-          apply (f_equal (@List.length _)) in Heq. rewrite app_length in Heq. simpl in Heq. lia.
+          apply (f_equal (@List.length _)) in Heq. rewrite length_app in Heq. simpl in Heq. lia.
         + (* TraceStepU *)
           inversion Hstep as [f0 ts1 ts2 Hfind Hstep0 Hupd]; subst.
           pose proof (Hp (te_tid ev)) as Ht. simpl in Ht.
@@ -1260,7 +1260,7 @@ Module CompLinHComp.
                ++ reflexivity.
             -- apply hpools_update_right; auto.
         + exfalso.
-          apply (f_equal (@List.length _)) in Heq. rewrite app_length in Heq. simpl in Heq. lia.
+          apply (f_equal (@List.length _)) in Heq. rewrite length_app in Heq. simpl in Heq. lia.
       - exists cX. split; [apply rt_refl | exact Hp].
       - assert (HeqY : tc_trace Y = tc_trace A).
         { eapply trace_steps_flat_mid.
@@ -1363,10 +1363,10 @@ Module CompLinHComp.
         + rewrite HeqL in Hfindsome. discriminate.
       - (* TraceStepU: impossible, doesn't grow the trace *)
         exfalso. inversion Hstep as [f0 ts1 ts2 Hfind0 Hstep0 Hupd]; subst.
-        apply (f_equal (@List.length _)) in Hgrow. rewrite app_length in Hgrow. simpl in Hgrow. lia.
+        apply (f_equal (@List.length _)) in Hgrow. rewrite length_app in Hgrow. simpl in Hgrow. lia.
       - (* TraceStepTau: impossible, doesn't grow the trace *)
         exfalso. inversion Hstep as [ts1 ts2 Hfind0 Hstep0 Hupd]; subst.
-        apply (f_equal (@List.length _)) in Hgrow. rewrite app_length in Hgrow. simpl in Hgrow. lia.
+        apply (f_equal (@List.length _)) in Hgrow. rewrite length_app in Hgrow. simpl in Hgrow. lia.
       - (* TraceStepError *)
         apply app_inv_head in Hgrow. injection Hgrow as Hgrow. subst it.
         pose proof (Hp (te_tid ev)) as Ht. simpl in Ht.
@@ -1453,10 +1453,10 @@ Module CompLinHComp.
           * apply hpools_remove_right; auto.
       - (* TraceStepU: impossible, doesn't grow the trace *)
         exfalso. inversion Hstep as [f0 ts1 ts2 Hfind0 Hstep0 Hupd]; subst.
-        apply (f_equal (@List.length _)) in Hgrow. rewrite app_length in Hgrow. simpl in Hgrow. lia.
+        apply (f_equal (@List.length _)) in Hgrow. rewrite length_app in Hgrow. simpl in Hgrow. lia.
       - (* TraceStepTau: impossible, doesn't grow the trace *)
         exfalso. inversion Hstep as [ts1 ts2 Hfind0 Hstep0 Hupd]; subst.
-        apply (f_equal (@List.length _)) in Hgrow. rewrite app_length in Hgrow. simpl in Hgrow. lia.
+        apply (f_equal (@List.length _)) in Hgrow. rewrite length_app in Hgrow. simpl in Hgrow. lia.
       - (* TraceStepError *)
         apply app_inv_head in Hgrow. injection Hgrow as Hgrow. subst it.
         pose proof (Hp (te_tid ev)) as Ht. simpl in Ht.
@@ -1926,10 +1926,10 @@ Module CompLinHComp.
                              (mkTraceConfig (proj_r (tc_trace Y)) sigma2_Y c2_Y) Hm2 th (Hd2 th)). }
         assert (Hlen1a : List.length (proj_l (tc_trace X)) <= List.length (proj_l (tc_trace Y))).
         { destruct (trace_steps_monotone (M1 ⊗ₘ M2) X Y Htr1) as [tl Heqtl].
-          rewrite Heqtl, proj_l_app, app_length. lia. }
+          rewrite Heqtl, proj_l_app, length_app. lia. }
         assert (Hlen1b : List.length (proj_l (tc_trace Y)) <= List.length (proj_l (tc_trace Z))).
         { destruct (trace_steps_monotone (M1 ⊗ₘ M2) Y Z Htr2) as [tl Heqtl].
-          rewrite Heqtl, proj_l_app, app_length. lia. }
+          rewrite Heqtl, proj_l_app, length_app. lia. }
         destruct (trace_steps_reach_length CompLin.idImpl _ _ Htri1 (List.length (proj_l (tc_trace Y))) Hlen1a Hlen1b)
           as [MidL [HtriL1 [HtriL2 HlenL]]].
         assert (Heqtrl : proj_l (tc_trace Y) = tc_trace MidL).
@@ -1941,10 +1941,10 @@ Module CompLinHComp.
         destruct MidL as [trMidL rho1_Y cabs1_Y]. simpl in Heqtrl, HtriL1, HtriL2.
         assert (Hlen2a : List.length (proj_r (tc_trace X)) <= List.length (proj_r (tc_trace Y))).
         { destruct (trace_steps_monotone (M1 ⊗ₘ M2) X Y Htr1) as [tl Heqtl].
-          rewrite Heqtl, proj_r_app, app_length. lia. }
+          rewrite Heqtl, proj_r_app, length_app. lia. }
         assert (Hlen2b : List.length (proj_r (tc_trace Y)) <= List.length (proj_r (tc_trace Z))).
         { destruct (trace_steps_monotone (M1 ⊗ₘ M2) Y Z Htr2) as [tl Heqtl].
-          rewrite Heqtl, proj_r_app, app_length. lia. }
+          rewrite Heqtl, proj_r_app, length_app. lia. }
         destruct (trace_steps_reach_length CompLin.idImpl _ _ Htri2 (List.length (proj_r (tc_trace Y))) Hlen2a Hlen2b)
           as [MidR [HtriR1 [HtriR2 HlenR]]].
         assert (Heqtrr : proj_r (tc_trace Y) = tc_trace MidR).
@@ -2094,7 +2094,7 @@ Module CompLinHComp.
                     (mkTraceConfig s sigmaX cX) Htr (List.length p))
           as [MidP [HtrP1 [HtrP2 HlenP]]].
         - simpl. lia.
-        - simpl. rewrite Heqs, app_length. lia.
+        - simpl. rewrite Heqs, length_app. lia.
         - assert (Heqtrp : p = tc_trace MidP).
           { destruct (trace_steps_monotone (M1 ⊗ₘ M2) _ _ HtrP2) as [tlp Heq1].
             apply prefix_eq_of_same_length with (t1 := tl) (t2 := tlp).
@@ -2138,7 +2138,7 @@ Module CompLinHComp.
         { destruct (trace_steps_monotone (M1 ⊗ₘ M2)
                       (mkTraceConfig nil (pair sigma01 sigma02 : State (VE1 ⊗ᵥ VE2)) (TMap.empty _))
                       (mkTraceConfig s sigmaX cX) Htr) as [tlm Heqm].
-          simpl in Heqm. rewrite Heqsplit, proj_l_app, app_length. lia. }
+          simpl in Heqm. rewrite Heqsplit, proj_l_app, length_app. lia. }
         destruct (trace_steps_reach_length CompLin.idImpl
                     (mkTraceConfig nil rho01 (TMap.empty _))
                     (mkTraceConfig (proj_l s) rho1_f cabs1_f) Htri1
@@ -2159,7 +2159,7 @@ Module CompLinHComp.
                       (List.length p2))
             as [MidE0 [HtriE0 [HtriE0' HlenE0]]].
           { simpl. lia. }
-          { simpl. rewrite app_length. simpl. lia. }
+          { simpl. rewrite length_app. simpl. lia. }
           assert (HeqtrE0 : tc_trace MidE0 = p2).
           { destruct (trace_steps_monotone CompLin.idImpl _ _ HtriE0') as [tlE Heq1].
             simpl in Heq1. symmetry.
@@ -2216,7 +2216,7 @@ Module CompLinHComp.
         { destruct (trace_steps_monotone (M1 ⊗ₘ M2)
                       (mkTraceConfig nil (pair sigma01 sigma02 : State (VE1 ⊗ᵥ VE2)) (TMap.empty _))
                       (mkTraceConfig s sigmaX cX) Htr) as [tlm Heqm].
-          simpl in Heqm. rewrite Heqsplit, proj_r_app, app_length. lia. }
+          simpl in Heqm. rewrite Heqsplit, proj_r_app, length_app. lia. }
         destruct (trace_steps_reach_length CompLin.idImpl
                     (mkTraceConfig nil rho02 (TMap.empty _))
                     (mkTraceConfig (proj_r s) rho2_f cabs2_f) Htri2
@@ -2237,7 +2237,7 @@ Module CompLinHComp.
                       (List.length p1))
             as [MidE0 [HtriE0 [HtriE0' HlenE0]]].
           { simpl. lia. }
-          { simpl. rewrite app_length. simpl. lia. }
+          { simpl. rewrite length_app. simpl. lia. }
           assert (HeqtrE0 : tc_trace MidE0 = p1).
           { destruct (trace_steps_monotone CompLin.idImpl _ _ HtriE0') as [tlE Heq1].
             simpl in Heq1. symmetry.
@@ -2305,7 +2305,7 @@ Module CompLinHComp.
           assert (Heqprm : p2 = proj_r pL ++ proj_r m).
           { rewrite <- HeqprojrR, Heqm, proj_r_app. reflexivity. }
           assert (Hlex2 : List.length (proj_r pL) <= List.length (p2 ++ TErr f2 :: nil)).
-          { rewrite Heqprm, app_length, app_length. lia. }
+          { rewrite Heqprm, length_app, length_app. lia. }
           destruct (trace_steps_reach_length CompLin.idImpl
                       (mkTraceConfig nil rho02 (TMap.empty _))
                       (mkTraceConfig (p2 ++ TErr f2 :: nil) rho2_f cabs2_f) Htri2
@@ -2327,7 +2327,7 @@ Module CompLinHComp.
                         (List.length p1))
               as [MidE0 [HtriE0 [HtriE0' HlenE0]]].
             { simpl. lia. }
-            { simpl. rewrite app_length. simpl. lia. }
+            { simpl. rewrite length_app. simpl. lia. }
             assert (HeqtrE0 : tc_trace MidE0 = p1).
             { destruct (trace_steps_monotone CompLin.idImpl _ _ HtriE0') as [tlE Heq1].
               simpl in Heq1. symmetry.
@@ -2384,7 +2384,7 @@ Module CompLinHComp.
           assert (Heqplm : p1 = proj_l pR ++ proj_l m).
           { rewrite <- HeqprojlL, Heqm, proj_l_app. reflexivity. }
           assert (Hlex1 : List.length (proj_l pR) <= List.length (p1 ++ TErr f1 :: nil)).
-          { rewrite Heqplm, app_length, app_length. lia. }
+          { rewrite Heqplm, length_app, length_app. lia. }
           destruct (trace_steps_reach_length CompLin.idImpl
                       (mkTraceConfig nil rho01 (TMap.empty _))
                       (mkTraceConfig (p1 ++ TErr f1 :: nil) rho1_f cabs1_f) Htri1
@@ -2406,7 +2406,7 @@ Module CompLinHComp.
                         (List.length p2))
               as [MidE0 [HtriE0 [HtriE0' HlenE0]]].
             { simpl. lia. }
-            { simpl. rewrite app_length. simpl. lia. }
+            { simpl. rewrite length_app. simpl. lia. }
             assert (HeqtrE0 : tc_trace MidE0 = p2).
             { destruct (trace_steps_monotone CompLin.idImpl _ _ HtriE0') as [tlE Heq1].
               simpl in Heq1. symmetry.

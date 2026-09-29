@@ -1,6 +1,6 @@
 (** Proof states for the relaxed program logic. *)
 
-Require Import Coq.Lists.List.
+Require Import Stdlib.Lists.List.
 
 Require Import models.EffectSignatures.
 Require Import models.RelaxedSignature.

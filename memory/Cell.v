@@ -23,12 +23,12 @@
     lists over [RelaxedLTSSpec.ThreadEvent] is a separate concern
     (not in this file). *)
 
-Require Import Coq.Lists.List.
-Require Import Coq.Arith.Arith.
-Require Import Coq.micromega.Lia.
-Require Import Coq.PArith.PArith.
-Require Import Coq.Bool.Bool.
-Require Import Coq.Logic.Classical.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Arith.Arith.
+Require Import Stdlib.micromega.Lia.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.Bool.Bool.
+Require Import Stdlib.Logic.Classical.
 
 Require Import models.EffectSignatures.
 Require Import models.RelaxedSignature.
@@ -69,11 +69,11 @@ Module Cell.
   Section Cell.
     Context (C : Cfg).
 
-    Notation Loc := (Loc C).
-    Notation MW := (MW (M C)).
-    Notation MR := (MR (M C)).
-    Notation accW := (accW (M C)).
-    Notation accR := (accR (M C)).
+    Abbreviation Loc := (Loc C).
+    Abbreviation MW := (MW (M C)).
+    Abbreviation MR := (MR (M C)).
+    Abbreviation accW := (accW (M C)).
+    Abbreviation accR := (accR (M C)).
 
     Definition loc_eqb (x y : Loc) : bool :=
       if Loc_eq_dec C x y then true else false.
@@ -720,7 +720,7 @@ Module Cell.
 
     Section Shape.
       Context (Loc : Type) (dec : forall x y : Loc, {x = y} + {x <> y}).
-      Notation RC := (RC_cfg dec).
+      Abbreviation RC := (RC_cfg dec).
 
       (** Lemma mem:lem:shape, clause by clause, for the induced relation. *)
       Lemma RC_shape_WR x v a y b :

@@ -1,6 +1,6 @@
-Require Import Coq.Lists.List.
-Require Import Relation_Operators Operators_Properties.
-Require Import Coq.Program.Equality.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Relations.Relation_Operators Stdlib.Relations.Operators_Properties.
+Require Import Stdlib.Program.Equality.
 
 Require Import models.EffectSignatures.
 Require Import LinCCAL.

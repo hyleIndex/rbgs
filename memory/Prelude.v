@@ -13,14 +13,14 @@
     bother, in line with the usual practice for memory-model
     formalizations. *)
 
-Require Import Coq.Lists.List.
-Require Import Coq.Arith.Arith.
-Require Import Coq.micromega.Lia.
-Require Import Coq.Sorting.Permutation.
-Require Import Coq.Relations.Relation_Definitions.
-Require Import Coq.Relations.Relation_Operators.
-Require Import Coq.Relations.Operators_Properties.
-Require Import Coq.Logic.Classical.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Arith.Arith.
+Require Import Stdlib.micromega.Lia.
+Require Import Stdlib.Sorting.Permutation.
+Require Import Stdlib.Relations.Relation_Definitions.
+Require Import Stdlib.Relations.Relation_Operators.
+Require Import Stdlib.Relations.Operators_Properties.
+Require Import Stdlib.Logic.Classical.
 
 Import ListNotations.
 
@@ -504,7 +504,7 @@ Section LinearExtension.
     destruct (lt_dec (S i) (length c)) as [Hlt | Hge].
     - rewrite nth_error_app1 in Ha, Hb; try lia. eapply Hc; eauto.
     - assert (HSi : S i < length (c ++ [y])) by (apply nth_error_Some; congruence).
-      rewrite app_length in HSi. cbn in HSi.
+      rewrite length_app in HSi. cbn in HSi.
       assert (S i = length c) by lia.
       rewrite nth_error_app1 in Ha; [| lia].
       rewrite nth_error_app2 in Hb; [| lia].
@@ -547,7 +547,7 @@ Section LinearExtension.
       assert (Hzl : In z l) by (apply Hincl; eapply nth_error_In; eauto).
       destruct (Hpred z Hzl) as (y & Hy & Hyz).
       exists (c ++ [y]). split; [| split; [| split]].
-      + rewrite app_length. cbn. lia.
+      + rewrite length_app. cbn. lia.
       + rewrite nth_error_app1; auto. destruct c; cbn in *; [congruence | lia].
       + intros a Ha. apply in_app_or in Ha. destruct Ha as [Ha | [Ha | []]]; subst; auto.
       + eapply bchain_app_last; eauto. repeat split; auto.

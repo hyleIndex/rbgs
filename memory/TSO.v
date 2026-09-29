@@ -26,11 +26,11 @@
     and the buffers are functions), so that the simulation needs no
     functional extensionality; the set of traces is unaffected. *)
 
-Require Import Coq.Lists.List.
-Require Import Coq.Sorting.Sorted.
-Require Import Coq.PArith.PArith.
-Require Import Coq.Arith.Arith.
-Require Import Coq.micromega.Lia.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Sorting.Sorted.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.Arith.Arith.
+Require Import Stdlib.micromega.Lia.
 
 Require Import models.RelaxedSignature.
 Require Import memory.Prelude.
@@ -44,24 +44,24 @@ Module TSO.
 
   Section TSO.
     Context (Loc : Type) (dec : forall x y : Loc, {x = y} + {x <> y}).
-    Notation C := (TSO_cfg dec).
-    Notation block := (block C).
-    Notation trace := (trace C).
-    Notation I := (mode_indep (C := C)).
+    Abbreviation C := (TSO_cfg dec).
+    Abbreviation block := (block C).
+    Abbreviation trace := (trace C).
+    Abbreviation I := (mode_indep (C := C)).
 
     (** The configuration is fixed, so the block functions are used at [C]
         throughout (the location type of the section is [Loc], not
         [Cell.Loc C], which the elaborator cannot invert). *)
-    Notation at_loc := (at_loc (C := C)).
-    Notation proj := (proj (C := C)).
-    Notation pend := (pend (C := C)).
-    Notation remove_first_at := (remove_first_at (C := C)).
-    Notation state_after := (state_after (C := C)).
-    Notation enabled := (enabled (C := C)).
-    Notation next := (next (C := C)).
-    Notation VBuf := (VBuf (C := C)).
-    Notation contract := (contract (C := C)).
-    Notation V := (V (C := C)).
+    Abbreviation at_loc := (at_loc (C := C)).
+    Abbreviation proj := (proj (C := C)).
+    Abbreviation pend := (pend (C := C)).
+    Abbreviation remove_first_at := (remove_first_at (C := C)).
+    Abbreviation state_after := (state_after (C := C)).
+    Abbreviation enabled := (enabled (C := C)).
+    Abbreviation next := (next (C := C)).
+    Abbreviation VBuf := (VBuf (C := C)).
+    Abbreviation contract := (contract (C := C)).
+    Abbreviation V := (V (C := C)).
 
     (** ** Erasing handles *)
 

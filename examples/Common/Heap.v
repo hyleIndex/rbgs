@@ -1,4 +1,4 @@
-Require Import Coq.Arith.PeanoNat.
+Require Import Stdlib.Arith.PeanoNat.
 
 Definition Addr := nat.
 Definition Ptr := option Addr.

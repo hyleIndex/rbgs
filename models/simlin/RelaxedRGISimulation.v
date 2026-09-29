@@ -1,6 +1,6 @@
 (** Rely/guarantee simulation for relaxed linearizability with futures. *)
 
-Require Import Coq.Relations.Relation_Definitions.
+Require Import Stdlib.Relations.Relation_Definitions.
 
 Require Import models.RelaxedSignature.
 Require Import models.LinCCAL.

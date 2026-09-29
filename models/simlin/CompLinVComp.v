@@ -1,10 +1,10 @@
-Require Import Coq.Lists.List.
-Require Import Coq.PArith.PArith.
-Require Import Lia.
-Require Import FMapPositive.
-Require Import Relation_Operators Operators_Properties.
-Require Import Coq.Program.Equality.
-Require Import Coq.Logic.Eqdep.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.micromega.Lia.
+Require Import Stdlib.FSets.FMapPositive.
+Require Import Stdlib.Relations.Relation_Operators Stdlib.Relations.Operators_Properties.
+Require Import Stdlib.Program.Equality.
+Require Import Stdlib.Logic.Eqdep.
 
 Require Import models.EffectSignatures.
 Require Import LinCCAL.
@@ -280,7 +280,7 @@ Module CompLinVComp.
       destruct (trace_steps_reach_length N _ _ Hrun (List.length w))
         as [Y [Hr1 [Hr2 Hlen]]].
       { simpl. lia. }
-      { rewrite Htr, app_length. simpl. lia. }
+      { rewrite Htr, length_app. simpl. lia. }
       destruct (trace_steps_monotone N _ _ Hr2) as [tl Htl].
       assert (Hyw : tc_trace Y = w).
       { eapply prefix_eq_of_same_length with (t1 := tl) (t2 := e :: nil).
@@ -309,7 +309,7 @@ Module CompLinVComp.
       destruct (trace_steps_reach_length N _ _ Hrun (List.length w1))
         as [Y [Hr1 [Hr2 Hlen]]].
       { simpl. lia. }
-      { rewrite Htr, app_length. lia. }
+      { rewrite Htr, length_app. lia. }
       destruct (trace_steps_monotone N _ _ Hr2) as [tl Htl].
       exists Y. split; auto.
       eapply prefix_eq_of_same_length with (t1 := tl) (t2 := w2).
@@ -342,7 +342,7 @@ Module CompLinVComp.
   Proof.
     intros l x H.
     apply (f_equal (@List.length A)) in H.
-    rewrite app_length in H. simpl in H. lia.
+    rewrite length_app in H. simpl in H. lia.
   Qed.
 
   (** * Controlled destruction principles for the per-thread step

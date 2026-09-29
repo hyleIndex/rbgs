@@ -12,12 +12,12 @@
     first [k] blocks iff it was issued before [k] and no flush block in
     between has published it. *)
 
-Require Import Coq.Lists.List.
-Require Import Coq.Arith.Arith.
-Require Import Coq.micromega.Lia.
-Require Import Coq.PArith.PArith.
-Require Import Coq.Bool.Bool.
-Require Import Coq.Logic.Classical.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Arith.Arith.
+Require Import Stdlib.micromega.Lia.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.Bool.Bool.
+Require Import Stdlib.Logic.Classical.
 
 Require Import memory.Prelude.
 Require Import memory.Cell.
@@ -31,8 +31,8 @@ Module Pending.
   Section General.
     Context (C : Cfg).
 
-    Notation block := (block C).
-    Notation trace := (trace C).
+    Abbreviation block := (block C).
+    Abbreviation trace := (trace C).
 
     (** ** [remove_first_at] *)
 
@@ -145,8 +145,8 @@ Module Pending.
 
   Section Indexed.
     Context (C : Cfg).
-    Notation block := (block C).
-    Notation trace := (trace C).
+    Abbreviation block := (block C).
+    Abbreviation trace := (trace C).
 
     Variable s : trace.
     Hypothesis Hnd : NoDup (hide s).

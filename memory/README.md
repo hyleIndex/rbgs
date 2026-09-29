@@ -168,7 +168,8 @@ No `Admitted`.
 ## Building
 
 The files are listed in `_CoqProject` (root `-R memory memory`); the usual
-`./configure && make` builds them with the rest of the development.  To
+`./configure -nocompcert && make` builds them with the rest of the development
+(upstream has disabled the CompCertO integration for Rocq 9.2).  To
 build only this directory against an already compiled `models/RelaxedSignature.vo`:
 
 ```sh
@@ -178,4 +179,6 @@ for f in Prelude Cell Tensor Declarative Pending Extraction Realization Equivale
 done
 ```
 
-Verified with Coq 8.18.0.
+Verified with Rocq 9.2.0 (Stdlib 9.2.0), and with Coq 8.18.0 before the
+merge with upstream's Rocq 9.2 upgrade; `Print Assumptions` agrees on every
+constant of this directory between the two.

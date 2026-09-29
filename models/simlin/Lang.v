@@ -1,6 +1,6 @@
 Require Import models.EffectSignatures.
 Require Import LinCCAL.
-Require Import Coq.Lists.List.
+Require Import Stdlib.Lists.List.
 
 Module Lang.
   Import SigBase.

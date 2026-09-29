@@ -10,10 +10,10 @@
     - for the release/acquire instance, Cor. mem:cor:pre:
       [po \ RC.I = po_loc ∪ [acq];po ∪ po;[rel]]. *)
 
-Require Import Coq.Lists.List.
-Require Import Coq.Relations.Relation_Definitions.
-Require Import Coq.Relations.Relation_Operators.
-Require Import Coq.Logic.Classical.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Relations.Relation_Definitions.
+Require Import Stdlib.Relations.Relation_Operators.
+Require Import Stdlib.Logic.Classical.
 
 Require Import models.RelaxedSignature.
 Require Import memory.Prelude.
@@ -28,7 +28,7 @@ Module Consequences.
 
   Section D1Consequences.
     Context (C : Cfg).
-    Notation block := (block C).
+    Abbreviation block := (block C).
 
     Variable X : cand C.
     Hypothesis HX : wf_cand X.
@@ -36,7 +36,7 @@ Module Consequences.
     Hypothesis Hw : wf_witness X w.
     Hypothesis HD1 : D1 X w.
 
-    Notation ops := (ops X).
+    Abbreviation ops := (ops X).
 
     Lemma write_read_excl (b : block) : is_write b -> is_read b -> False.
     Proof. destruct b; cbn; tauto. Qed.
@@ -175,8 +175,8 @@ Module Consequences.
   Section RC.
     Import Cell.Instances.
     Context (Loc : Type) (dec : forall x y : Loc, {x = y} + {x <> y}).
-    Notation C := (RC_cfg dec).
-    Notation block := (block C).
+    Abbreviation C := (RC_cfg dec).
+    Abbreviation block := (block C).
 
     Definition is_rel (b : block) : Prop :=
       match b with BW _ _ _ _ rel => True | _ => False end.
@@ -235,11 +235,11 @@ Module Consequences.
   Section RCDc.
     Import Cell.Instances.
     Context (Loc : Type) (dec : forall x y : Loc, {x = y} + {x <> y}).
-    Notation C := (RC_cfg dec).
-    Notation block := (block C).
-    Notation I := (mode_indep (C := C)).
-    Notation is_rel := (is_rel Loc dec).
-    Notation is_acq := (is_acq Loc dec).
+    Abbreviation C := (RC_cfg dec).
+    Abbreviation block := (block C).
+    Abbreviation I := (mode_indep (C := C)).
+    Abbreviation is_rel := (is_rel Loc dec).
+    Abbreviation is_acq := (is_acq Loc dec).
 
     Variable X : cand C.
     Hypothesis HX : wf_cand X.
@@ -247,7 +247,7 @@ Module Consequences.
     Hypothesis Hadm : admissible X I pre.
     Variable w : witness C.
 
-    Notation Dc := (Dc X I w pre).
+    Abbreviation Dc := (Dc X I w pre).
 
     Lemma pre0_pre a b : pre0 X I a b -> pre a b.
     Proof using All. destruct Hadm as (H & _ & _). apply H. Qed.

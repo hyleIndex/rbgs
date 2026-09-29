@@ -1,7 +1,7 @@
 (** Program logic for relaxed programs with explicit future and wait. *)
 
-Require Import Coq.Lists.List.
-Require Import Lia.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.micromega.Lia.
 
 Require Import models.EffectSignatures.
 Require Import models.RelaxedSignature.

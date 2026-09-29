@@ -1,10 +1,10 @@
-Require Import FMapPositive.
-Require Import Coq.Arith.PeanoNat.
-Require Import Coq.Logic.Classical_Prop.
-Require Import Coq.Logic.FunctionalExtensionality.
-Require Import Coq.Logic.PropExtensionality.
-Require Import Coq.Program.Equality.
-Require Import Coq.Relations.Relation_Operators.
+Require Import Stdlib.FSets.FMapPositive.
+Require Import Stdlib.Arith.PeanoNat.
+Require Import Stdlib.Logic.Classical_Prop.
+Require Import Stdlib.Logic.FunctionalExtensionality.
+Require Import Stdlib.Logic.PropExtensionality.
+Require Import Stdlib.Program.Equality.
+Require Import Stdlib.Relations.Relation_Operators.
 
 Require Import models.EffectSignatures.
 Require Import LinCCAL.

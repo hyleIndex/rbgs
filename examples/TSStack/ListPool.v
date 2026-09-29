@@ -1,6 +1,6 @@
-Require Import Coq.Bool.Bool.
-Require Import Coq.Lists.List.
-Require Import Coq.Arith.PeanoNat.
+Require Import Stdlib.Bool.Bool.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Arith.PeanoNat.
 
 Require Import models.EffectSignatures.
 Require Import LinCCAL.

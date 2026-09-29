@@ -1,8 +1,8 @@
 (** Thread-local semantics for programs with explicit futures. *)
 
-Require Import Coq.Lists.List.
-Require Import Coq.micromega.Lia.
-Require Import Coq.Relations.Relation_Operators.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.micromega.Lia.
+Require Import Stdlib.Relations.Relation_Operators.
 
 Require Import models.EffectSignatures.
 Require Import models.RelaxedSignature.

@@ -1,9 +1,9 @@
-Require Import FMapPositive.
-Require Import Coq.PArith.PArith.
-Require Import Coq.Arith.PeanoNat.
-Require Import Coq.Logic.Eqdep.
-Require Import Coq.Relations.Relation_Operators.
-Require Import Lia.
+Require Import Stdlib.FSets.FMapPositive.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.Arith.PeanoNat.
+Require Import Stdlib.Logic.Eqdep.
+Require Import Stdlib.Relations.Relation_Operators.
+Require Import Stdlib.micromega.Lia.
 
 Require Import models.EffectSignatures.
 Require Import LinCCAL.

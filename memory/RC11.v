@@ -28,10 +28,10 @@
     (D2) (ISA2 with release/acquire, [Litmus.v]); the two models are
     incomparable, and Δ4/Δ5 of the paper are exactly these two witnesses. *)
 
-Require Import Coq.Lists.List.
-Require Import Coq.Relations.Relation_Definitions.
-Require Import Coq.Relations.Relation_Operators.
-Require Import Coq.Logic.Classical.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Relations.Relation_Definitions.
+Require Import Stdlib.Relations.Relation_Operators.
+Require Import Stdlib.Logic.Classical.
 
 Require Import models.RelaxedSignature.
 Require Import memory.Prelude.
@@ -47,9 +47,9 @@ Module RC11.
 
   Section RC11.
     Context (Loc : Type) (dec : forall x y : Loc, {x = y} + {x <> y}).
-    Notation C := (RC_cfg dec).
-    Notation block := (block C).
-    Notation I := (mode_indep (C := C)).
+    Abbreviation C := (RC_cfg dec).
+    Abbreviation block := (block C).
+    Abbreviation I := (mode_indep (C := C)).
 
     Variable X : cand C.
     Hypothesis HX : wf_cand X.
@@ -60,10 +60,10 @@ Module RC11.
     Hypothesis HD1 : D1 X w.
     Hypothesis HD2 : D2 X I w pre.
 
-    Notation ops := (ops X).
-    Notation Dc := (Dc X I w pre).
-    Notation is_rel := (Consequences.is_rel Loc dec).
-    Notation is_acq := (Consequences.is_acq Loc dec).
+    Abbreviation ops := (ops X).
+    Abbreviation Dc := (Dc X I w pre).
+    Abbreviation is_rel := (Consequences.is_rel Loc dec).
+    Abbreviation is_acq := (Consequences.is_acq Loc dec).
 
     (** ** RC11's relations on the fragment *)
 
@@ -89,12 +89,12 @@ Module RC11.
 
     (** ** Program-order edges that (D2) sees (Consequences, Section RCDc) *)
 
-    Notation pre0_pre := (Consequences.pre0_pre Loc dec X HX pre Hadm w).
-    Notation acq_po_Dc := (Consequences.acq_po_Dc Loc dec X HX pre Hadm w).
-    Notation po_rel_Dc := (Consequences.po_rel_Dc Loc dec X HX pre Hadm w).
-    Notation rfe_Dc := (Consequences.rfe_Dc Loc dec X HX pre Hadm w).
-    Notation mo_Dc := (Consequences.mo_Dc Loc dec X HX pre Hadm w).
-    Notation rb_Dc := (Consequences.rb_Dc Loc dec X HX pre Hadm w).
+    Abbreviation pre0_pre := (Consequences.pre0_pre Loc dec X HX pre Hadm w).
+    Abbreviation acq_po_Dc := (Consequences.acq_po_Dc Loc dec X HX pre Hadm w).
+    Abbreviation po_rel_Dc := (Consequences.po_rel_Dc Loc dec X HX pre Hadm w).
+    Abbreviation rfe_Dc := (Consequences.rfe_Dc Loc dec X HX pre Hadm w).
+    Abbreviation mo_Dc := (Consequences.mo_Dc Loc dec X HX pre Hadm w).
+    Abbreviation rb_Dc := (Consequences.rb_Dc Loc dec X HX pre Hadm w).
 
     (** ** The shape of an [hb] path *)
 
@@ -199,12 +199,12 @@ Module RC11.
       mo w b a \/ rb X w b a \/ rf w b a \/
       exists u, (mo w b u \/ rb X w b u) /\ rf w u a.
 
-    Notation rf_src_write := (Consequences.rf_src_write C X w Hw).
-    Notation rf_tgt_read := (Consequences.rf_tgt_read C X w Hw).
-    Notation mo_src_write := (Consequences.mo_src_write C X w Hw).
-    Notation mo_tgt_write := (Consequences.mo_tgt_write C X w Hw).
-    Notation rb_src_read := (Consequences.rb_src_read C X w).
-    Notation rb_tgt_write := (Consequences.rb_tgt_write C X w).
+    Abbreviation rf_src_write := (Consequences.rf_src_write C X w Hw).
+    Abbreviation rf_tgt_read := (Consequences.rf_tgt_read C X w Hw).
+    Abbreviation mo_src_write := (Consequences.mo_src_write C X w Hw).
+    Abbreviation mo_tgt_write := (Consequences.mo_tgt_write C X w Hw).
+    Abbreviation rb_src_read := (Consequences.rb_src_read C X w).
+    Abbreviation rb_tgt_write := (Consequences.rb_tgt_write C X w).
 
     Ltac wr_contra :=
       match goal with

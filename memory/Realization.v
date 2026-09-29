@@ -11,14 +11,14 @@
     potential (Section "Claim 1"); a topological order of [𝔄] is the trace,
     and Claim 2 checks it block by block against the buffered cell. *)
 
-Require Import Coq.Lists.List.
-Require Import Coq.Arith.Arith.
-Require Import Coq.micromega.Lia.
-Require Import Coq.PArith.PArith.
-Require Import Coq.Sorting.Permutation.
-Require Import Coq.Logic.Classical.
-Require Import Coq.Relations.Relation_Definitions.
-Require Import Coq.Relations.Relation_Operators.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Arith.Arith.
+Require Import Stdlib.micromega.Lia.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.Sorting.Permutation.
+Require Import Stdlib.Logic.Classical.
+Require Import Stdlib.Relations.Relation_Definitions.
+Require Import Stdlib.Relations.Relation_Operators.
 
 Require Import memory.Prelude.
 Require Import memory.Cell.
@@ -34,8 +34,8 @@ Module Realization.
   Section Realization.
     Context (C : Cfg).
 
-    Notation block := (block C).
-    Notation trace := (trace C).
+    Abbreviation block := (block C).
+    Abbreviation trace := (trace C).
 
     Variable I : cell_op C -> cell_op C -> Prop.
     Hypothesis HI : forall m m', I m m' -> op_loc m <> op_loc m'.
@@ -51,7 +51,7 @@ Module Realization.
     Hypothesis HD1 : D1 X w.
     Hypothesis HD2 : D2 X I w pre.
 
-    Notation ops := (ops X).
+    Abbreviation ops := (ops X).
 
     (** ** Generalities *)
 
@@ -697,15 +697,15 @@ Module Realization.
 
         (** *** Publication indices *)
 
-        Notation at_idx := (Pending.at_idx C sh).
-        Notation pfx := (Pending.pfx C sh).
-        Notation pending := (Pending.pending C sh).
-        Notation head_at := (Pending.head_at C sh).
-        Notation last_at := (Pending.last_at C sh).
-        Notation flush_at := (Pending.flush_at C sh).
-        Notation removes := (Pending.removes C sh).
-        Notation last_flush_before := (Pending.last_flush_before C sh).
-        Notation no_flush_before := (Pending.no_flush_before C sh).
+        Abbreviation at_idx := (Pending.at_idx C sh).
+        Abbreviation pfx := (Pending.pfx C sh).
+        Abbreviation pending := (Pending.pending C sh).
+        Abbreviation head_at := (Pending.head_at C sh).
+        Abbreviation last_at := (Pending.last_at C sh).
+        Abbreviation flush_at := (Pending.flush_at C sh).
+        Abbreviation removes := (Pending.removes C sh).
+        Abbreviation last_flush_before := (Pending.last_flush_before C sh).
+        Abbreviation no_flush_before := (Pending.no_flush_before C sh).
 
         Let Hnd : NoDup (hide sh) := sh_NoDup_hide.
 

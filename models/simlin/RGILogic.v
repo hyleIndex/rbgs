@@ -1,9 +1,9 @@
-Require Import FMapPositive.
-Require Import Coq.PArith.PArith.
-Require Import Coq.Program.Equality.
-Require Import Lia.
-Require Import Relation_Operators Operators_Properties.
-Require Import Classical.
+Require Import Stdlib.FSets.FMapPositive.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.Program.Equality.
+Require Import Stdlib.micromega.Lia.
+Require Import Stdlib.Relations.Relation_Operators Stdlib.Relations.Operators_Properties.
+Require Import Stdlib.Logic.Classical.
 
 Require Import coqrel.LogicalRelations.
 Require Import models.EffectSignatures.
@@ -192,8 +192,8 @@ Module RGILogic.
       [VE, VF, R, G, I, t] ⊢ {{ P }} p {{ Q }}.
     Proof.
       intros.
-      revert dependent P.
-      revert dependent p.
+      generalize dependent P.
+      generalize dependent p.
       cofix IH; intros.
       inversion H; subst.
       - eapply provable_ret with (P:=P0); auto.
@@ -214,9 +214,9 @@ Module RGILogic.
       [VE, VF, R, G, I, t] ⊢ {{ P }} p {{ Q }}.
     Proof.
       intros.
-      revert dependent P.
-      revert dependent Q.
-      revert dependent p.
+      generalize dependent P.
+      generalize dependent Q.
+      generalize dependent p.
       cofix IH; intros.
       inversion H; subst.
       - eapply provable_ret with (P:=P0); eauto.
@@ -247,9 +247,9 @@ Module RGILogic.
       [VE, VF, R, G, I, t] ⊢ {{ P }} bindProg p k {{ Q }}.
     Proof.
       intros.
-      revert dependent Q.
-      revert dependent P.
-      revert dependent p.
+      generalize dependent Q.
+      generalize dependent P.
+      generalize dependent p.
       cofix IH; intros.
       inversion H; subst.
       - rewrite bindRetUnfold.

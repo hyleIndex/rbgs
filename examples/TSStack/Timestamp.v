@@ -1,5 +1,5 @@
-Require Import Coq.PArith.PArith.
-Require Import PeanoNat.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.Arith.PeanoNat.
 
 Require Import models.EffectSignatures.
 Require Import LinCCAL.

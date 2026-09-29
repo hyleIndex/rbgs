@@ -1,10 +1,10 @@
-Require Import FMapPositive.
-Require Import Coq.Lists.List.
-Require Import Coq.Arith.PeanoNat.
-Require Import Coq.PArith.PArith.
-Require Import Coq.Logic.Classical_Prop.
-Require Import Coq.Program.Equality.
-Require Import Coq.Relations.Relation_Operators.
+Require Import Stdlib.FSets.FMapPositive.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Arith.PeanoNat.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.Logic.Classical_Prop.
+Require Import Stdlib.Program.Equality.
+Require Import Stdlib.Relations.Relation_Operators.
 
 Require Import models.EffectSignatures.
 Require Import LinCCAL.
@@ -1062,7 +1062,7 @@ Module TSStackProof.
       Hypothesis HΔ' : forall ρ' π', Δ' ρ' π' <->
         exists ρ π, Δ ρ π /\ lin_closure (ts_start_push α l v s) ρ π ρ' π'.
 
-      Local Notation s' := (ts_start_push α l v s).
+      Local Abbreviation s' := (ts_start_push α l v s).
 
       Let Hwf : graph_wf s := I_state_wf _ _ HI.
       Let Hwf' : graph_wf (ts_start_push α l v s) :=
@@ -1464,7 +1464,7 @@ Module TSStackProof.
       Hypothesis HΔ' : forall ρ π, Δ' ρ π <->
         Δ ρ π /\ TMap.find α π = Some (push_ret_token v).
 
-      Local Notation s' := (ts_finish_push α s).
+      Local Abbreviation s' := (ts_finish_push α s).
 
       Lemma pr_live m : live s' m <-> live s m.
       Proof. reflexivity. Qed.
@@ -1560,7 +1560,7 @@ Module TSStackProof.
       Hypothesis Hv : ts_vertices s n = Some v.
       Hypothesis Hα : forall ρ π, Δ ρ π -> TMap.find α π = Some (ls_inv st_pop).
 
-      Local Notation s' := (ts_mark_garbage n s).
+      Local Abbreviation s' := (ts_mark_garbage n s).
 
       Let Hαnone : TMap.find α (ts_pending_pushes s) = None :=
         alin_inv_no_pending s Δ α st_pop HI Hα.

@@ -4,13 +4,13 @@
 (*****************************************************)
 
 
-Require Import Coq.Sets.Ensembles.
-Require Import Coq.Logic.Classical_Prop.
-Require Import Coq.Classes.RelationClasses.
-Require Import Coq.Relations.Relation_Definitions.
-Require Import Coq.Logic.ChoiceFacts.
-Require Import Coq.Logic.ClassicalChoice.
-Require Import Coq.Logic.FunctionalExtensionality.
+Require Import Stdlib.Sets.Ensembles.
+Require Import Stdlib.Logic.Classical_Prop.
+Require Import Stdlib.Classes.RelationClasses.
+Require Import Stdlib.Relations.Relation_Definitions.
+Require Import Stdlib.Logic.ChoiceFacts.
+Require Import Stdlib.Logic.ClassicalChoice.
+Require Import Stdlib.Logic.FunctionalExtensionality.
 
 Class Join (worlds: Type): Type := join: worlds -> worlds -> worlds -> Prop.
 

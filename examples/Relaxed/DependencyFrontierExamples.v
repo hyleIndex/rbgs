@@ -7,8 +7,8 @@
     response of [rd(x)] is a barrier for [rd(y)]; under the dependency
     frontier only [wrt(u, r)] is ordered after it. *)
 
-Require Import Coq.Lists.List.
-Require Import Coq.PArith.PArith.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.PArith.PArith.
 
 Require Import models.EffectSignatures.
 Require Import models.RelaxedSignature.

@@ -1,5 +1,5 @@
-Require Import FMapPositive.
-Require Import Coq.Lists.List.
+Require Import Stdlib.FSets.FMapPositive.
+Require Import Stdlib.Lists.List.
 
 Require Import models.EffectSignatures.
 Require Import examples.Common.Heap.

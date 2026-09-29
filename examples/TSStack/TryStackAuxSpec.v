@@ -1,6 +1,6 @@
-Require Import FMapPositive.
-Require Import Coq.Arith.PeanoNat.
-Require Import Coq.PArith.PArith.
+Require Import Stdlib.FSets.FMapPositive.
+Require Import Stdlib.Arith.PeanoNat.
+Require Import Stdlib.PArith.PArith.
 
 Require Import models.EffectSignatures.
 Require Import examples.Common.Heap.

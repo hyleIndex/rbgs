@@ -1,10 +1,10 @@
-Require Import FMapPositive.
-Require Import Coq.PArith.PArith.
-Require Import Coq.Lists.List.
-Require Import Coq.Program.Equality.
-Require Import Lia.
-Require Import Relation_Operators Operators_Properties.
-Require Import Classical.
+Require Import Stdlib.FSets.FMapPositive.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Program.Equality.
+Require Import Stdlib.micromega.Lia.
+Require Import Stdlib.Relations.Relation_Operators Stdlib.Relations.Operators_Properties.
+Require Import Stdlib.Logic.Classical.
 
 Require Import coqrel.LogicalRelations.
 Require Import models.EffectSignatures.

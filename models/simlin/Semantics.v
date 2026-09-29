@@ -1,12 +1,12 @@
-Require Import FMapPositive.
-Require Import Relation_Operators Operators_Properties.
-Require Import Coq.PArith.PArith.
-Require Import Coq.Program.Equality.
-Require Import Coq.Classes.RelationClasses.
-Require Import Coq.Program.Program.
-Require Import Logic.ProofIrrelevance.
-Require Import Logic.FunctionalExtensionality.
-Require Import Logic.PropExtensionality.
+Require Import Stdlib.FSets.FMapPositive.
+Require Import Stdlib.Relations.Relation_Operators Stdlib.Relations.Operators_Properties.
+Require Import Stdlib.PArith.PArith.
+Require Import Stdlib.Program.Equality.
+Require Import Stdlib.Classes.RelationClasses.
+Require Import Stdlib.Program.Program.
+Require Import Stdlib.Logic.ProofIrrelevance.
+Require Import Stdlib.Logic.FunctionalExtensionality.
+Require Import Stdlib.Logic.PropExtensionality.
 
 Require Import coqrel.LogicalRelations.
 Require Import models.EffectSignatures.
@@ -14,7 +14,7 @@ Require Import LinCCAL.
 Require Import LTS.
 Require Import Lang.
 Require Import SeparationAlgebra.
-Require Import FMapPositive.
+Require Import Stdlib.FSets.FMapPositive.
 
 Section TMapSA.
   Context {A : Type}.
@@ -1481,6 +1481,7 @@ Module Semantics.
 
   #[global] Existing Instance Equivalence_ACEquiv.
 
+  Declare Scope ac_scope.
   Delimit Scope ac_scope with AbstractConfig.
   Bind Scope ac_scope with AbstractConfig.
 
@@ -1490,6 +1491,7 @@ Module Semantics.
   Notation "Δ1 ∪ Δ2" := (ac_union Δ1 Δ2) (at level 50) : ac_scope.
   Notation "Δ1 ∩ Δ2" := (ac_intersect_prop Δ1 Δ2) (at level 40) : ac_scope.
   
+  Declare Scope poss_scope.
   Delimit Scope poss_scope with Poss.
   Bind Scope poss_scope with Poss.
   

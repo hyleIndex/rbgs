@@ -1,6 +1,6 @@
 (** A coinductive language with explicit future invocation and wait. *)
 
-Require Import Coq.Lists.List.
+Require Import Stdlib.Lists.List.
 Require Import models.EffectSignatures.
 Require Import models.RelaxedSignature.
 Require Import LinCCAL.
