@@ -74,9 +74,12 @@ Module CCASImpl.
   Open Scope prog_scope.
   Open Scope rg_relation_scope.
 
-  Context (Val : Type).
-  Context (vInit : Val).
-  Context `{HasBeq Val}.
+  #[local] Parameter Val : Type.
+  #[local] Parameter vInit : Val.
+  (* Named [H] as the generalized binder of the former [Context `{HasBeq Val}]
+     was: the proofs below rely on the resulting fresh names. *)
+  #[local] Parameter H : HasBeq Val.
+  #[local] Existing Instance H.
 
   Definition E : layer_interface :=
   {|
@@ -110,7 +113,7 @@ Module CCASImpl.
   Definition CurrentTask task : assertion := fun s => (current (state (fst (σ s)))) = inl task.
   Definition CurrentVal v : assertion := fun s => (current (state (fst (σ s)))) = inr v.
   Definition NotPlacedBy i t : assertion :=
-    OwnedBy i t //\\ (∀ o n, !! CurrentTask (CTask t o n i)).
+    OwnedBy i t //\\ (∀ o, ∀ n, !! CurrentTask (CTask t o n i)).
   
   Lemma ALinIdleExv : forall t, ⊨ ALinIdle t ==>> ∃ v, ALinExv t None v.
   Proof.
@@ -647,7 +650,7 @@ Module CCASImpl.
   Qed.
 
   Lemma stable_not_cur_task_on : forall t i,
-    Stable (R t) I (∀ o n, !! CurrentTask (CTask t o n i)).
+    Stable (R t) I (∀ o, ∀ n, !! CurrentTask (CTask t o n i)).
   Proof.
     intros.
     do 2 (apply StableForall; intros).

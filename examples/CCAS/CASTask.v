@@ -74,8 +74,8 @@ Module CASTaskImpl.
   Open Scope prog_scope.
   Open Scope rg_relation_scope.
 
-  Context (Val : Type).
-  Context (vInit : Val).
+  #[local] Parameter Val : Type.
+  #[local] Parameter vInit : Val.
 
   Definition E : layer_interface :=
   {|

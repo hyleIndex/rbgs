@@ -2204,7 +2204,7 @@ Module TryStackLinearization.
       {| ac_active := ac_active Delta;
          ac_prop := real_step_prop Delta c' phi' |}.
     Next Obligation.
-      intros. exact Hne.
+      intros; solve [eauto | firstorder].
     Qed.
     Next Obligation.
       intros. try unfold real_step_prop in *.

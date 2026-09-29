@@ -105,7 +105,8 @@ Section TMapSA.
     induction 1; intros; auto.
     - destruct k; simpl in *; congruence.
     - destruct k; simpl in *; auto; subst.
-      inversion H1; subst; simpl in *; intuition.
+      inversion H1; subst; simpl in *; intuition;
+        match goal with Hj : join _ _ _ |- _ => exact (False_ind _ Hj) end.
   Qed.
 
   Lemma linmap_join_exclusive t1 t2 t : tree_join t1 t2 t ->

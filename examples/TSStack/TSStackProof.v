@@ -2016,8 +2016,13 @@ Module TSStackProof.
         (Hne : exists ρ π, Δc ρ π /\ sel ρ π) : config :=
       {| ac_active := ac_active Δc; ac_prop := ac_select_prop Δc sel ρf πf |}.
     Next Obligation.
-      destruct Hne as (ρ & π & Hposs & Hsel).
-      exists (ρf ρ), (πf π). constructor; assumption.
+      (* Rocq 9.2's Program already destructs [Hne] in the obligation context;
+         handle both shapes. *)
+      repeat match goal with
+             | H : exists _, _ |- _ => destruct H
+             | H : _ /\ _ |- _ => destruct H
+             end.
+      eexists _, _. econstructor; eassumption.
     Qed.
     Next Obligation.
       inversion H; subst.

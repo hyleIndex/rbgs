@@ -39,16 +39,20 @@ Section QuantifierLogic.
     fun s : model => forall v : A, P v s.
 End QuantifierLogic.
 
-Notation "'∀' x , P" := (Forall (fun x => P)) (at level 60, x binder) : assertion_scope.
-Notation "'∃' x , P" := (Exists (fun x => P)) (at level 60, x binder) : assertion_scope.
-
+(* One recursive notation per quantifier.  Up to Coq 8.x these were a
+   single-binder notation at level 60 plus a multi-binder one at level 200;
+   Rocq 9.2 no longer factors the two ("incompatible prefixes") and commits to
+   the single-binder rule, so [∀ x y, P] stopped parsing.  With [P at level 60]
+   the recursive notation parses every existing use exactly as before (the body
+   of an assertion quantifier is an assertion, whose connectives are all at
+   level <= 60). *)
 Notation "'∀' x .. y , P" :=
   (Forall (fun x => .. (Forall (fun y => P)) ..))
-  (at level 200, x binder, y binder) : assertion_scope.
+  (at level 60, x binder, y binder, P at level 60) : assertion_scope.
 
 Notation "'∃' x .. y , P" :=
   (Exists (fun x => .. (Exists (fun y => P)) ..))
-  (at level 200, x binder, y binder) : assertion_scope.
+  (at level 60, x binder, y binder, P at level 60) : assertion_scope.
 
 Section SeparationLogic.
   Context {model : Type}.

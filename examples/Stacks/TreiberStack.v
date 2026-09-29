@@ -33,7 +33,7 @@ Module TreiberStackImpl.
 
   Open Scope prog_scope.
 
-  Context {A : Type}.
+  #[local] Parameter A : Type.
 
   Definition E : layer_interface :=
   {|
