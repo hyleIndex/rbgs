@@ -9,13 +9,13 @@
 -R interfaces interfaces
 -R memory memory
 
-structures/Poset.v
+structures/Effects.v
 models/Sets.v
 models/FreeCategories.v
+models/Signature.v
 models/EffectSignatures.v
 models/RelaxedSignature.v
 models/Coherence.v
-models/DCPO.v
 models/LinCCAL.v
 interfaces/Category.v
 interfaces/Functor.v
@@ -25,7 +25,12 @@ interfaces/FunctorCategory.v
 interfaces/Limits.v
 interfaces/Adjunctions.v
 interfaces/Monads.v
-interfaces/LiftMonad.v
+
+# Concrete categories
+structures/Posets.v
+structures/DCPOs.v
+# structures/Lattices.v and structures/DCPOSLs.v (upstream, admit-bearing)
+# are not part of this branch: relaxed-lin keeps the repository admit-free.
 
 models/logics/SeparationAlgebra.v
 models/logics/Logics.v

@@ -24,3 +24,7 @@ docs/proof-details/*.pdf
 
 # External paper PDFs kept locally for reference only
 docs/paper/
+html/
+
+# opam
+_opam
