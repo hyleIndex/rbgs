@@ -1,5 +1,4 @@
 # Main _CoqProject file.
-# When CompCert is used, _CoqProject.compcert will be included beforehand.
 
 -R coqrel coqrel
 -R structures structures

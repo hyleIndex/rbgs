@@ -2,15 +2,8 @@ COQDOCEXTRAFLAGS := --parse-comments
 
 pre-all::
 	+make -C coqrel
-ifdef COMPCERT
-	+make -C $(COMPCERT) depend
-	+make -C $(COMPCERT)
-endif
 
 clean::
 	+make -C coqrel clean
-ifdef COMPCERT
-	+make -C $(COMPCERT) clean
-endif
 
 -include Makefile.user

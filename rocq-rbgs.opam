@@ -10,5 +10,4 @@ depends: [
   "rocq-core" {= "9.2.0"}
   "rocq-stdlib" {= "9.2.0"}
   "rocq-iris" {= "4.5.0"}
-  "menhir"
 ]

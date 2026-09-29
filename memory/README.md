@@ -168,8 +168,7 @@ No `Admitted`.
 ## Building
 
 The files are listed in `_CoqProject` (root `-R memory memory`); the usual
-`./configure -nocompcert && make` builds them with the rest of the development
-(upstream has disabled the CompCertO integration for Rocq 9.2).  To
+`./configure && make` builds them with the rest of the development.  To
 build only this directory against an already compiled `models/RelaxedSignature.vo`:
 
 ```sh

@@ -17,19 +17,18 @@ opam switch create . --repositories=default,rocq-released=https://rocq-prover.or
 ```bash
 eval $(opam env)
 ```
-4. Our `configure` script will take care of retreiving the git submodule
-   for Coqrel and CompCertO, and will configure them:
+4. Our `configure` script will take care of retrieving the git submodule
+   for Coqrel, and will configure and pre-build it:
 ```bash
 ./configure
 ```
-At this point make sure there were no error messages. In particular
-if your versions of Coq, Menhir, etc. are not suitable to build
-CompCert, this is when things will break.
+At this point make sure there were no error messages. This branch builds
+with Rocq 9.2 and Stdlib 9.2 (see `rocq-rbgs.opam`); the CompCert(O)
+integration has been removed.
 
 5. If the configuration was successful you should be able to build the
    development using `make`. We recommend using the `-jN` option to enable
-   parallel jobs as CompCert will take a while to build otherwise.
-   For example on my 8-cores machine:
+   parallel jobs. For example on my 8-cores machine:
 ```bash
 make -j8
 ```
