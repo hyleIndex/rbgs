@@ -1,13 +1,32 @@
-(** * Containment in RC11's COHERENCE (Prop. mem:prop:rc11)
+(** * RC11 on the fragment, and containment in its COHERENCE
+    (Prop. mem:prop:rc11)
 
-    On the common fragment (reads and writes with modes rlx/rel and
-    rlx/acq, no RMWs, no fences, no SC accesses), RC11 is
-    COHERENCE ∧ NO-THIN-AIR where, with [rs = [W];po_loc?;[W]],
-    [sw = [rel];rs;rf;[acq]], [hb = (po ∪ sw)⁺] and [eco = (rf ∪ mo ∪ rb)⁺],
-    COHERENCE is [irreflexive(hb ; eco?)].
+    RC11 (Lahav, Vafeiadis, Kang, Hur, Dreyer, PLDI 2017, Def. 1) is
+    COHERENCE ∧ ATOMICITY ∧ SC ∧ NO-THIN-AIR.  On the common fragment
+    (reads and writes with modes rlx/rel and rlx/acq, no RMWs, no fences,
+    no SC accesses) its relations specialize as follows:
 
-    We show that (D1) and (D2) imply COHERENCE.  (They do not imply
-    NO-THIN-AIR: load buffering is the witness, see the paper.) *)
+      rs   = [W];po_loc?;[W]              (no (rf;rmw)* tail: no RMWs)
+      sw   = [W_rel];rs;rf;[R_acq]        (no fence clauses)
+      hb   = (po ∪ sw)⁺
+      eco  = (rf ∪ mo ∪ fr)⁺              (fr is our rb)
+
+      COHERENCE     irreflexive(hb ; eco?)
+      ATOMICITY     irreflexive(rmw ∩ (fre;coe))     vacuous, rmw = ∅
+      SC            acyclic(psc)                     vacuous, no SC events
+      NO-THIN-AIR   acyclic(po ∪ rf)
+
+    so RC11-consistency on the fragment is COHERENCE ∧ NO-THIN-AIR
+    ([rc11_consistent]).  RC11's initialization writes, which are po-before
+    every event, are left implicit as in [Declarative.v]: they have no
+    incoming po, rf, mo or fr edge, so no cycle of either axiom passes
+    through them.
+
+    Prop. mem:prop:rc11: (D1) and (D2) imply COHERENCE
+    ([rc11_coherence], [rc11_containment]).  They do not imply
+    NO-THIN-AIR (load buffering, [Litmus.v]), and RC11 does not imply
+    (D2) (ISA2 with release/acquire, [Litmus.v]); the two models are
+    incomparable, and Δ4/Δ5 of the paper are exactly these two witnesses. *)
 
 Require Import Coq.Lists.List.
 Require Import Coq.Relations.Relation_Definitions.
@@ -62,6 +81,11 @@ Module RC11.
 
     Definition coherence : Prop :=
       forall a b, rchb a b -> (b = a \/ eco b a) -> False.
+
+    Definition no_thin_air : Prop := acyclic (po X ∪ rf w).
+
+    (** RC11 on the fragment. *)
+    Definition rc11_consistent : Prop := coherence /\ no_thin_air.
 
     (** ** Program-order edges that (D2) sees (Consequences, Section RCDc) *)
 
@@ -175,18 +199,12 @@ Module RC11.
       mo w b a \/ rb X w b a \/ rf w b a \/
       exists u, (mo w b u \/ rb X w b u) /\ rf w u a.
 
-    Lemma rf_src_write u r : rf w u r -> is_write u.
-    Proof. intros H. apply (rf_dom Hw) in H. tauto. Qed.
-    Lemma rf_tgt_read u r : rf w u r -> is_read r.
-    Proof. intros H. apply (rf_dom Hw) in H. tauto. Qed.
-    Lemma mo_src_write a b : mo w a b -> is_write a.
-    Proof. intros H. apply (mo_dom Hw) in H. tauto. Qed.
-    Lemma mo_tgt_write a b : mo w a b -> is_write b.
-    Proof. intros H. apply (mo_dom Hw) in H. tauto. Qed.
-    Lemma rb_src_read r u : rb X w r u -> is_read r.
-    Proof. intros H. destruct H as (_ & _ & H & _). exact H. Qed.
-    Lemma rb_tgt_write r u : rb X w r u -> is_write u.
-    Proof. intros H. destruct H as (_ & _ & _ & H & _). exact H. Qed.
+    Notation rf_src_write := (Consequences.rf_src_write C X w Hw).
+    Notation rf_tgt_read := (Consequences.rf_tgt_read C X w Hw).
+    Notation mo_src_write := (Consequences.mo_src_write C X w Hw).
+    Notation mo_tgt_write := (Consequences.mo_tgt_write C X w Hw).
+    Notation rb_src_read := (Consequences.rb_src_read C X w).
+    Notation rb_tgt_write := (Consequences.rb_tgt_write C X w).
 
     Ltac wr_contra :=
       match goal with
@@ -316,5 +334,16 @@ Module RC11.
     Qed.
 
   End RC11.
+
+  (** Prop. mem:prop:rc11 as a statement about the two models: every
+      OMCA-consistent witness satisfies RC11's COHERENCE. *)
+  Theorem rc11_containment (Loc : Type) (dec : forall x y : Loc, {x = y} + {x <> y})
+      (X : cand (RC_cfg dec)) (HX : wf_cand X)
+      (pre : relation (block (RC_cfg dec))) (Hadm : admissible X (mode_indep (C := RC_cfg dec)) pre)
+      (w : witness (RC_cfg dec)) (Hw : wf_witness X w) :
+    consistent X (mode_indep (C := RC_cfg dec)) w pre -> coherence Loc dec X w.
+  Proof.
+    intros [HD1 HD2]. exact (rc11_coherence Loc dec X HX pre Hadm w Hw HD1 HD2).
+  Qed.
 
 End RC11.

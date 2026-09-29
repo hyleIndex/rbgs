@@ -133,6 +133,20 @@ Module Consequences.
       - eapply (po_loc_read_init u r); eauto.
     Qed.
 
+    (** Endpoints of the communication edges. *)
+    Lemma rf_src_write u r : rf w u r -> is_write u.
+    Proof. intros H. apply (rf_dom Hw) in H. tauto. Qed.
+    Lemma rf_tgt_read u r : rf w u r -> is_read r.
+    Proof. intros H. apply (rf_dom Hw) in H. tauto. Qed.
+    Lemma mo_src_write a b : mo w a b -> is_write a.
+    Proof. intros H. apply (mo_dom Hw) in H. tauto. Qed.
+    Lemma mo_tgt_write a b : mo w a b -> is_write b.
+    Proof. intros H. apply (mo_dom Hw) in H. tauto. Qed.
+    Lemma rb_src_read r u : rb X w r u -> is_read r.
+    Proof. intros H. destruct H as (_ & _ & H & _). exact H. Qed.
+    Lemma rb_tgt_write r u : rb X w r u -> is_write u.
+    Proof. intros H. destruct H as (_ & _ & _ & H & _). exact H. Qed.
+
     (** Communication edges preserve location. *)
     Lemma rf_same_loc u r : rf w u r -> b_loc u = b_loc r.
     Proof. intros H. apply (rf_dom Hw) in H. tauto. Qed.

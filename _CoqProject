@@ -136,6 +136,7 @@ examples/Stacks/EBStack_TopLevel.v
 # Buffered memory and its declarative characterization (Appendix L)
 memory/Prelude.v
 memory/Cell.v
+memory/Tensor.v
 memory/Declarative.v
 memory/Pending.v
 memory/Extraction.v
@@ -145,3 +146,5 @@ memory/Consequences.v
 memory/RC11.v
 memory/ARM.v
 memory/TSO.v
+memory/ARMDecl.v
+memory/Litmus.v
