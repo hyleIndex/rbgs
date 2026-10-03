@@ -45,6 +45,9 @@ models/simlin/RelaxedRGISimulation.v
 models/simlin/RelaxedAssertion.v
 models/simlin/RelaxedProofState.v
 models/simlin/RelaxedLogic.v
+models/simlin/RelaxedTaggedLogic.v
+models/simlin/RelaxedTraceLin.v
+models/simlin/RelaxedModuleFacts.v
 
 models/simlin/Lang.v
 models/simlin/Semantics.v
@@ -90,6 +93,15 @@ examples/FrameRule.v
 examples/Relaxed/SemanticsExamples.v
 examples/Relaxed/MemoryLitmusExamples.v
 examples/Relaxed/DependencyFrontierExamples.v
+examples/Relaxed/BracketedComposition.v
+examples/Relaxed/BracketedLink.v
+examples/Relaxed/LockedRegisters.v
+examples/Relaxed/WindowComposition.v
+examples/Relaxed/WindowLink.v
+examples/Relaxed/BracketedWindow.v
+examples/Relaxed/LockedRegistersWindow.v
+examples/Relaxed/WindowTable.v
+examples/Relaxed/IntervalWindow.v
 examples/FAI/FAISpec.v
 examples/Locks/LockSpec.v
 examples/Registers/RegSpec.v
