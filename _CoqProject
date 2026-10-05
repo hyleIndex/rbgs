@@ -102,6 +102,14 @@ examples/Relaxed/BracketedWindow.v
 examples/Relaxed/LockedRegistersWindow.v
 examples/Relaxed/WindowTable.v
 examples/Relaxed/IntervalWindow.v
+examples/Relaxed/SeqLockCOH.v
+examples/Relaxed/TicketLockCOH.v
+examples/Relaxed/WindowLinkTable.v
+examples/Relaxed/SeqLockProg.v
+examples/Relaxed/SeqLockModule.v
+examples/Relaxed/SeqLockModuleExample.v
+examples/Relaxed/SeqLockTower.v
+examples/Relaxed/SeqLockRT.v
 examples/FAI/FAISpec.v
 examples/Locks/LockSpec.v
 examples/Registers/RegSpec.v
