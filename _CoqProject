@@ -156,6 +156,14 @@ examples/Stacks/EBStackSep.v
 examples/Stacks/EBStackSepProof.v
 examples/Stacks/EBStack_TopLevel.v
 
+# View-based (timestamped) specifications and proofs, ported from CSL-Lin
+examples/View/ViewSpecs.v
+examples/View/LegacyNotations.v
+examples/View/ExchangerTSO.v
+examples/View/TryStackTSO.v
+examples/View/SeqLockTSO.v
+examples/View/EBStackTSO.v
+
 # Buffered memory and its declarative characterization (Appendix L)
 memory/Prelude.v
 memory/Cell.v
