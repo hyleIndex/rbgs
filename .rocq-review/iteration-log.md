@@ -22,3 +22,9 @@ Append-only. Each `/rocq-loop` iteration adds one entry in the format given in `
 - **Review:** baseline by the orchestrator, not by `rocq-research-reviewer`. BLOCKER 4, MAJOR 9, MINOR 7. Verdict: continue; the RLHL judgement needs redesign.
 - **Escalated to the author:** Q1–Q5 in `research-intent.md` §7, and the missing `claude/…` notes cited by `todo-oopsla.md`.
 - **Concern-matrix rows changed:** all rows created.
+
+## 2026-10-13 — author decisions (no Rocq changes)
+
+- Scope fixed to oMCA. Priority: LatchSet + write snapshot, SeqLock on COH.
+- Q1 clarified: the RLHL issue is the Coq encoding (one-path Wait rule, global queue equality, no rely, no soundness theorem) and the paper's existential OStep, not the paper's EStep rule. Recorded in research-intent.md §8; queue updated in concern-matrix.md §6.
+

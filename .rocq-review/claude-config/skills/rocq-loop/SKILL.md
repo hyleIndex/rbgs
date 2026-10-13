@@ -11,6 +11,9 @@ You are the **orchestrator**. You do not write Rocq proofs yourself. You choose 
 
 Arguments: `$ARGUMENTS`. The first token is a concern ID from `.rocq-review/concern-matrix.md`, or a short task description. If it is empty, propose the highest-priority open item and ask the author to confirm it. The optional second token is the maximum number of iterations (default 5; never more than 5).
 
+- **Prepared briefs.** If `.rocq-review/tasks/<ID>.md` exists, it is the prepared brief for that ID. Re-verify its "Current Coq state" yourself (Step 1). Then use its Concerns, Target and Acceptance as the basis of the Writer brief (Step 4). Do not silently widen or narrow its target. If it turns out wrong, record why in `iteration-log.md` and adjust openly.
+- **Group argument `SL`.** It runs `SL-client`, `SL-nonvac`, `SL-tower` and `SL-mem` in that order. Each task gets its own loop of at most 5 iterations, and its own entry in `iteration-log.md`. Finish one task, with its review recorded, before starting the next. Stop the group early if a task ends with an escalation that later tasks depend on.
+
 Agents: `rocq-writer` (implementation) and `rocq-research-reviewer` (independent review, read-only).
 
 ## Principles

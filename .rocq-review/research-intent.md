@@ -97,3 +97,9 @@ Raised by the 2026-10-13 baseline audit (`latest-review.md`):
 - **Q3:** Is soundness for complete traces only acceptable, or are incomplete traces needed? Vertical composition needs the conclusion `implements ν_F`.
 - **Q4:** Which case study is the flagship for the client-verification requirement? Candidates: SeqLock a=b, Lock(O) ⊗ plain cell, LatchSet.
 - **Q5:** Is the weak HW queue kept in the paper? Today it is not mechanized and its spec in trace.tex:92 is not blocking.
+
+## 8. Author decisions (log)
+
+- **2026-10-13 — Scope = oMCA.** The paper targets other-multicopy-atomic models (store forwarding included, via the buffered cell of Mem.tex). Non-MCA models (POWER, ARMv7) are out of scope. This resolves the MCA/oMCA part of Q2; what may be claimed about RC11/ARMv8 (incomparability, partial containment) is still open.
+- **2026-10-13 — Current priority: two flagship examples.** (1) LatchSet + write snapshot (COH, address dependency); (2) SeqLock on COH (Counter → TicketLock → SeqLock tower, rmb/wmb). `/rocq-loop` tasks should serve these first.
+- **2026-10-13 — Clarification of Q1.** The paper's RLHL rules (Appendix/programlogic.tex, EStep: `∀v`, stability under R) are not the problem. The problem is the Coq encoding in `RelaxedLogic.v` / `RelaxedTaggedLogic.v`: the Wait rule fixes one response (`provable_wait_pending … ret …`), so `HTripleProvable` certifies one execution path; `queue_invariant` equates one call's debts with the whole module queue (vacuous under concurrency); rely/stability is not used; and there is no theorem to `GSimRel`/`rel_lin`. Separately, the paper's simulation (Appendix/relaxedlin.tex, OStep) is existential; `RelaxedGSim.GSimRel` is the corrected, universal version. RLHL is **not** on the critical path of the two examples, which use the window route (per-layer witness proof + `WindowLinkTable.window_link_table`). Open: whether the paper claims RLHL as mechanized.

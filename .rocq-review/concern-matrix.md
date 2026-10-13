@@ -147,7 +147,19 @@ models.view.ViewPossibility.ViewPossibility.timeline_rel_lin
 | Precision: LatchSet (SC linearizability "proves" wrong readers; RC11 logics fail on the correct one) | Python checker only; "LKMM/Arm" labels set by hand; no SC-linearizability or RC11 verdict computed | — | ❌ |
 | Real kernel code (perf ring), control dependency | Python checker only | — | ❌ |
 
-## 6. Suggested queue for `/rocq-loop` (authors decide; see research-intent §7)
+## 6. Suggested queue for `/rocq-loop` (authors decide; see research-intent §7–8)
+
+**Author priority (2026-10-13): LatchSet + write snapshot, and SeqLock on COH. Scope = oMCA.** Example-specific items:
+
+- `SL-nonvac`: a concurrent module-level execution of SeqLock ⊎ COH[z] (e.g. the LB execution `X_lb`, or writer ∥ reader) over a non-trivial underlay LTS that satisfies every hypothesis of `seqlock_module_rel_lin` (today: one write, `VE0` with `Step := True`).
+- `SL-client`: SeqLock clients at module level from `seqlock_module_rel_lin` + ν_SeqLock: a=b (response B4), MP forbidden, LB allowed.
+- `SL-tower`: TicketLock at module level (as `SeqLockProg`/`SeqLockModule`), and the vertical story (general vertical theorem, or the SeqLock-specific `SeqLockTower` stated honestly as witness-level).
+- `SL-mem`: connect the abstract cells/barriers used by `SeqLockCOH` (registers + `WindowTable.dto`) to `memory/` (COH instance of the buffered cell + `wmb`/`rmb`, todo E2), or state the gap.
+- `LS-spec`: LatchSet + write snapshot: specification (needs the author's definition of "write snapshot"), program with address-dependency tags (`FutureD`), categories.
+- `LS-proof`: witness-level S1 ("SC core + F0–F5"), concrete counterexample executions for the broken variants (no dependency / no rmb / missing wmb), module-level link via `window_link_table`, one client. Risk: `SeqLockProg` uses untagged futures only, so the dependency path through the tagged frontier into the witness-level preserved order is not yet exercised.
+
+General queue (unchanged):
+
 
 1. **Q1, then `B3-logic`**: redesign the RLHL judgement (universal over executions and responses, rely/guarantee stability, per-call debts) and prove that RLHL derivations yield `RelaxedGSim.GSimRel`. Research-level design first. The largest single item.
 2. **`B3-instance`**: one non-trivial `GSimRel` instance (a concurrent object with weak behaviour, a non-trivial `VE`), so that `gsim_rel_lin` and `presentation_choice` are shown non-vacuous. It can start before item 1.
