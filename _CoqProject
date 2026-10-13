@@ -34,6 +34,7 @@ models/logics/SeparationAlgebra.v
 models/logics/Logics.v
 
 models/simlin/LTS.v
+models/simlin/AtomicLTS.v
 models/simlin/LTSLocality.v
 models/simlin/TensorSeparation.v
 models/simlin/RelaxedLTS.v
@@ -47,6 +48,7 @@ models/simlin/RelaxedProofState.v
 models/simlin/RelaxedLogic.v
 models/simlin/RelaxedTaggedLogic.v
 models/simlin/RelaxedTraceLin.v
+models/simlin/RelaxedStamping.v
 models/simlin/RelaxedModuleFacts.v
 
 models/simlin/Lang.v
@@ -156,6 +158,16 @@ examples/Stacks/EBStackSep.v
 examples/Stacks/EBStackSepProof.v
 examples/Stacks/EBStack_TopLevel.v
 
+# View theory: ViewLift (views derived from a sequential spec) and transfer theorems
+models/view/UnderlayRefinement.v
+models/view/ViewLift.v
+models/view/ViewLiftTensor.v
+models/view/ViewLiftAdequacy.v
+models/view/PrefixView.v
+models/view/ViewPossibility.v
+models/simlin/RelaxedGSim.v
+models/view/ViewLHL.v
+
 # View-based (timestamped) specifications and proofs, ported from CSL-Lin
 examples/View/ViewSpecs.v
 examples/View/LegacyNotations.v
@@ -163,6 +175,13 @@ examples/View/ExchangerTSO.v
 examples/View/TryStackTSO.v
 examples/View/SeqLockTSO.v
 examples/View/EBStackTSO.v
+# The CSL-Lin view specifications as ViewLift instances; EB stack and SeqLock over derived underlays
+examples/View/ViewLiftCAS.v
+examples/View/ViewLiftMem.v
+examples/View/EBStackViewLift.v
+examples/View/ViewLiftSeqLock.v
+examples/View/ViewLiftMultiWriter.v
+examples/View/ViewLiftOMCA.v
 
 # Buffered memory and its declarative characterization (Appendix L)
 memory/Prelude.v
