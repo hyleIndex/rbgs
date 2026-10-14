@@ -1,0 +1,18 @@
+AArch64 RT-get+swpl+dmb.st+ctrl
+"Expected: Allowed. Source: Coq memory/ARMBar.v, ARMBar.RTGet.rt_get_ctrl_allowed. A control dependency without ISB does not order a later load. UNVERIFIED -- run herd7"
+{
+0:X1=s; 0:X2=x; 0:X3=y; 0:X4=z;
+1:X1=s; 1:X4=z;
+}
+ P0              | P1           ;
+ MOV W0,#1       | LDR W0,[X4]  ;
+ SWPA W0,W8,[X1] | CBNZ W0,LC00 ;
+ DMB ST          | LC00:        ;
+ STR W0,[X2]     | LDR W3,[X1]  ;
+ STR W0,[X3]     |              ;
+ DMB ST          |              ;
+ MOV W6,#2       |              ;
+ SWPL W6,W9,[X1] |              ;
+ DMB ST          |              ;
+ STR W0,[X4]     |              ;
+exists (0:X8=0 /\ 0:X9=1 /\ 1:X0=1 /\ 1:X3=0)

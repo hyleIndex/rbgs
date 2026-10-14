@@ -1,0 +1,12 @@
+X86 RT-get+xchg
+"Expected: Forbidden. Source: derivation (x86-TSO keeps the reader's two loads in order; the XCHG of acq writes s to memory before the store of z). UNVERIFIED -- run herd7"
+{ s=0; x=0; y=0; z=0; }
+ P0           | P1          ;
+ MOV EAX,$1   | MOV EAX,[z] ;
+ XCHG [s],EAX | MOV EBX,[s] ;
+ MOV [x],$1   |             ;
+ MOV [y],$1   |             ;
+ MOV EBX,$2   |             ;
+ XCHG [s],EBX |             ;
+ MOV [z],$1   |             ;
+exists (0:EAX=0 /\ 0:EBX=1 /\ 1:EAX=1 /\ 1:EBX=0)

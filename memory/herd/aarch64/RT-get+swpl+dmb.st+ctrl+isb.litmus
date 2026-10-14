@@ -1,0 +1,18 @@
+AArch64 RT-get+swpl+dmb.st+ctrl+isb
+"Expected: Forbidden. Source: derivation only (ARMBar has no ISB): the aarch64.cat clause (ctrl | (addr; po)); [ISB]; po; [R] orders the z load before the get, closing the cycle of RTGet.rt_get_dmbld_forbidden. UNVERIFIED -- run herd7"
+{
+0:X1=s; 0:X2=x; 0:X3=y; 0:X4=z;
+1:X1=s; 1:X4=z;
+}
+ P0              | P1           ;
+ MOV W0,#1       | LDR W0,[X4]  ;
+ SWPA W0,W8,[X1] | CBNZ W0,LC00 ;
+ DMB ST          | LC00:        ;
+ STR W0,[X2]     | ISB          ;
+ STR W0,[X3]     | LDR W3,[X1]  ;
+ DMB ST          |              ;
+ MOV W6,#2       |              ;
+ SWPL W6,W9,[X1] |              ;
+ DMB ST          |              ;
+ STR W0,[X4]     |              ;
+exists (0:X8=0 /\ 0:X9=1 /\ 1:X0=1 /\ 1:X3=0)

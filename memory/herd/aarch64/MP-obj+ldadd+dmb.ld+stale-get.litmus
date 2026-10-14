@@ -1,0 +1,23 @@
+AArch64 MP-obj+ldadd+dmb.ld+stale-get
+"Expected: Forbidden. Source: Coq memory/ARMBar.v, ARMBar.MPObj.mp_obj_prologue_stale_get_forbidden. The prologue DMB LD removes the stale get_ticket. UNVERIFIED -- run herd7"
+{
+0:X10=own; 0:X11=x; 0:X12=y; 0:X13=z; 0:X14=nxt;
+1:X10=own; 1:X11=x; 1:X12=y; 1:X13=z;
+}
+ P0                | P1           ;
+ MOV W5,#2         | LDR W0,[X13] ;
+ LDADD W5,W2,[X14] | DMB LD       ;
+ LDR W3,[X10]      | LDR W1,[X10] ;
+ EOR W4,W3,W2      | DMB LD       ;
+ CBNZ W4,LC00      | LDR W2,[X11] ;
+ LC00:             | LDR W3,[X12] ;
+ MOV W6,#1         | DMB LD       ;
+ LDADD W6,W7,[X10] | LDR W5,[X10] ;
+ DMB ST            |              ;
+ MOV W0,#1         |              ;
+ STR W0,[X11]      |              ;
+ STR W0,[X12]      |              ;
+ DMB ST            |              ;
+ LDADD W6,W8,[X10] |              ;
+ STR W0,[X13]      |              ;
+exists (0:X2=0 /\ 0:X3=0 /\ 0:X7=0 /\ 0:X8=1 /\ 1:X0=1 /\ 1:X1=0 /\ 1:X2=1 /\ 1:X3=1 /\ 1:X5=2)

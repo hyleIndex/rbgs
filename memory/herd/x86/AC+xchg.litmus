@@ -1,0 +1,8 @@
+X86 AC+xchg
+"Expected: Forbidden. Source: derivation (the locked XCHG drains the store of x). x86 analogue of AC+dmb.st+ldadd+dmb.ld. UNVERIFIED -- run herd7"
+{ x=0; s=0; }
+ P0           | P1          ;
+ MOV [x],$1   | MOV EAX,[s] ;
+ MOV EAX,$1   | MOV EBX,[x] ;
+ XCHG [s],EAX |             ;
+exists (1:EAX=1 /\ 1:EBX=0)

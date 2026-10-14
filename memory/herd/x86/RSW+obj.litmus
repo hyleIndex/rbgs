@@ -1,0 +1,12 @@
+X86 RSW+obj
+"Expected: Forbidden. Source: derivation (W x before W z in P1, R z before R x in P0, rfe on z, fr on x). UNVERIFIED -- run herd7"
+{ x=0; y=0; z=0; s=0; }
+ P0          | P1           ;
+ MOV EAX,[z] | MOV EAX,$1   ;
+ MOV [z],$2  | XCHG [s],EAX ;
+ MOV EBX,[z] | MOV [x],$1   ;
+ MOV ECX,[s] | MOV [y],$1   ;
+ MOV EDX,[x] | MOV EBX,$2   ;
+ MOV ESI,[y] | XCHG [s],EBX ;
+ MOV EDI,[s] | MOV [z],$1   ;
+exists (0:EAX=1 /\ 0:EBX=2 /\ 0:ECX=0 /\ 0:EDX=0 /\ 0:ESI=0 /\ 0:EDI=0)

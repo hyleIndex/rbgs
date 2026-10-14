@@ -1,0 +1,11 @@
+AArch64 SB+rel+acq
+"Expected: Forbidden. Source: Coq memory/ARMBar.v, ARMBar.CrossCheck.sb_relacq_forbidden; memory/Litmus.v SB.arm_forbid (Mem.tex Delta1). UNVERIFIED -- run herd7"
+{
+0:X1=x; 0:X3=y;
+1:X1=y; 1:X3=x;
+}
+ P0           | P1           ;
+ MOV W0,#1    | MOV W0,#1    ;
+ STLR W0,[X1] | STLR W0,[X1] ;
+ LDAR W2,[X3] | LDAR W2,[X3] ;
+exists (0:X2=0 /\ 1:X2=0)

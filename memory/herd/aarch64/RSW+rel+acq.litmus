@@ -1,0 +1,13 @@
+AArch64 RSW+rel+acq
+"Expected: Allowed. Source: Coq memory/ARMBar.v, ARMBar.CrossCheck.rsw_allowed; memory/Litmus.v RSW.arm_allow (Mem.tex Delta2). UNVERIFIED -- run herd7"
+{
+0:X1=x; 0:X3=z;
+1:X1=x; 1:X3=z;
+}
+ P0           | P1           ;
+ LDR W0,[X1]  | MOV W0,#1    ;
+ MOV W9,#2    | STR W0,[X3]  ;
+ STR W9,[X1]  | STLR W0,[X1] ;
+ LDAR W2,[X1] |              ;
+ LDR W4,[X3]  |              ;
+exists (0:X0=1 /\ 0:X2=2 /\ 0:X4=0)

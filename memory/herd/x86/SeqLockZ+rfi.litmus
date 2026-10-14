@@ -1,0 +1,16 @@
+X86 SeqLockZ+rfi
+"Expected: Allowed. Source: derivation (redesign plan, Q6 status); its cell image is a trace of the x86-TSO machine, Coq SeqLockQ6Mem.q6_cells_x86_trace, with each XCHG as a contiguous locked read-write-flush (that step is a derivation). UNVERIFIED -- run herd7"
+{ x=0; y=0; z=0; s=0; }
+ P0          | P1           ;
+ MOV [z],$1  | MOV EAX,$1   ;
+ MOV EAX,[z] | XCHG [s],EAX ;
+ MOV EBX,[s] | MOV [x],$1   ;
+ MOV ECX,[x] | MOV [y],$1   ;
+ MOV EDX,[y] | MOV EBX,$2   ;
+ MOV ESI,[s] | XCHG [s],EBX ;
+             | MOV ECX,[s]  ;
+             | MOV EDX,[x]  ;
+             | MOV ESI,[y]  ;
+             | MOV EDI,[s]  ;
+             | MOV EAX,[z]  ;
+exists (0:EAX=1 /\ 0:EBX=0 /\ 0:ECX=0 /\ 0:EDX=0 /\ 0:ESI=0 /\ 1:ECX=2 /\ 1:EDX=1 /\ 1:ESI=1 /\ 1:EDI=2 /\ 1:EAX=0)

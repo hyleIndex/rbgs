@@ -1,0 +1,12 @@
+AArch64 AC+po+ldaddl+dmb.ld
+"Expected: Forbidden. Source: Coq memory/ARMBar.v, ARMBar.AtomicClause.ac_nodmbst_rel_forbidden. No DMB ST, release RMW. UNVERIFIED -- run herd7"
+{
+0:X1=x; 0:X2=s;
+1:X1=x; 1:X2=s;
+}
+ P0                | P1          ;
+ MOV W0,#1         | LDR W0,[X2] ;
+ STR W0,[X1]       | DMB LD      ;
+ MOV W5,#1         | LDR W3,[X1] ;
+ LDADDL W5,W6,[X2] |             ;
+exists (1:X0=1 /\ 1:X3=0)

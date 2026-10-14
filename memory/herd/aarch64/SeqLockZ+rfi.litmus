@@ -1,0 +1,23 @@
+AArch64 SeqLockZ+rfi
+"Expected: Allowed. Source: Coq memory/ARMBar.v, ARMBar.SeqLockZ.full_allowed (every SWP flavour). The Q6 outcome; test from the redesign plan. UNVERIFIED -- run herd7"
+{
+0:X1=z; 0:X3=s; 0:X4=x; 0:X5=y;
+1:X1=z; 1:X3=s; 1:X4=x; 1:X5=y;
+}
+ P0          | P1              ;
+ MOV W0,#1   | MOV W0,#1       ;
+ STR W0,[X1] | SWPA W0,W2,[X3] ;
+ LDR W2,[X1] | DMB ST          ;
+ LDR W6,[X3] | STR W0,[X4]     ;
+ DMB LD      | STR W0,[X5]     ;
+ LDR W7,[X4] | DMB ST          ;
+ LDR W8,[X5] | MOV W6,#2       ;
+ DMB LD      | SWPL W6,W9,[X3] ;
+ LDR W9,[X3] | LDR W10,[X3]    ;
+             | DMB LD          ;
+             | LDR W11,[X4]    ;
+             | LDR W12,[X5]    ;
+             | DMB LD          ;
+             | LDR W13,[X3]    ;
+             | LDR W14,[X1]    ;
+exists (0:X2=1 /\ 0:X6=0 /\ 0:X7=0 /\ 0:X8=0 /\ 0:X9=0 /\ 1:X10=2 /\ 1:X11=1 /\ 1:X12=1 /\ 1:X13=2 /\ 1:X14=0)

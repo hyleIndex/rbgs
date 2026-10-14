@@ -1,0 +1,15 @@
+X86 MP-obj+xchg
+"Expected: Forbidden. Source: derivation (W x before W z, R z before R x). XCHG with constants stands for the TicketLock's faa/inc. UNVERIFIED -- run herd7"
+{ nxt=0; own=0; x=0; y=0; z=0; }
+ P0             | P1            ;
+ MOV EAX,$2     | MOV EAX,[z]   ;
+ XCHG [nxt],EAX | MOV EBX,[own] ;
+ MOV EBX,[own]  | MOV ECX,[x]   ;
+ MOV ECX,$1     | MOV EDX,[y]   ;
+ XCHG [own],ECX | MOV ESI,[own] ;
+ MOV [x],$1     |               ;
+ MOV [y],$1     |               ;
+ MOV EDX,$2     |               ;
+ XCHG [own],EDX |               ;
+ MOV [z],$1     |               ;
+exists (0:EAX=0 /\ 0:EBX=0 /\ 0:ECX=0 /\ 0:EDX=1 /\ 1:EAX=1 /\ 1:EBX=0 /\ 1:ECX=0 /\ 1:EDX=0 /\ 1:ESI=0)

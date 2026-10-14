@@ -1,0 +1,8 @@
+X86 VW+xchg
+"Expected: Forbidden. Source: derivation (the locked XCHG writes s to memory before the store of z). x86 analogue of VW+ldaddl. UNVERIFIED -- run herd7"
+{ s=0; z=0; }
+ P0           | P1          ;
+ MOV EAX,$1   | MOV EAX,[z] ;
+ XCHG [s],EAX | MOV EBX,[s] ;
+ MOV [z],$1   |             ;
+exists (1:EAX=1 /\ 1:EBX=0)

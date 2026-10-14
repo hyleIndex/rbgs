@@ -1,0 +1,18 @@
+AArch64 RSW+obj
+"Expected: Forbidden. Source: Coq memory/ARMBar.v, ARMBar.RSWObj.rsw_obj_forbidden (every RMW flavour and value). T1: zr()=1; zw(2); zr()=2; read()=(0,0) || T2: write(1,1); zw(1). UNVERIFIED -- run herd7"
+{
+0:X1=z; 0:X3=s; 0:X4=x; 0:X5=y;
+1:X1=z; 1:X3=s; 1:X4=x; 1:X5=y;
+}
+ P0           | P1              ;
+ LDR W0,[X1]  | MOV W0,#1       ;
+ MOV W9,#2    | SWPA W0,W8,[X3] ;
+ STR W9,[X1]  | DMB ST          ;
+ LDR W2,[X1]  | STR W0,[X4]     ;
+ LDR W10,[X3] | STR W0,[X5]     ;
+ DMB LD       | DMB ST          ;
+ LDR W6,[X4]  | MOV W6,#2       ;
+ LDR W7,[X5]  | SWPL W6,W9,[X3] ;
+ DMB LD       | STR W0,[X1]     ;
+ LDR W8,[X3]  |                 ;
+exists (0:X0=1 /\ 0:X2=2 /\ 0:X10=0 /\ 0:X6=0 /\ 0:X7=0 /\ 0:X8=0)
