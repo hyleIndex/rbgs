@@ -1,4 +1,19 @@
-(** Program logic for relaxed programs with explicit future and wait. *)
+(** Program logic for relaxed programs with explicit future and wait.
+
+    SUPERSEDED (2026-10-13, task RLHL-1) by [RelaxedHoareBase],
+    [RelaxedHoareDag], [RelaxedHoare] and [RelaxedHoareSound].  Kept so
+    that [examples/Relaxed/SemanticsExamples.v] and the comparison in
+    [examples/Relaxed/RelaxedHoareChecks.v] still build.  Known
+    limitations of this encoding: [HTripleProvable] is existential (one
+    certified execution path, one choice of underlay responses: the
+    [Wait] rule [provable_wait_pending] takes a single [ret]); its
+    [DebtCertificate] only applies when [queue_invariant] equates the
+    method's debts with the whole module queue, which fails as soon as
+    another call has a pending event; [RelaxedAssertions.Stable] is never
+    used (no rely); and no theorem connects a derivation to
+    [RelaxedGSim.GSimRel] or [RelaxedTraceLin.rel_lin].
+    [RelaxedHoareChecks.read_pair_old_method_provable] shows a derivation
+    of a postcondition that holds in no execution. *)
 
 Require Import Stdlib.Lists.List.
 Require Import Stdlib.micromega.Lia.

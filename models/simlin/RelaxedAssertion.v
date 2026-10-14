@@ -1,4 +1,9 @@
-(** Assertions and delayed-event obligations for the relaxed future logic. *)
+(** Assertions and delayed-event obligations for the relaxed future logic.
+
+    Used only by the superseded [RelaxedLogic] (and its examples in
+    [examples/Relaxed/SemanticsExamples.v] and the comparison in
+    [examples/Relaxed/RelaxedHoareChecks.v]).  The current RLHL
+    ([RelaxedHoare*]) does not import this file. *)
 
 Require Import Stdlib.Lists.List.
 Require Import Stdlib.Relations.Relation_Definitions.

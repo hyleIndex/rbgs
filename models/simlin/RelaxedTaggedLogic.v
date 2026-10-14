@@ -22,7 +22,16 @@
       thread that it overtakes;
     - [tdebt_safe_dependent_pair] ("wait-established knowledge"): an
       invocation tagged with a handle may assume that the response of that
-      handle has already been consumed. *)
+      handle has already been consumed.
+
+    SUPERSEDED (2026-10-13, task RLHL-1) by [RelaxedHoareBase],
+    [RelaxedHoareDag], [RelaxedHoare] and [RelaxedHoareSound], which work
+    over the same tagged scheduler.  No other file imports this one.  It
+    inherits the limitations of [RelaxedLogic]: [THTripleProvable] is
+    existential (one certified path, one response per [Wait]);
+    [TDebtCertificate] only applies under [tqueue_invariant] (the
+    method's debts are the whole module queue); [TStable] is never used;
+    and no theorem connects it to [RelaxedGSim.GSimRel]. *)
 
 Require Import Stdlib.Lists.List.
 Require Import Stdlib.micromega.Lia.

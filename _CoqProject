@@ -50,6 +50,10 @@ models/simlin/RelaxedTaggedLogic.v
 models/simlin/RelaxedTraceLin.v
 models/simlin/RelaxedStamping.v
 models/simlin/RelaxedModuleFacts.v
+models/simlin/RelaxedHoareBase.v
+models/simlin/RelaxedHoareDag.v
+models/simlin/RelaxedHoare.v
+models/simlin/RelaxedHoareSound.v
 
 models/simlin/Lang.v
 models/simlin/Semantics.v
@@ -167,6 +171,11 @@ models/view/PrefixView.v
 models/view/ViewPossibility.v
 models/simlin/RelaxedGSim.v
 models/view/ViewLHL.v
+models/simlin/RelaxedHoareSpec.v
+models/simlin/RelaxedHoareGSim.v
+models/simlin/RelaxedHoareCompLin.v
+models/simlin/RelaxedHoareCompLinSpec.v
+examples/Relaxed/RelaxedHoareChecks.v
 
 # View-based (timestamped) specifications and proofs, ported from CSL-Lin
 examples/View/ViewSpecs.v

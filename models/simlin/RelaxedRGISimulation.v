@@ -1,4 +1,11 @@
-(** Rely/guarantee simulation for relaxed linearizability with futures. *)
+(** Rely/guarantee simulation for relaxed linearizability with futures.
+
+    Used only by the superseded [RelaxedLogic] (and its examples in
+    [examples/Relaxed/SemanticsExamples.v] and the comparison in
+    [examples/Relaxed/RelaxedHoareChecks.v]).  The current RLHL
+    ([RelaxedHoare*]) does not import this file; its semantic target is
+    [RelaxedGSim.GSimRel] (task RLHL-2), not the existential simulation
+    defined here. *)
 
 Require Import Stdlib.Relations.Relation_Definitions.
 
