@@ -32,11 +32,12 @@
       [ViewLHL.presentation_choice]: if moreover [VE] is a complete
       presentation of [nuE] from [σ0], the conclusion holds for every
       complete execution over every underlay [U] that implements [nuE].
-      No instance yet.  The intended RLHL-3 instance (author decision on
-      latest-review M-18, research-intent §8) is [VE := ViewLHL.VT nuE]
-      and the stamp-based overlay [VF := ViewLHL.VT nuF], with [Hsound :=
-      ViewLHL.vt_sound]; whether [RLHL2Hyps] is satisfiable over that
-      pair is open.
+      No instance yet.  The stamp-based pair [VE := ViewLHL.VT nuE], [VF
+      := ViewLHL.VT nuF] with [Hsound := ViewLHL.vt_sound] (author
+      decision on latest-review M-18) is now a complete-trace corollary
+      only; whether [RLHL2Hyps] is satisfiable over that pair is open.
+      The decided route for every execution is the copy-cat form of
+      [RelaxedHoareCompLin] (author decision M-20, item 4 below).
     - [rlhl_rel_lin_ei], [rlhl_rel_lin_ei_pres]: for an
       effect-at-invocation overlay [VF := EI δ] (author decision M-17),
       [HVF] is discharged by [RelaxedHoareSpec.ei_hvf] and the conclusion
@@ -67,7 +68,31 @@
       [owners_active_reachable]: in every reachable configuration the call
       pool is duplicate-free and every queue owner is an active call.
 
-    End-to-end instance: [RelaxedHoareChecks.CounterRelLin].
+    End-to-end instances.  Two routes, one decided:
+    - The copy-cat route (the decided one, author decision M-20,
+      research-intent §8; [RelaxedHoareCompLin],
+      [RelaxedHoareCompLinSpec]): RLHL over the handle-linear
+      specification LTS [EIhl δE] of the layer below gives copy-cat
+      inclusion over [EI δE] for every execution
+      ([RelaxedHoareCompLinSpec.rlhl_complin_eihl]), and complete
+      copy-cat traces over [EI δF] are relaxed-linearizable
+      ([RelaxedHoareCompLinSpec.cc_rel_lin]).  Instances: the
+      overlapping counter, [RelaxedHoareChecks.CounterEIhl]
+      ([counter_eihl_rlhl2], [counter_complin_ei], [counter_eihl_rel_lin])
+      and [RelaxedHoareChecks.CounterEIhlFrame] (the same counter with a
+      value-free memory rely: [counter_frame_rlhl2],
+      [counter_frame_complin_ei], [counter_frame_rel_lin]); non-vacuity
+      by the module-derived execution [CounterEIhl.inc_ooo_exec_ei].
+      Same I=∅ scope as below.  With nonempty semi-independence on both
+      signatures (RLHL-3b): Counter_xy
+      ([RelaxedHoareCounterXY.cxy_rlhl2], [cxy_rel_lin]; and choice (b),
+      [cxyb_rlhl2]), its two-future variant
+      ([RelaxedHoareCounterXY.CounterXYZ.cxyz_rlhl2]), all renamings over
+      the SC two-location cell ([RelaxedHoareInherit.ren_rlhl2]); the SI
+      = ∅ counter is the same generic instance
+      ([RelaxedHoareCounterXY.CounterAsRename.counter_ren_rlhl2]).
+    - The complete-trace route of this file:
+      [RelaxedHoareChecks.CounterRelLin].
     [counter_rel_lin]: complete executions of the overlapping counter
     over [HVE] are relaxed-linearizable to [seq_legal cδ 0]; [HVF]
     discharged; with a concrete module-derived execution
@@ -80,9 +105,13 @@
     semi-independence relaxation is exercised); the underlay is atomic at
     invocation ([HVE] fixes each FAA's value at its invocation; it is not
     [complete_pres], [hve_not_complete]); the body has a single future.
-    No instance with nonempty semi-independence, over a complete
-    presentation, or over a memory model from [memory/] exists.  The
-    counter's methods are verified with the rules
+    The complete-trace route of this file has no instance with
+    nonempty semi-independence; the copy-cat route has them
+    ([RelaxedHoareCounterXY.cxy_rlhl2], [cxyb_rlhl2],
+    [CounterXYZ.cxyz_rlhl2]; above and item 10(a)).  No instance of
+    either route is over a presentation proved complete ([complete_pres];
+    none is proved for [EIhl]) or over a memory model from [memory/].
+    The counter's methods are verified with the rules
     ([CounterHL.counter_hl_provable], a [MethodProvable] derivation with
     footprint [Ωc]); [counter_rel_lin_by_rules] obtains [counter_rel_lin]
     through [rlhl_sound] from that derivation and the side conditions.
@@ -171,8 +200,10 @@
 
     ** Relation to the paper, and differences
 
-    Paper: Appendix/programlogic.tex:498-505 (Prop. "Logic Soundness": the
-    top-level judgement [I, R, G ⊨_t M[t]] of :492-496 gives the
+    Paper (Appendix/programlogic.tex lines as in async-ccal commit
+    4a2db8e1; from :511 on they are 42 higher than in 01484091):
+    Appendix/programlogic.tex:540-547 (Prop. "Logic Soundness": the
+    top-level judgement [I, R, G ⊨_t M[t]] of :534-538 gives the
     thread-local simulation [∼_M^t] from the initial state);
     Appendix/relaxedlin.tex:709 (Prop. "Parallel Composition") and its
     corollary (thread-local simulations with compatible rely/guarantee
@@ -199,35 +230,57 @@
        a set (author decision, research-intent §8); future-dependent
        linearization points are out of scope, and so is the paper's
        Completeness proposition.
-    4. Complete traces only.  [rlhl_rel_lin] concludes for executions in
-       which every call has returned ([Hcomplete]); nothing is stated
-       about executions with pending calls, and no theorem concludes
-       [ViewLHL.implements nuF], so RLHL-verified layers cannot yet be
-       stacked (latest-review M-1).  The author chose prefix soundness
-       ([gsim_implements] / [rlhl_implements]) for RLHL-3
-       (research-intent §8, Q3/M-1); not done.  Caveat for that plan:
-       "every [VF] path is an [rl_prefix]" is not free for [VF := VT nuF]
-       when same-thread operations are ordered
-       ([RelaxedHoareChecks.CounterRelLin.vt_not_implements], shown for
-       the FAA specification [unu]).  The paper's Soundness is a trace
-       inclusion for all traces.
+    4. Complete traces here; every execution in [RelaxedHoareCompLin].
+       The theorems of this file conclude for executions in which every
+       call has returned ([Hcomplete]).  Executions with pending calls
+       are covered, in the form of the paper's Soundness (a trace
+       inclusion), by [RelaxedHoareCompLin.gsim_complin] /
+       [rlhl_complin] / [rlhl_sound_complin] (RLHL-3a, author decision
+       M-20: every overlay trace of [M] over [VE] is a trace of the
+       relaxed copy-cat over [VF]); for [VF := EI δ] its meaning on
+       complete traces is relaxed linearizability
+       ([RelaxedHoareCompLinSpec.cc_rel_lin], and
+       [rlhl_complin_ei_rel_lin], which re-derives [rlhl_rel_lin_ei]
+       below from the copy-cat form).  That copy-cat traces of [EI δ]
+       coincide with the paper's REW prefixes (relaxedlin.tex:29) is
+       argued, not proved.  The earlier plan, prefix soundness through
+       [ViewLHL.implements] / [rl_prefix] ([gsim_implements] /
+       [rlhl_implements], research-intent Q3/M-1), is superseded for
+       RLHL; it was blocked anyway, since "every [VF] path is an
+       [rl_prefix]" fails for [VF := VT nuF] when same-thread operations
+       are ordered ([RelaxedHoareChecks.CounterRelLin.vt_not_implements]).
+       Stacking RLHL-verified layers still needs the absorption, linking
+       and monotonicity lemmas of RLHL-3c (latest-review M-22).
     5. [HVF] explicit.  The conclusion is relaxed linearizability to [nu]
        under the hypothesis that the overlay presentation [VF] itself only
        produces relaxed-linearizable complete traces.  For [EI δ] it is
        discharged ([rlhl_rel_lin_ei]).  For the over-every-underlay
        version, [VE] must in addition be a complete presentation
        ([rlhl_rel_lin_pres]); no [RLHL2Hyps] instance over a complete
-       presentation exists yet.  The intended one is [VE := ViewLHL.VT
-       nuE], [VF := ViewLHL.VT nuF] with [Hsound := vt_sound] (author
-       decision M-18, RLHL-3); [EI] over [ViewLHL.VT] is not expected to
-       work for ordered same-thread operations (see [rlhl_rel_lin_ei]
-       above; [counter_vt_no_rlhl2] for the counter).  The counter instance runs over [HVE], which is not
-       complete ([RelaxedHoareChecks.CounterRelLin.hve_not_complete]).
+       presentation exists.  The VT pair [VE := ViewLHL.VT nuE], [VF :=
+       ViewLHL.VT nuF] with [Hsound := vt_sound] (author decision M-18)
+       is a complete-trace corollary only; [EI] over [ViewLHL.VT] is not
+       expected to work for ordered same-thread operations (see
+       [rlhl_rel_lin_ei] above; [counter_vt_no_rlhl2] for the counter).
+       The decided layering (M-20, corrected by m-20) is [VE :=
+       RelaxedHoareCompLinSpec.EIhl δE] (not the plain [EI δE], which
+       admits no [RLHL2Hyps] for the overlapping counter:
+       [RelaxedHoareChecks.CounterEI.counter_ei_unsat]) and [VF := EI
+       δF], with copy-cat inclusion as the conclusion; it replaces
+       [presentation_choice] only once the absorption lemmas of RLHL-3c
+       exist (latest-review M-22).  The counter instance of this file
+       runs over [HVE], which is not complete
+       ([RelaxedHoareChecks.CounterRelLin.hve_not_complete]); the
+       copy-cat route has counter instances over [EIhl uδ]
+       ([RelaxedHoareChecks.CounterEIhl],
+       [RelaxedHoareChecks.CounterEIhlFrame]).
     6. Generic [VE].  The underlay is an arbitrary LTS; nothing here is
        about a memory model (no RC11, x86-TSO or buffered-cell instance).
     7. Partial correctness.  The tagged module semantics has no error
        transition and [GSimRel] no error clause; underlay [Error] is
-       invisible (latest-review m-8).
+       invisible (latest-review m-8).  For [EI δ], a partial [δ] blocks
+       (see [RelaxedHoareCompLin], header); the author decided that
+       RLHL-3c adds a CompLin-style error clause (research-intent §8).
     8. Prophetic certificate.  [MethodSem]'s certificate is chosen after
        the produced trace and result (latest-review m-11); this is sound
        for the module because [tagged_invoke] commits both at the overlay
@@ -239,34 +292,63 @@
         judgement, :162-167, and Prop. "Logic Soundness",
         [prop:rlhl-sc], :170-179, in the VLHL subsection that starts at
         :114) corresponds to [ViewLHL.vlhl_sound] (premise: a [GSimRel]
-        over [VT nuE], [VT nuF], not a judgement; uninstantiated), and on
-        the RLHL side to [rlhl_rel_lin_pres] with [VE := VT nuE], [VF :=
-        VT nuF], [Hcomp := ViewLHL.vt_complete] and [Hsound :=
-        ViewLHL.vt_sound] (also uninstantiated).  The paper's proposition
-        concludes from the judgement for one thread [t] (no [∀ t]) and
-        states no R/G-compatibility premise (latest-review M-15); here
+        over [VT nuE], [VT nuF], not a judgement; uninstantiated).  On
+        the RLHL side there are two candidate counterparts.  (a) The
+        decided one (research-intent §8, M-20; latest-review M-21,
+        m-30): [RelaxedHoareCompLinSpec.rlhl_complin_eihl] (RLHL over
+        [EIhl δE] gives copy-cat inclusion over [EI δE], for every
+        execution) followed by [RelaxedHoareCompLinSpec.cc_rel_lin]
+        (complete copy-cat traces over [EI δF] are relaxed-linearizable),
+        instantiated for the counter
+        ([RelaxedHoareChecks.CounterEIhl.counter_eihl_rlhl2],
+        [counter_eihl_rel_lin]; semi-independence ∅) and for Counter_xy
+        with nonempty semi-independence on both signatures
+        ([RelaxedHoareCounterXY.cxy_rlhl2], [cxy_rel_lin]).  (b) The
+        earlier one:
+        [rlhl_rel_lin_pres] with [VE := VT nuE], [VF := VT nuF], [Hcomp
+        := ViewLHL.vt_complete] and [Hsound := ViewLHL.vt_sound]
+        (uninstantiated; a complete-trace corollary only, author
+        decision M-18).  Against the proposition (ν_E; cc_E; M ⊑ ν_F for
+        view-based compatible objects), (a) replaces ν_E; cc_E by [M]
+        run over [EI δE] (no separate [cc_E]; [M]'s own frontier
+        (F1)-(F3) relaxes its underlay events), assumes nothing
+        view-based, and concludes [rel_lin] for complete traces only
+        (copy-cat inclusion for every trace).  [M] run over [EI δE] is
+        equal to ν_E;cc_E;⟦M⟧ only through the unproved absorption
+        lemma (latest-review M-22, m-39; Appendix/relaxedlin.tex:53-56).
+        The paper's proposition concludes from the judgement for one
+        thread [t] (no [∀ t]) and states no R/G-compatibility premise
+        (latest-review M-15); here
         [RLHL2Hyps] requires the triple for every thread and the
         compatibility fields [h_guar_rely], [h_invoke_rely] and
         [h_return_rely].
     11. Same-thread rely (m-18 (ii)).  Appendix/relaxedlin.tex:626: the
         paper's [R_π] covers only the *independent* operations of the
-        same thread running concurrently; here [R k] covers every other
-        call, of any thread, including same-thread calls that are not
-        semi-independent of [k].
+        same thread running concurrently (read inter-call, one of the
+        two readings in the header of [RelaxedHoare], m-43); here [R k]
+        covers every other call, of any thread, including same-thread
+        calls that are not semi-independent of [k].  This is necessarily
+        larger: the module semantics runs an older non-independent
+        same-thread call's events while [k] is pending.
     12. Definition of relaxed linearizability (m-18 (iii)).  The
         conclusion is [RelaxedTraceLin.rel_lin], the witness form (a
         sequential witness preserving [rhb]); the paper's equivalence of
         its two definitions, [prop:rhb-equiv] (relaxedlin.tex:39), is not
         mechanized.
-    13. Guarantee (m-18 (iv)).  Appendix/programlogic.tex:479-482 and
-        :503 use [R = R[t] ∪ R[π]] and [G = G[t] ∩ G[π]]; here there is
+    13. Guarantee (m-18 (iv)).  Appendix/programlogic.tex:521-524 and
+        :545 use [R = R[t] ∪ R[π]] and [G = G[t] ∩ G[π]]; here there is
         one guarantee [G k] per call and one rely [R k].
     14. Overlapping calls (m-18 (v)).  The paper's soundness proof
         composes the calls of one thread sequentially
-        (Appendix/programlogic.tex:509, "After executing f, we will apply
+        (Appendix/programlogic.tex:551, "After executing f, we will apply
         the argument above again"); [RSim] handles any number of
         overlapping active calls per thread, ordered only by the module's
         (F1)-(F3) and, in the proof state, by the ghost thread frontier.
+    15. Printed rules (latest-review M-21).  The rule figures of
+        Appendix/programlogic.tex:518-599 are mapped to the Coq rules,
+        with their differences (Imp vs [Prog], proof state, the two
+        readings of own-thread interference, relatedwork.tex:32/34), in
+        the header of [RelaxedHoare].
 
     Assumptions: [rlhl_gsim], [rlhl_rsim], [rlhl2_of_provable],
     [finish_stored_sig], [owners_active_reachable] are closed;

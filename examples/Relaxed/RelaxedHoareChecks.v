@@ -24,14 +24,14 @@
       chose for RLHL-2 (effect at the abstract invocation, latest-review
       M-17); [CounterHL] builds its specification with
       [RelaxedHoareSpec.EI], so [HVF] holds for it ([counter_spec_hvf]).
-      It applies to invocation-ordered underlays such as [HVE].  For the
-      over-every-underlay route it is superseded (author decision on
-      latest-review M-18, research-intent §8): the intended RLHL-3
-      instance of [RelaxedHoareGSim.rlhl_rel_lin_pres] is [VE :=
-      ViewLHL.VT nuE] with the stamp-based overlay [VF := ViewLHL.VT nuF]
-      ([Hsound := ViewLHL.vt_sound]; not done), and [EI] is not expected
-      to have an instance over [ViewLHL.VT] for ordered same-thread
-      operations ([CounterRelLin.vt_junk],
+      It applies to invocation-ordered underlays such as [HVE] and the
+      handle-linear [RelaxedHoareCompLinSpec.EIhl uδ] ([CounterEIhl]);
+      it is the overlay of the decided copy-cat route (author decision
+      M-20, [RelaxedHoareCompLin]).  The stamp-based pair [VE :=
+      ViewLHL.VT nuE], [VF := ViewLHL.VT nuF] of latest-review M-18 is a
+      complete-trace corollary only (no instance), and [EI] is not
+      expected to have an instance over [ViewLHL.VT] for ordered
+      same-thread operations ([CounterRelLin.vt_junk],
       [CounterRelLin.counter_vt_no_rlhl2]);
     - by helping, when the abstract invocation step is a no-op
       ([linearize_response]: a call first moves every pending abstract
@@ -60,7 +60,8 @@
     - M-16 ([CounterHL], author decision "handle-linear VE"):
       [counter_ow_unsat] (over the overwriting underlay [OVE], keyed by
       (thread, handle), [RLHL2Hyps] has no model, for any [I], [R], [G];
-      the reviewers' counterexample, regression), [counter_hl_rlhl2]
+      the reviewers' counterexample, regression; the same holds over
+      [EI uδ], [CounterEI.counter_ei_unsat] below), [counter_hl_rlhl2]
       (over the handle-linear [HVE], every field of [RLHL2Hyps] holds for
       an invariant that reads the ghost and a guarantee that constrains
       memory), [HVE_handle_linear], [OVE_not_handle_linear],
@@ -114,15 +115,57 @@
       [CVFe]: (F2) emits the older call's increment first; closed) and
       [junkF_not_counter_trace] (hence no counter execution over [HVE]
       produces it).  Same scope as [CounterRelLin] (I=∅, [HVE]).
+    - RLHL-3a iteration 2 (latest-review m-20, M-20 (b)):
+      [CounterEI.EVE_not_handle_linear] and [CounterEI.counter_ei_unsat]
+      (review T1: [EI uδ] is not handle-linear, and over it no [I], [R],
+      [G] satisfy [RLHL2Hyps] for the overlapping counter; why the
+      layering interface is [RelaxedHoareCompLinSpec.EIhl]; closed);
+      [WRCopyCat.si_overtake_rtrace] (review T2: with [semi_independent
+      := o1 <> o2], a younger read of a thread returns the initial value
+      while the thread's older write is pending, in a copy-cat execution
+      over [EI rdelta]; closed) and [WRCopyCat.si_overtake_not_rtrace0]
+      (its mirror: under the empty relation no copy-cat execution has
+      that trace; [classic], through
+      [RelaxedHoareCompLinSpec.cc_gsim]).  Copy-cat-level witnesses, not
+      module-derived (latest-review M-19).
+      [CounterEIhl.counter_eihl_rlhl2] (the decided layering interface
+      has an instance: every field of [RLHL2Hyps] holds for the
+      overlapping counter over [VE := RelaxedHoareCompLinSpec.EIhl uδ];
+      closed), [counter_complin_eihl], [counter_complin_ei] (copy-cat
+      inclusion over [EIhl uδ] and over the plain [EI uδ]; [classic]),
+      [counter_eihl_rel_lin] (complete traces over [EI uδ] are
+      relaxed-linearizable), [inc_ooo_exec_ei], [ooo_trace_eihl] (the
+      module-derived overlapping execution of [inc_ooo_exec] runs over
+      [EI uδ] and [EIhl uδ]; non-vacuity).  Same I=∅ scope as
+      [CounterHL].
+    - RLHL-3a iteration 3 (latest-review m-34, m-35, m-24):
+      [CounterEIhlFrame.counter_frame_rlhl2] (the same counter over
+      [EIhl uδ], with a rely and a guarantee whose memory part is "any
+      [EIhl uδ] steps", no value; the call's FAA record is tracked by
+      [RelaxedHoareCompLinSpec.eihl_mine]; closed),
+      [counter_frame_complin_ei], [counter_frame_rel_lin],
+      [ooo_rtrace_frame], [ooo_rel_lin_frame] (non-vacuity, on
+      [CounterEIhl.inc_ooo_exec_ei]); [WRCopyCat.WRSig_wf],
+      [WRCopyCat.WRSig0_wf]; [ReadPairUniversal.read_pair_no_rlhl2]
+      (item (a) below).
     - (a) [PairSig] with a writer: [read_pair_no_certificate],
       [read_pair_not_methodsem], [read_pair_not_rlhl] (the unlocked double
       read is refuted *relative to (I2, R2)*: under the coupling
       invariant [I2] and a rely [R2] that contains the guarantee [G2] of
-      another call, for every guarantee [G]; not for every [I] and [R].
-      [CounterRelLin.bad_counter_no_rlhl2] is a universal negative);
+      another call, for every guarantee [G]; not for every [I] and [R]);
       positive controls [read_one_sound], [writer_sound],
       [pair_discriminates]; [pair_rlhl2] (every field of [RLHL2Hyps]
-      holds for [I2], [R2], [G2], [M2good]).
+      holds for [I2], [R2], [G2], [M2good]).  The universal negative
+      (latest-review m-24): [ReadPairUniversal.read_pair_no_rlhl2] (for
+      every [I], [R], [G], no [RLHL2Hyps] for [M2] over [MemLTS] with
+      [PairLTS] from the initial states of [pair_rlhl2]; through
+      [RelaxedHoareCompLin.rlhl_complin] and a two-thread execution
+      derived from module steps; [classic]) and
+      [read_pair_no_rlhl2_gen], [pair_discriminates_rlhl2]; its semantic
+      core, without the logic, is [read_pair_not_complin] (closed;
+      latest-review m-38).
+      [CounterRelLin.bad_counter_no_rlhl2] is the other universal
+      negative.
     - (a1) [read_pair_old_derivation], [read_pair_old_method_provable]:
       the old existential judgement is satisfied by an infeasible path.
     - (c) [M4], two independent reads: [m4_provable], [m4_sound];
@@ -136,6 +179,14 @@
       [two_calls_init], the write of [k2] overtakes the read of [k1]).
       No operation of [M5] writes [X], and [R5]/[G5] keep [X]: the read
       of [RdX] is never interfered with (latest-review m-23).
+    - (a1), (b) and (c) are smoke tests of the logic, superseded as
+      witnesses (latest-review m-50): [two_calls_reorder] has
+      conditional premises and no lemma constructs its configurations,
+      [m4_ctx] is hand-written and frame-only, and (a1)'s claim that
+      [OQ (0, 1)] is false in every execution is argued only in a
+      comment.  The module-derived, observable witnesses of same-thread
+      overtaking are [RelaxedHoareCounterXY.sb_exec], [sb_exec_gen],
+      [lb_exec] and [CounterXYZ.z_reorder_exec].
     - M-11 (i): [own_reorder_not_one] (a read after an own write may
       return the old value: "result = 1" is not [MethodSem]) and
       [own_reorder_le1_sound] ("result <= 1" is derivable).
@@ -161,8 +212,11 @@
     in [RT]); [RA] and [Rrw] allow no concurrent writer.  They test the
     rules, not the composition.  [RLHL2Hyps] instances: [pair_rlhl2],
     [xy_rlhl2] (ghost-free invariants, commuting pairs, helping),
-    [LogRead.log_rlhl2] (non-blocking body, helping) and
-    [CounterHL.counter_hl_rlhl2] (an invariant that reads the ghost).
+    [LogRead.log_rlhl2] (non-blocking body, helping),
+    [CounterHL.counter_hl_rlhl2] (an invariant that reads the ghost),
+    [CounterEIhl.counter_eihl_rlhl2] (the same counter over [EIhl uδ])
+    and [CounterEIhlFrame.counter_frame_rlhl2] (the same, with a
+    value-free memory rely).
 
     Limitations stated where they occur: [Counter] (records keyed by
     underlay handle only, over the overwriting [CVE]) is not claimed to
@@ -175,7 +229,16 @@
     is not a complete presentation ([hve_not_complete]), so the result
     does not transfer to other underlays implementing the FAA
     specification and does not compose vertically (latest-review M-18).
-    No load-buffering example (M-11 (iii) is not done).
+    No load-buffering example in this file (M-11 (iii) is not done).
+    The RLHL-level load-buffering datum is in
+    examples/Relaxed/RelaxedHoareCounterXY.v (latest-review m-46): the
+    module-derived LB execution [lb_exec] is accepted through the
+    instance [cxy_rlhl2] ([lb_rel_lin]) and excludes any RLHL proof of
+    the by-location module for [si_cb] ([cxy_mixed_no_rlhl2]; at trace
+    level, LB is rejected by any overlay relation lacking both
+    (Get, Inc) cross pairs, [lb_not_rel_lin_gen]; nothing is claimed
+    for narrower relations that keep one of them); it is a renaming, not
+    an own-event OG instance.
     Only [CounterHL]'s specification is shown to satisfy [HVF]
     ([counter_spec_hvf]); [TLTS] and [PairLTS] provably do not
     ([tas_not_hvf], [pair_not_hvf]); the other helping-based
@@ -1751,6 +1814,9 @@ Module RelaxedHoareChecks.
       - apply (f_equal (lin_state OSig)) in Hl. cbn in Hl. subst s0. exact Hok.
     Qed.
 
+    (** The same obstruction over the effect-at-invocation LTS [EI uδ],
+        which keeps a record per invocation: [CounterEI.counter_ei_unsat]
+        (after [CounterRelLin], which defines [uδ]). *)
     Theorem counter_ow_unsat (I : Assn OVE CVFe) (R G : CallKey OSig -> PRel OVE CVFe) (q0 : HState) (m0 : nat) :
       ~ RLHL2Hyps I R G Mc q0 (m0, []).
     Proof.
@@ -1893,7 +1959,9 @@ Module RelaxedHoareChecks.
         [read_pair_not_rlhl]: the unlocked double read [read_pair] has no
         certificate, for every guarantee [G], since the writer's two steps
         (guarantee steps of another call) can fall between its reads.
-        Relative to (I2, R2): the invariant and the rely are fixed.
+        Relative to (I2, R2): the invariant and the rely are fixed.  For
+        every [I], [R], [G]: [ReadPairUniversal.read_pair_no_rlhl2]
+        (m-24).
       - Positive controls under the same [I2], [R2], [G2]:
         [read_one_sound] (read [X] once, return [(a, a)]) and
         [writer_sound].
@@ -2239,7 +2307,8 @@ Module RelaxedHoareChecks.
   (** The negatives of this section are relative to (I2, R2)
       (latest-review m-23, m-24): they hold for every guarantee [G], but
       for the fixed invariant [I2] and rely [R2] only, not for every
-      [I], [R].  A universal negative (for every [I], [R], [G]) is
+      [I], [R].  Universal negatives (for every [I], [R], [G]):
+      [ReadPairUniversal.read_pair_no_rlhl2] below, for this module, and
       [CounterRelLin.bad_counter_no_rlhl2]. *)
   Section NegativeTriple.
     Context (G : CallKey PairSig -> PRel MemLTS PairLTS).
@@ -2350,6 +2419,275 @@ Module RelaxedHoareChecks.
   Corollary pair_discriminates :
     (forall t, MethodSem I2 R2 G2 M2good t RdPair) /\ ~ MethodSem I2 R2 G2 M2 t0 RdPair.
   Proof. split; [exact read_one_sound | apply read_pair_not_methodsem]. Qed.
+
+  (** *** m-24: a universal negative for [read_pair]
+
+      [ReadPairUniversal.read_pair_no_rlhl2]: *no* [I], [R], [G] satisfy
+      [RLHL2Hyps] for [M2] (the unlocked double read and the writer) over
+      [MemLTS] with the overlay [PairLTS], from the initial states of
+      [pair_rlhl2]; [read_pair_no_rlhl2_gen] for every initial memory and
+      pair with the side condition stated there.  Route (latest-review
+      m-24): [RelaxedHoareCompLin.rlhl_complin] needs no [HVF], so
+      [RLHL2Hyps] would put every overlay trace of [M2] into the copy-cat
+      traces over [PairLTS]; those only return [RdPair] results [v0] or
+      [(1, 1)] ([pair_rtraces_good]); a two-thread execution of [M2],
+      built from module steps ([rp_mtraces]), returns [(σi X, 1)].  The
+      negatives of [NegativeTriple] above stay as they are (relative to
+      [(I2, R2)]).  [MemLTS] is not a weak-memory model (see its
+      comment); the bad execution is an interleaving.  The negative is
+      relative to the [PairLTS] reference (an effect-at-response overlay
+      without a specification meaning, [pair_not_hvf]); it is the
+      contrapositive of soundness: its semantic core is
+      [read_pair_not_complin] (no copy-cat inclusion of [M2]'s traces
+      into [PairLTS]; closed), and [classic] enters only through
+      [rlhl_complin] (latest-review m-38). *)
+
+  Module ReadPairUniversal.
+    Import RelaxedHoareCompLin.
+
+    (** The writer runs on a second thread. *)
+    Definition t1 : tid := 2%positive.
+
+    Definition iwx : ThreadEvent RlxSig := Build_ThreadEvent t1 (@InvEv RlxSig 0 (MWrite X 1)).
+    Definition rwx : ThreadEvent RlxSig := Build_ThreadEvent t1 (@ResEv RlxSig 0 (MWrite X 1) tt).
+    Definition iwy : ThreadEvent RlxSig := Build_ThreadEvent t1 (@InvEv RlxSig 1 (MWrite Y 1)).
+    Definition rwy : ThreadEvent RlxSig := Build_ThreadEvent t1 (@ResEv RlxSig 1 (MWrite Y 1) tt).
+
+    Lemma writer_trace :
+      exists tr, program_produces_tagged t1 (M2 WrPair t1) tr tt /\ map untag tr = [iwx; rwx; iwy; rwy].
+    Proof.
+      eexists. split.
+      - eexists. split.
+        + cbn. eapply tagged_execution_emit.
+          { apply tagged_future with (h := 0). unfold handle_fresh. cbn. tauto. }
+          eapply tagged_execution_emit.
+          { apply (@tagged_wait_pending RlxSig unit t1 (MWrite X 1) 0 tt). apply resolve_here. }
+          eapply tagged_execution_emit.
+          { apply tagged_future with (h := 1). unfold handle_fresh. cbn. intros [H | []]. discriminate. }
+          eapply tagged_execution_emit.
+          { apply (@tagged_wait_pending RlxSig unit t1 (MWrite Y 1) 1 tt). apply resolve_here. }
+          apply tagged_execution_refl.
+        + apply program_terminal_ret. repeat constructor.
+      - reflexivity.
+    Qed.
+
+    (** The overlay trace of the bad execution: the reader returns
+        [(σi X, 1)]: it reads [X] before the writer's write of [X] and [Y]
+        after the writer's write of [Y]. *)
+    Definition rp_trace (σi : Mem) : list (ThreadEvent PairSig) :=
+      [Build_ThreadEvent t0 (@InvEv PairSig 0 RdPair); Build_ThreadEvent t1 (@InvEv PairSig 0 WrPair);
+       Build_ThreadEvent t1 (@ResEv PairSig 0 WrPair tt); Build_ThreadEvent t0 (@ResEv PairSig 0 RdPair (σi X, 1))].
+
+    (** The bad execution, from module steps: reader on [t0], writer on
+        [t1]; the reader's read of [X], the writer's four events, the
+        writer's return, the reader's read of [Y], the reader's return. *)
+    Lemma rp_mtraces (σi : Mem) : MTraces MemLTS M2 σi (rp_trace σi).
+    Proof.
+      destruct (read_pair_trace (σi X) 1) as (trR & HpR & HtR).
+      destruct writer_trace as (trW & HpW & HtW).
+      destruct trR as [| r1 [| r2 [| r3 [| r4 [| ? ?]]]]]; try discriminate. cbn in HtR. injection HtR as Hr1 Hr2 Hr3 Hr4.
+      destruct trW as [| w1 [| w2 [| w3 [| w4 [| ? ?]]]]]; try discriminate. cbn in HtW. injection HtW as Hw1 Hw2 Hw3 Hw4.
+      set (R1 := @Build_TaggedScheduledEvent RlxSig PairSig (t0, 0) r1).
+      set (R2 := @Build_TaggedScheduledEvent RlxSig PairSig (t0, 0) r2).
+      set (R3 := @Build_TaggedScheduledEvent RlxSig PairSig (t0, 0) r3).
+      set (R4 := @Build_TaggedScheduledEvent RlxSig PairSig (t0, 0) r4).
+      set (W1 := @Build_TaggedScheduledEvent RlxSig PairSig (t1, 0) w1).
+      set (W2 := @Build_TaggedScheduledEvent RlxSig PairSig (t1, 0) w2).
+      set (W3 := @Build_TaggedScheduledEvent RlxSig PairSig (t1, 0) w3).
+      set (W4 := @Build_TaggedScheduledEvent RlxSig PairSig (t1, 0) w4).
+      assert (Hx3 : forall w, te_tid _ (untag w) = t1 -> tagged_can_cross r3 w)
+        by (intros w Hw; left; rewrite Hr3, Hw; discriminate).
+      assert (Hx4 : forall w, te_tid _ (untag w) = t1 -> tagged_can_cross r4 w)
+        by (intros w Hw; left; rewrite Hr4, Hw; discriminate).
+      set (σ1 := upd σi X 1). set (σ2 := upd σ1 Y 1).
+      eexists. eexists. split.
+      - eapply tagged_module_execution_cons.
+        { apply (tagged_invoke MemLTS M2 t0 0 RdPair σi [] [] [] [r1; r2; r3; r4] (σi X, 1)).
+          - intros [].
+          - exact HpR.
+          - cbn [map]. rewrite Hr1, Hr2, Hr3, Hr4. split; [| intros k _ []].
+            cbn. constructor; [intros [H | []]; discriminate H | constructor; [intros [] | constructor]]. }
+        eapply tagged_module_execution_cons.
+        { apply (tagged_invoke MemLTS M2 t1 0 WrPair σi _ _ _ [w1; w2; w3; w4] tt).
+          - intros [H | []]. discriminate H.
+          - exact HpW.
+          - cbn [map]. rewrite Hw1, Hw2, Hw3, Hw4. rewrite Hr1, Hr2, Hr3, Hr4. split.
+            + cbn. constructor; [intros [H | []]; discriminate H | constructor; [intros [] | constructor]].
+            + cbn. intros k [<- | [<- | []]] [H | [H | []]]; discriminate H. }
+        eapply tagged_module_execution_cons.
+        { apply (tagged_underlay MemLTS M2 R1 σi σi). - apply tagged_select_here. - cbn. rewrite Hr1. reflexivity. }
+        eapply tagged_module_execution_cons.
+        { apply (tagged_underlay MemLTS M2 R2 σi σi). - apply tagged_select_here. - cbn. rewrite Hr2. split; reflexivity. }
+        eapply tagged_module_execution_cons.
+        { apply (tagged_underlay MemLTS M2 W1 σi σi).
+          - apply tagged_select_next; [apply Hx3; cbn; rewrite Hw1; reflexivity |].
+            apply tagged_select_next; [apply Hx4; cbn; rewrite Hw1; reflexivity |]. apply tagged_select_here.
+          - cbn. rewrite Hw1. reflexivity. }
+        eapply tagged_module_execution_cons.
+        { apply (tagged_underlay MemLTS M2 W2 σi σ1).
+          - apply tagged_select_next; [apply Hx3; cbn; rewrite Hw2; reflexivity |].
+            apply tagged_select_next; [apply Hx4; cbn; rewrite Hw2; reflexivity |]. apply tagged_select_here.
+          - cbn. rewrite Hw2. reflexivity. }
+        eapply tagged_module_execution_cons.
+        { apply (tagged_underlay MemLTS M2 W3 σ1 σ1).
+          - apply tagged_select_next; [apply Hx3; cbn; rewrite Hw3; reflexivity |].
+            apply tagged_select_next; [apply Hx4; cbn; rewrite Hw3; reflexivity |]. apply tagged_select_here.
+          - cbn. rewrite Hw3. reflexivity. }
+        eapply tagged_module_execution_cons.
+        { apply (tagged_underlay MemLTS M2 W4 σ1 σ2).
+          - apply tagged_select_next; [apply Hx3; cbn; rewrite Hw4; reflexivity |].
+            apply tagged_select_next; [apply Hx4; cbn; rewrite Hw4; reflexivity |]. apply tagged_select_here.
+          - cbn. rewrite Hw4. reflexivity. }
+        eapply tagged_module_execution_cons.
+        { apply (tagged_return MemLTS M2 t1 0 WrPair tt).
+          - apply finish_here.
+          - intros [H | [H | []]]; discriminate H. }
+        eapply tagged_module_execution_cons.
+        { apply (tagged_underlay MemLTS M2 R3 σ2 σ2). - apply tagged_select_here. - cbn. rewrite Hr3. reflexivity. }
+        eapply tagged_module_execution_cons.
+        { apply (tagged_underlay MemLTS M2 R4 σ2 σ2). - apply tagged_select_here. - cbn. rewrite Hr4. split; reflexivity. }
+        eapply tagged_module_execution_cons.
+        { apply (tagged_return MemLTS M2 t0 0 RdPair (σi X, 1)).
+          - apply finish_next; [intros H; discriminate H | apply finish_here].
+          - intros []. }
+        apply tagged_module_execution_refl.
+      - reflexivity.
+    Qed.
+
+    (** The copy-cat over [PairLTS]: the states reachable from [v0] are
+        [v0] and [(1, 1)] ([pair_step_good]), a read response returns the
+        current state ([pair_step_rd]), and an overlay [RdPair] return
+        repeats the result of its call's emitted underlay response
+        ([cc_trace], invariant [CCP]). *)
+
+    Definition rd_val (ev : ThreadEvent PairSig) : option (nat * nat) :=
+      match te_ev _ ev with
+      | ResEv _ op r => match op return pair_ar op -> option (nat * nat) with RdPair => fun r => Some r | WrPair => fun _ => None end r
+      | InvEv _ _ => None
+      end.
+
+    Definition cell_rd (e : CallEntry PairSig) : option (nat * nat) :=
+      match ce_cell PairSig e with
+      | ActiveCall op r => match op return pair_ar op -> option (nat * nat) with RdPair => fun r => Some r | WrPair => fun _ => None end r
+      | DeadCall => None
+      end.
+
+    Definition pgood (v0 r : nat * nat) : Prop := r = v0 \/ r = (1, 1).
+
+    Definition CCP (v0 : nat * nat) (c : @TaggedModuleConfig PairSig PairSig PairLTS) : Prop :=
+      pgood v0 (tm_lts_state c) /\
+      forall e r, In e (tm_calls c) -> cell_rd e = Some r ->
+        pgood v0 r \/ exists x, In x (tm_queue c) /\ ts_owner x = call_key e /\ rd_val (untag (ts_event x)) = Some r.
+
+    Lemma pair_step_rd ev q q' r : Step PairLTS ev q q' -> rd_val ev = Some r -> r = q.
+    Proof.
+      destruct ev as [t [h op | h op r']]; cbn; [intros _ H; discriminate H |].
+      destruct op; cbn; [intros [-> _] H; injection H as <-; reflexivity | intros _ H; discriminate H].
+    Qed.
+
+    Lemma pair_step_good v0 ev q q' : Step PairLTS ev q q' -> pgood v0 q -> pgood v0 q'.
+    Proof.
+      destruct ev as [t [h op | h op r']]; cbn; [intros -> H; exact H |].
+      destruct op; cbn; [intros [_ ->] H; exact H | intros -> _; right; reflexivity].
+    Qed.
+
+    Lemma ccp_step v0 ev c c' : module_step_tagged PairLTS idF ev c c' -> CCP v0 c ->
+      CCP v0 c' /\ forall e r, In e (RelaxedGSim.overlay_events [ev]) -> rd_val e = Some r -> pgood v0 r.
+    Proof.
+      destruct 1 as [t h op q calls Q used trace ret Hcf Hprod Hft
+                    | cand q q' calls Q Q' used Hsel Hlts
+                    | t h op ret q calls calls' Q used Hfin Hdone]; intros (Hq & Hc); cbn [tm_lts_state tm_calls tm_queue] in *.
+      - destruct (cc_trace t op trace ret Hprod) as (u & ->). split.
+        + split; [exact Hq |]. cbn [tm_calls tm_queue]. intros e r [<- | He] Hr.
+          * right. exists (Build_TaggedScheduledEvent (t, h) (cc_res_ev t u op ret)).
+            split; [apply in_or_app; right; right; left; reflexivity |]. split; [reflexivity | exact Hr].
+          * destruct (Hc e r He Hr) as [Hg | (x & Hx & Ho & Hv)]; [left; exact Hg |].
+            right. exists x. split; [apply in_or_app; left; exact Hx | auto].
+        + intros e r [<- | []] Hr. discriminate Hr.
+      - destruct (select_frontier_tagged_split _ _ _ Hsel) as (pre & post & HQ & HQ' & _). split.
+        + split; [exact (pair_step_good v0 _ _ _ Hlts Hq) |]. cbn [tm_calls tm_queue]. intros e r He Hr.
+          destruct (Hc e r He Hr) as [Hg | (x & Hx & Ho & Hv)]; [left; exact Hg |].
+          rewrite HQ in Hx. apply in_app_or in Hx as [Hx | [<- | Hx]].
+          * right. exists x. rewrite HQ'. split; [apply in_or_app; left; exact Hx | auto].
+          * left. rewrite (pair_step_rd _ _ _ _ Hlts Hv). exact Hq.
+          * right. exists x. rewrite HQ'. split; [apply in_or_app; right; exact Hx | auto].
+        + intros e r [].
+      - split.
+        + split; [exact Hq |]. cbn [tm_calls tm_queue]. intros e r He Hr.
+          destruct (RelaxedGSim.finish_back _ _ _ _ _ _ _ Hfin He) as [He' | ->]; [| discriminate Hr].
+          exact (Hc e r He' Hr).
+        + intros e r [<- | []] Hr. pose proof (RelaxedGSim.finish_src _ _ _ _ _ _ Hfin) as Hsrc.
+          destruct (Hc _ r Hsrc Hr) as [Hg | (x & Hx & Ho & _)]; [exact Hg |].
+          exfalso. apply Hdone. change (t, h) with (call_key (Build_CallEntry t h (ActiveCall op ret))).
+          rewrite <- Ho. apply in_map. exact Hx.
+    Qed.
+
+    Lemma ccp_exec v0 c evs c' : module_execution_tagged PairLTS idF c evs c' -> CCP v0 c ->
+      forall e r, In e (RelaxedGSim.overlay_events evs) -> rd_val e = Some r -> pgood v0 r.
+    Proof.
+      induction 1 as [c | c1 c2 c3 ev evs Hst Hex IH]; intros Hc e r He Hr; [destruct He |].
+      destruct (ccp_step v0 ev c1 c2 Hst Hc) as [Hc2 Hev].
+      rewrite RelaxedGSim.overlay_events_cons in He.
+      apply in_app_or in He as [He | He]; [exact (Hev e r He Hr) | exact (IH Hc2 e r He Hr)].
+    Qed.
+
+    (** Every [RdPair] result in a copy-cat trace over [PairLTS] from
+        [v0] is [v0] or [(1, 1)]. *)
+    Theorem pair_rtraces_good v0 s : RTraces PairLTS v0 s -> forall e r, In e s -> rd_val e = Some r -> pgood v0 r.
+    Proof.
+      intros (evs & c & Hex & <-). apply (ccp_exec v0 _ _ _ Hex).
+      split; [left; reflexivity | intros e r []].
+    Qed.
+
+    (** latest-review m-38: the semantic core of the negative, without
+        the logic.  The traces of [M2] over [MemLTS] are not included in
+        the copy-cat traces over [PairLTS] from [v0], under the side
+        conditions of [read_pair_no_rlhl2_gen]. *)
+    Theorem read_pair_not_complin (σi : Mem) (v0 : nat * nat) :
+      (σi X, 1) <> v0 -> σi X <> 1 -> ~ RCompLin M2 MemLTS σi PairLTS v0.
+    Proof.
+      intros Hv HX Hcc.
+      destruct (pair_rtraces_good v0 _ (Hcc (rp_trace σi) (rp_mtraces σi))
+                  (Build_ThreadEvent t0 (@ResEv PairSig 0 RdPair (σi X, 1))) (σi X, 1)) as [H | H].
+      - right. right. right. left. reflexivity.
+      - reflexivity.
+      - exact (Hv H).
+      - injection H as H. exact (HX H).
+    Qed.
+
+    (** m-24: for every invariant, rely and guarantee, [RLHL2Hyps] fails
+        for [M2] over [MemLTS] with the overlay [PairLTS], from every
+        initial memory [σi] and abstract pair [v0] for which [(σi X, 1)]
+        is neither [v0] nor [(1, 1)].  The side condition is needed: from
+        [v0 = (σi X, 1)] the bad result is a legal abstract state.
+        [classic] enters through [RelaxedHoareCompLin.rlhl_complin]
+        ([rinv_val]); no [HVF] is needed. *)
+    Theorem read_pair_no_rlhl2_gen (σi : Mem) (v0 : nat * nat) :
+      (σi X, 1) <> v0 -> σi X <> 1 ->
+      forall (I : PA2) (R G : CallKey PairSig -> PRel MemLTS PairLTS), ~ RLHL2Hyps I R G M2 σi v0.
+    Proof.
+      intros Hv HX I R G HH.
+      pose proof (rlhl_complin I R G M2 σi v0 HH (rp_trace σi) (rp_mtraces σi)) as Hcc.
+      destruct (pair_rtraces_good v0 _ Hcc (Build_ThreadEvent t0 (@ResEv PairSig 0 RdPair (σi X, 1))) (σi X, 1))
+        as [H | H].
+      - right. right. right. left. reflexivity.
+      - reflexivity.
+      - exact (Hv H).
+      - injection H as H. exact (HX H).
+    Qed.
+
+    (** The instance at the initial states of [pair_rlhl2]. *)
+    Theorem read_pair_no_rlhl2 :
+      forall (I : PA2) (R G : CallKey PairSig -> PRel MemLTS PairLTS), ~ RLHL2Hyps I R G M2 σ0 (0, 0).
+    Proof. apply read_pair_no_rlhl2_gen; cbn; intros H; discriminate H. Qed.
+
+    (** The universal form of [pair_discriminates]: from the same initial
+        states, [M2good] has an [RLHL2Hyps] instance and [M2] has none. *)
+    Corollary pair_discriminates_rlhl2 :
+      RLHL2Hyps I2 R2 G2 M2good σ0 (0, 0) /\
+      forall (I : PA2) (R G : CallKey PairSig -> PRel MemLTS PairLTS), ~ RLHL2Hyps I R G M2 σ0 (0, 0).
+    Proof. exact (conj pair_rlhl2 read_pair_no_rlhl2). Qed.
+  End ReadPairUniversal.
 
   (** *** (a1) The previous, existential judgement is satisfied by an
       infeasible path
@@ -6355,6 +6693,846 @@ Module RelaxedHoareChecks.
     Qed.
   End CounterEI.
 
+  (** [CounterEIhl] (latest-review m-20, the decided layering interface
+      has an instance): the overlapping counter verified by RLHL over the
+      handle-linear sequential-specification LTS
+      [VE := RelaxedHoareCompLinSpec.EIhl uδ] (state [((n, P), used)]: the
+      counter, the pending FAA records, the invoked keys), with the same
+      overlay [CVFe] and module [Mc] as [CounterHL].
+
+      - [counter_eihl_rlhl2]: every field of [RLHL2Hyps] holds, by the
+        rules ([counter_eihl_provable], a [MethodProvable] derivation; the
+        derivation itself is [CounterHL]'s, copied with the new
+        assertions).
+      - [counter_complin_eihl]: hence copy-cat inclusion over [EIhl uδ]
+        ([RelaxedHoareCompLin.rlhl_complin_ei]), and
+        [counter_complin_ei]: over the plain [EI uδ]
+        ([RelaxedHoareCompLinSpec.rlhl_complin_eihl], through [hlift]),
+        although over [EI uδ] itself no [RLHL2Hyps] instance exists
+        ([CounterEI.counter_ei_unsat]).
+      - [counter_eihl_rel_lin]: every complete overlay trace of the
+        counter over [EI uδ] is relaxed-linearizable to [seq_legal cδ 0]
+        ([RelaxedHoareCompLinSpec.complin_ei_rel_lin]).
+
+      What changes against [CounterHL]: [EI] removes a record at the
+      response, so "records only grow" is not available.  The rely of [k]
+      instead keeps every concrete record whose value is the value of one
+      of [k]'s abstract records ([Re], last clause), and the guarantee of
+      [k] keeps every concrete record whose value belongs to an abstract
+      record of another call ([Ge]).  This uses that the counter's values
+      are unique (the abstract values are distinct, [Ie]).  That is a
+      choice of this proof, not a need of [EIhl]: a
+      specification-independent alternative exists,
+      [CounterEIhlFrame] below, whose rely and guarantee constrain memory
+      only by "any [EIhl uδ] steps" and whose assertions use the frame
+      lemmas [RelaxedHoareCompLinSpec.eihl_mine_*] (latest-review m-34).
+      This module is kept unchanged.  Handle-linearity enters at the FAA:
+      its key is unused, so the concrete records keep distinct keys
+      ([Ie]), and the response of [k] consumes [k]'s record.
+
+      Scope: as [CounterHL] (I=∅ at both levels, a single-future body; the
+      module is the FAA-to-[Inc] copy-cat). *)
+
+  Module CounterEIhl.
+    Import Counter CounterHL RelaxedHoareCompLin RelaxedHoareCompLinSpec.
+
+    Definition EHL : LTS USig := @EIhl USig nat CounterRelLin.uδ.
+    Abbreviation EA := (Assn EHL CVFe).
+
+    Definition ehσ0 : State EHL := ((0, []), []).
+
+    Definition uval (x : RelaxedTraceLin.Op USig) : nat :=
+      match RelaxedTraceLin.op_op x as o return u_ar o -> nat with FAA => fun r => r end (RelaxedTraceLin.op_ret x).
+    Definition oval (o : COp) : nat :=
+      match RelaxedTraceLin.op_op o as x return o_ar x -> nat with Inc => fun r => r end (RelaxedTraceLin.op_ret o).
+
+    (** The concrete counter, the pending FAA records, the invoked keys. *)
+    Definition ecnt (σ : State EHL) : nat := fst (fst σ).
+    Definition erec (σ : State EHL) : list (RelaxedTraceLin.Op USig) := snd (fst σ).
+    Definition eused (σ : State EHL) : list (CallKey USig) := snd σ.
+
+    (** The invariant: [CounterHL.Ih] (with the counter of [EHL]), plus:
+        the concrete records have distinct keys, all invoked; the abstract
+        records have distinct values, all below the counter. *)
+    Definition Ie : EA := fun s => exists ca P pool,
+      ps_poss s = EOk (ca, P) pool /\ ecnt (ps_mem s) = ca /\ lin_pool_well_formed pool /\
+      (forall t', inv_keys t' pool = gkeys t' (ps_ghost s)) /\ Forall Jwf (ps_ghost s) /\
+      (forall o, In o P -> lin_lookup (okey o) (@ls_lini OSig Inc) pool) /\
+      NoDup (map okey P) /\
+      (forall x, In x (erec (ps_mem s)) -> In (RelaxedTraceLin.op_key x) (eused (ps_mem s))) /\
+      NoDup (map (@RelaxedTraceLin.op_key USig) (erec (ps_mem s))) /\
+      (forall o, In o P -> oval o < ca) /\ NoDup (map oval P).
+
+    (** Rely of [k]: [k]'s pool entries and abstract records are kept, and
+        so is every concrete record whose value is that of an abstract
+        record of [k]. *)
+    Definition Re (k : CallKey OSig) : PRel EHL CVFe := fun s s' =>
+      exists v pool v' pool', ps_poss s = EOk v pool /\ ps_poss s' = EOk v' pool' /\
+        (forall ls, lin_lookup k ls pool -> lin_lookup k ls pool') /\
+        (forall o, okey o = k -> In o (snd v) -> In o (snd v')) /\
+        (forall x, In x (erec (ps_mem s)) -> In (cop k (uval x)) (snd v) -> In x (erec (ps_mem s'))).
+
+    (** Guarantee of [k]: the same for every other call. *)
+    Definition Ge (k : CallKey OSig) : PRel EHL CVFe := fun s s' =>
+      exists v pool v' pool', ps_poss s = EOk v pool /\ ps_poss s' = EOk v' pool' /\
+        (forall k' ls, k' <> k -> lin_lookup k' ls pool -> lin_lookup k' ls pool') /\
+        (forall o, okey o <> k -> In o (snd v) -> In o (snd v')) /\
+        (forall x k', k' <> k -> In x (erec (ps_mem s)) -> In (cop k' (uval x)) (snd v) -> In x (erec (ps_mem s'))).
+
+    Lemma Ge_in_Re k k' s s' : k' <> k -> Ge k' s s' -> Re k s s'.
+    Proof.
+      intros Hne (v & pool & v' & pool' & Hp & Hp' & Hlk & HP & Hx).
+      exists v, pool, v', pool'. split; [exact Hp |]. split; [exact Hp' |]. split; [| split].
+      - intros ls Hl. apply Hlk; [intros Heq; apply Hne; symmetry; exact Heq | exact Hl].
+      - intros o Hk. apply HP. rewrite Hk. intros Heq. apply Hne. symmetry. exact Heq.
+      - intros x Hxin Hc. apply (Hx x k); [intros Heq; apply Hne; symmetry; exact Heq | exact Hxin | exact Hc].
+    Qed.
+
+    Definition KInve (k : CallKey OSig) : EA := fun s =>
+      exists v pool, ps_poss s = EOk v pool /\ lin_lookup k (@ls_inv OSig Inc) pool.
+
+    (** After the FAA of [k] on underlay handle [hu]: the concrete record
+        of [(fst k, hu)] holds the fetched value, which is [k]'s abstract
+        record, and [k] is at [ls_lini]. *)
+    Definition KLinie (k : CallKey OSig) (hu : nat) : EA := fun s =>
+      exists c v pool, ps_poss s = EOk v pool /\
+        In (@RelaxedTraceLin.Build_Op USig (fst k, hu) FAA c) (erec (ps_mem s)) /\
+        In (cop k c) (snd v) /\ lin_lookup k (@ls_lini OSig Inc) pool.
+
+    Definition KLinre (k : CallKey OSig) (r : nat) : EA := fun s =>
+      exists v pool, ps_poss s = EOk v pool /\ lin_lookup k (@ls_linr OSig Inc r) pool.
+
+    Lemma KInve_stable k : Stable Ie (Re k) (KInve k).
+    Proof.
+      intros s s' (v & pool & Hp & Hl) (v1 & pool1 & v1' & pool1' & Hp1 & Hp1' & Hlk & _ & _) _.
+      rewrite Hp in Hp1. injection Hp1 as <- <-. exists v1', pool1'. split; [exact Hp1' | apply Hlk; exact Hl].
+    Qed.
+
+    Lemma KLinie_stable k hu : Stable Ie (Re k) (KLinie k hu).
+    Proof.
+      intros s s' (c & v & pool & Hp & Hx & HP & Hl) (v1 & pool1 & v1' & pool1' & Hp1 & Hp1' & Hlk & HPk & Hxk) _.
+      rewrite Hp in Hp1. injection Hp1 as <- <-. exists c, v1', pool1'.
+      split; [exact Hp1' |]. split; [exact (Hxk _ Hx HP) |].
+      split; [apply HPk; [reflexivity | exact HP] | apply Hlk; exact Hl].
+    Qed.
+
+    Lemma KLinre_stable k r : Stable Ie (Re k) (KLinre k r).
+    Proof.
+      intros s s' (v & pool & Hp & Hl) (v1 & pool1 & v1' & pool1' & Hp1 & Hp1' & Hlk & _ & _) _.
+      rewrite Hp in Hp1. injection Hp1 as <- <-. exists v1', pool1'. split; [exact Hp1' | apply Hlk; exact Hl].
+    Qed.
+
+    Section CounterEIhlProof.
+      Context (t : tid) (h : nat).
+      Local Abbreviation kc := (@pair tid (RelaxedSig.handle OSig) t h).
+
+      Abbreviation Pce := (PostInvoke Ie kc Inc (Ωc t)).
+
+      Lemma pinit_KInve : Impl Ie Pce (KInve kc).
+      Proof.
+        intros [[σ p] γ] _ (p0 & γ0 & evs & (ca & P & pool0 & Hp0 & _) & Hinv & _).
+        cbn [ps_poss ps_mem ps_ghost fst snd] in Hp0, Hinv. rewrite Hp0 in Hinv.
+        destruct (pinv_inv _ _ _ _ _ _ Hinv) as [-> _].
+        exists (ca, P), (make_lin_entry kc (@ls_inv OSig Inc) :: pool0). split; [reflexivity | left; reflexivity].
+      Qed.
+
+      (** The FAA: as in [CounterHL.faa_updateh]; the key of the new record
+          is unused (handle-linearity), so the records keep distinct keys. *)
+      Lemma faa_updatee hu :
+        EvUpdate Ie (Ge kc) kc (Build_ThreadEvent t (@InvEv USig hu FAA)) (KInve kc) (KLinie kc hu).
+      Proof.
+        intros σ p γ γ' (v & pool & Hp & Hl)
+          (ca & P & pool1 & Hp1 & Hc & Hwf & HJ & HJwf & HPl & HPnd & Hku & Hndk & Hlt & Hndv) Hge σ' Hstep.
+        destruct σ as [[n Pc] u]. unfold ecnt, erec, eused in *.
+        cbn [ps_poss ps_mem ps_ghost fst snd] in *. rewrite Hp in Hp1. injection Hp1 as -> <-. subst p n.
+        cbn in Hge. destruct Hge as (g1 & g2 & -> & -> & Hnb).
+        cbn in Hstep. destruct Hstep as (Hnu & (r & st' & (-> & ->) & Hq') & Hu').
+        destruct σ' as [[n' Pc'] u']. cbn in Hq', Hu'. injection Hq' as -> ->. subst u'.
+        apply Forall_app in HJwf as [HJwf1 HJwf2]. pose proof (Forall_inv_tail HJwf2) as HJwf2'.
+        destruct (emit_ready t h hu pool g1 g2 Hwf Hl HJ HJwf1 Hnb) as (pool' & Hu & Hwf' & HJ').
+        pose proof (lin_invoke_update_is_update _ _ _ _ _ Hu) as Hu2.
+        assert (HPk : forall o, In o P -> okey o <> kc).
+        { intros o Ho Hk. pose proof (HPl o Ho) as Hlo. rewrite Hk in Hlo.
+          pose proof (lookup_unique pool kc _ _ Hwf Hl Hlo) as Heq. discriminate Heq. }
+        exists (EOk (S ca, cop kc ca :: P) pool'). split; [| split; [| split]].
+        - apply rt_step. exists kc. apply (psa_inv CVFe t h Inc); [exact Hu |].
+          cbn. exists ca, (S ca). split; [split; reflexivity | reflexivity].
+        - exists ca, (S ca, cop kc ca :: P), pool'. cbn. split; [reflexivity |].
+          split; [left; reflexivity |]. split; [left; reflexivity |].
+          exact (lin_update_target _ _ _ _ _ Hu2).
+        - exists (S ca), (cop kc ca :: P), pool'. cbn [ps_poss ps_mem ps_ghost fst snd ecnt erec eused].
+          split; [reflexivity |]. split; [reflexivity |]. split; [exact Hwf' |].
+          split; [exact HJ' |]. split; [apply Forall_app; split; assumption |]. split.
+          + intros o [<- | Ho]; [exact (lin_update_target _ _ _ _ _ Hu2) |].
+            eapply lin_update_other_lookup; [exact Hu2 | exact (HPk o Ho) | exact (HPl o Ho)].
+          + split; [constructor; [| exact HPnd]; intros Hin; apply in_map_iff in Hin as (o & Hk & Ho); exact (HPk o Ho Hk) |].
+            split; [intros x [<- | Hx]; [left; reflexivity | right; exact (Hku x Hx)] |].
+            split; [constructor; [| exact Hndk] |].
+            { intros Hin. apply in_map_iff in Hin as (x & Hk & Hx). apply Hnu. cbn in Hk. rewrite <- Hk. exact (Hku x Hx). }
+            split; [intros o [<- | Ho]; [cbn; lia | pose proof (Hlt o Ho); lia] |].
+            cbn [map]. constructor; [| exact Hndv]. intros Hin. apply in_map_iff in Hin as (o & Hv & Ho).
+            pose proof (Hlt o Ho). cbn in Hv. lia.
+        - exists (ca, P), pool, (S ca, cop kc ca :: P), pool'. split; [reflexivity |]. split; [reflexivity |].
+          split; [intros k' ls Hne Hlk; eapply lin_update_other_lookup; [exact Hu2 | exact Hne | exact Hlk] |].
+          split; [intros o _ Ho; right; exact Ho |].
+          intros x k' _ Hx _. right. exact Hx.
+      Qed.
+
+      (** The response: the record of [(t, hu)] is [kc]'s (distinct keys), so
+          the response value is [kc]'s abstract value; removing the record
+          keeps the records of the other calls, whose values differ. *)
+      Lemma res_updatee hu r :
+        EvUpdate Ie (Ge kc) kc (Build_ThreadEvent t (@ResEv USig hu FAA r)) (KLinie kc hu) (KLinre kc r).
+      Proof.
+        intros σ p γ γ' (c & v & pool & Hp & Hx & HP & Hl)
+          (ca & P & pool1 & Hp1 & Hca & Hwf & HJ & HJwf & HPl & HPnd & Hku & Hndk & Hlt & Hndv) Hge σ' Hstep.
+        destruct σ as [[n Pc] u]. unfold ecnt, erec, eused in *.
+        cbn [ps_poss ps_mem ps_ghost fst snd] in *. cbn in Hge. subst γ'.
+        cbn in Hstep. destruct Hstep as ((P1 & P2 & HPc & Hq') & Hu').
+        destruct σ' as [[n' Pc'] u']. cbn in Hq', Hu', HPc. injection Hq' as -> ->. subst u'.
+        rewrite Hp in Hp1. injection Hp1 as -> <-. subst p.
+        assert (Hcr : c = r).
+        { assert (Hxr : In (@RelaxedTraceLin.Build_Op USig (t, hu) FAA r) Pc) by (rewrite HPc; apply in_elt).
+          pose proof (ViewPossibility.NoDup_key_eq (@RelaxedTraceLin.op_key USig) _ _ _ Hndk Hx Hxr eq_refl) as Heq.
+          exact (f_equal uval Heq). }
+        subst r.
+        cbn in HP. destruct (in_split _ _ HP) as (Pa1 & Pa2 & HPs).
+        destruct (lin_update_exists kc (@ls_lini OSig Inc) (@ls_linr OSig Inc c) pool Hwf Hl) as (pool' & Hu).
+        assert (HPk : forall o, In o (Pa1 ++ Pa2) -> okey o <> kc).
+        { intros o Ho Hk. rewrite HPs, map_app in HPnd. cbn [map] in HPnd.
+          apply NoDup_remove_2 in HPnd. apply HPnd. rewrite <- map_app.
+          apply in_map_iff. exists o. split; [exact Hk | exact Ho]. }
+        assert (HPsub : forall o, In o (Pa1 ++ Pa2) -> In o P) by (intros o Ho; rewrite HPs; exact (in_remove_in _ _ _ _ Ho)).
+        assert (HPcsub : forall x, In x (P1 ++ P2) -> In x Pc) by (intros x Hx'; rewrite HPc; exact (in_remove_in _ _ _ _ Hx')).
+        exists (EOk (ca, Pa1 ++ Pa2) pool'). split; [| split; [| split]].
+        - apply rt_step. exists kc. apply (psa_ret CVFe t h Inc c _ _ _ _ Hu). cbn. exists Pa1, Pa2.
+          split; [exact HPs | reflexivity].
+        - exists (ca, Pa1 ++ Pa2), pool'. split; [reflexivity | eapply lin_update_target; exact Hu].
+        - exists ca, (Pa1 ++ Pa2), pool'. cbn [ps_poss ps_mem ps_ghost fst snd ecnt erec eused].
+          split; [reflexivity |]. split; [exact Hca |].
+          split; [eapply lin_update_well_formed; eauto |].
+          split; [intros t'; rewrite (inv_keys_update _ _ _ _ t' Hu); apply HJ |].
+          split; [exact HJwf |]. split.
+          + intros o Ho. eapply lin_update_other_lookup; [exact Hu | exact (HPk o Ho) | exact (HPl o (HPsub o Ho))].
+          + split; [rewrite HPs, map_app in HPnd; cbn [map] in HPnd; rewrite map_app; exact (NoDup_remove_1 _ _ _ HPnd) |].
+            split; [intros x Hx'; exact (Hku x (HPcsub x Hx')) |].
+            split; [rewrite HPc, map_app in Hndk; cbn [map] in Hndk; rewrite map_app; exact (NoDup_remove_1 _ _ _ Hndk) |].
+            split; [intros o Ho; exact (Hlt o (HPsub o Ho)) |].
+            rewrite HPs, map_app in Hndv. cbn [map] in Hndv. rewrite map_app. exact (NoDup_remove_1 _ _ _ Hndv).
+        - exists (ca, P), pool, (ca, Pa1 ++ Pa2), pool'. split; [reflexivity |]. split; [reflexivity |].
+          split; [intros k' ls Hne Hlk; eapply lin_update_other_lookup; [exact Hu | exact Hne | exact Hlk] |].
+          split.
+          + intros o Hk Ho. cbn in Ho |- *. rewrite HPs in Ho. apply (in_remove_ne _ _ _ _ Ho).
+            intros ->. apply Hk. reflexivity.
+          + intros x k' Hne Hx' Hck. cbn in Hck |- *. rewrite HPc in Hx'. apply (in_remove_ne _ _ _ _ Hx').
+            intros ->. cbn in Hck. apply Hne.
+            assert (Hv : oval (cop k' c) = oval (cop kc c)) by reflexivity.
+            pose proof (ViewPossibility.NoDup_key_eq oval _ _ _ Hndv Hck HP Hv) as Heq.
+            exact (f_equal okey Heq).
+      Qed.
+
+      Definition sl_faae (hu : nat) : Slot EHL CVFe :=
+        mkSlot (inv_tev (E := USig) (F := OSig) kc empty_store hu FAA) (KInve kc) (fun _ _ => True)
+          (KLinie kc hu) (Ge kc).
+
+      Definition sl_rese (hu : nat) (r : nat) : Slot EHL CVFe :=
+        mkSlot (res_tev (E := USig) (F := OSig) kc hu FAA r) (fun _ => True) (fun _ => KLinie kc hu)
+          (KLinre kc r) (Ge kc).
+
+      (** The derivation of [CounterHL.counter_derivationh], with the new
+          assertions. *)
+      Lemma counter_derivatione :
+        RProvable Ie Re Ge kc Pce
+          (fun a Γ H => Close Ie Re Ge kc Pce (KLinre kc) a Γ H /\ Ωc t (own_invs Γ)) [] empty_store (Mc Inc t).
+      Proof.
+        cbn. unfold body.
+        apply rp_future with (sl := sl_faae); [intros; reflexivity | |].
+        { intros hu _. constructor; cbn [sl_ev sl_start sl_in sl_post sl_guar sl_faae].
+          - auto.
+          - unfold pre_of. cbn [sl_ev sl_start sl_in sl_post sl_guar sl_faae].
+            intros σ p γ γ' [HK _]. apply (faa_updatee hu σ p γ γ' HK).
+          - exact pinit_KInve.
+          - intros d sd _ Hd. destruct d; discriminate.
+          - apply KInve_stable.
+          - intros d _. apply Stable_true.
+          - intros g sg Hg. destruct g; discriminate.
+          - intros d g sg _ Hg. destruct g; discriminate.
+          - intros y sy Hy. destruct y; discriminate.
+          - intros y sy d Hy. destruct y; discriminate. }
+        intros hu Hf. cbv beta.
+        apply rp_wait_pending with (sl := sl_rese hu); [left; reflexivity | intros; reflexivity | |].
+        { intros r. constructor; cbn [sl_ev sl_start sl_in sl_post sl_guar sl_rese].
+          - auto.
+          - unfold pre_of. cbn [sl_ev sl_start sl_in sl_post sl_guar sl_rese].
+            intros σ p γ γ' [_ Hin]. apply (res_updatee hu r σ p γ γ'). apply (Hin 0).
+            exact (dprec_faa_res t h hu r).
+          - intros s _ _. exact Logic.I.
+          - intros d sd _ Hd. destruct d as [| [|]]; try discriminate.
+            cbn in Hd. injection Hd as <-. cbn. intros s _ Hs. exact Hs.
+          - apply Stable_true.
+          - intros d _. apply KLinie_stable.
+          - intros g sg _. apply Stable_true.
+          - intros d g sg Hd Hg Hnb. exfalso. apply dprec_lt in Hd. cbn in Hd.
+            destruct g as [| g]; [| destruct g; discriminate]. assert (d = 0) by lia. subst d.
+            apply Hnb. apply before_refl.
+          - intros y sy Hy Hnb. exfalso. destruct y as [| y]; [| destruct y; discriminate].
+            apply Hnb. apply before_dprec. exact (dprec_faa_res t h hu r).
+          - intros y sy d Hy _ Hd. exfalso. apply dprec_lt in Hd. destruct y as [| y]; [lia |].
+            destruct y; discriminate. }
+        intros r H2 Hres. cbv beta. apply rp_ret. split.
+        - apply close_done with
+            (fin := fun d => match d with 1 => KLinre kc r | _ => fun _ => True end)
+            (fin0 := fun _ => True).
+          + eapply resolve_fresh_all_resolved; [constructor | exact Hres].
+          + constructor.
+            * intros d sd Hd. destruct d as [| [| d]]; cbn in Hd; try (destruct d; discriminate).
+              -- intros s _ _. exact Logic.I.
+              -- injection Hd as <-. intros s _ Hs. exact Hs.
+            * intros s _ _. exact Logic.I.
+            * intros d g sg Hd Hg Hnb. destruct d as [| [| d]]; [apply Stable_true | | cbn in Hd; lia].
+              exfalso. apply Hnb. destruct g as [| [| g]]; [| apply before_refl | destruct g; discriminate].
+              apply before_dprec. exact (dprec_faa_res t h hu r).
+            * intros g sg _. apply Stable_true.
+            * intros [| [| d]]; [apply Stable_true | apply KLinre_stable | apply Stable_true].
+            * apply Stable_true.
+            * intros s _ _ Hfin. exact (Hfin 1 _ eq_refl Logic.I).
+        - exists hu. reflexivity.
+      Qed.
+
+      Lemma counter_PIe : forall s, Pce s -> Ie s.
+      Proof.
+        intros [[σ p] γ] (p0 & γ0 & evs & (ca & P & pool0 & Hp0 & Hc & Hwf & HJ & HJwf & HPl & HPnd & Hrest) & Hinv & Hg & (hu & ->) & _).
+        cbn [ps_poss ps_mem ps_ghost fst snd] in *. subst γ. rewrite Hp0 in Hinv.
+        destruct (pinv_inv _ _ _ _ _ _ Hinv) as [-> Hfresh].
+        exists ca, P, (make_lin_entry kc (@ls_inv OSig Inc) :: pool0). split; [reflexivity |]. split; [exact Hc |].
+        split; [eapply lin_insert_well_formed; [constructor; exact Hfresh | exact Hwf] |]. split.
+        - intros t'. cbn [ps_ghost snd inv_keys]. rewrite HJ, gkeys_app. f_equal.
+          unfold ek, gkeys. cbn. destruct (Pos.eqb t t'); reflexivity.
+        - split; [apply Forall_app; split; [exact HJwf | constructor; [split; [reflexivity | exact Logic.I] | constructor]] |].
+          split; [intros o Ho; right; exact (HPl o Ho) |]. split; [exact HPnd | exact Hrest].
+      Qed.
+
+      Lemma counter_rete r s : KLinre kc r s -> Ie s -> NoOwn kc (ps_ghost s) -> RetCond Ie Ge kc Inc r s.
+      Proof.
+        intros (v & pool & Hp & Hl) HI _. destruct s as [[σ p] γ]. cbn [ps_poss ps_mem ps_ghost fst snd] in *.
+        subst p. exists (EOk v pool). split; [apply rt_refl |]. split; [exists v, pool; split; [reflexivity | exact Hl] |].
+        split; [exact HI |]. split; [apply r_refl |].
+        intros p2 Hret. destruct (pret_inv _ _ _ _ _ _ _ Hret) as (pool2 & -> & Hrem).
+        destruct HI as (ca & P & pool3 & Hp3 & Hc & Hwf & HJ & HJwf & HPl & HPnd & Hrest). cbn in Hp3.
+        injection Hp3 as Hv Hpool. subst v pool3.
+        exists ca, P, pool2. cbn. split; [reflexivity |]. split; [exact Hc |].
+        split; [eapply lin_remove_well_formed; eauto |].
+        split; [intros t'; rewrite (inv_keys_remove _ _ _ _ t' Hrem); apply HJ |].
+        split; [exact HJwf |]. split; [| split; [exact HPnd | exact Hrest]].
+        intros o Ho. eapply lin_remove_other_lookup; [exact Hrem | | exact (HPl o Ho)].
+        intros Hk. pose proof (HPl o Ho) as Hlo. rewrite Hk in Hlo.
+        pose proof (lookup_unique pool kc _ _ Hwf Hl Hlo) as Heq. discriminate Heq.
+      Qed.
+    End CounterEIhlProof.
+
+    Theorem counter_eihl_provable t :
+      MethodProvable Ie Re Ge Mc t Inc (fun _ => Ωc t) (fun h => KLinre (t, h)).
+    Proof.
+      constructor.
+      - intros h s Hs. exact (counter_PIe t h s Hs).
+      - intros h r s HQ HI Hno. exact (counter_rete t h r s HQ HI Hno).
+      - intros h. exact (counter_derivatione t h).
+    Qed.
+
+    Theorem counter_eihl_methodsem t : MethodSem Ie Re Ge Mc t Inc.
+    Proof. eapply method_sound. exact (counter_eihl_provable t). Qed.
+
+    Lemma counter_eihl_init : Ie (ehσ0, EOk (0, []) [], []).
+    Proof.
+      exists 0, [], []. cbn. split; [reflexivity |]. split; [reflexivity |].
+      split; [constructor |]. split; [reflexivity |]. split; [constructor |].
+      split; [intros o [] |]. split; [constructor |]. split; [intros x [] |].
+      split; [constructor |]. split; [intros o [] | constructor].
+    Qed.
+
+    (** m-20: every field of [RLHL2Hyps] holds for the overlapping counter
+        over the handle-linear specification LTS [EIhl uδ]. *)
+    Theorem counter_eihl_rlhl2 : RLHL2Hyps Ie Re Ge Mc ehσ0 (0, []).
+    Proof.
+      constructor.
+      - intros t []. exact (counter_eihl_methodsem t).
+      - intros k k' s s' Hne HG. exact (Ge_in_Re k' k s s' Hne HG).
+      - intros k k' op tr ret s p' Hne _ HI Hinv. destruct s as [[σ p] γ].
+        destruct HI as (ca & P & pool & Hp & _). cbn [ps_poss ps_mem ps_ghost fst snd] in *. subst p.
+        destruct k as [t h]. destruct (pinv_inv _ _ _ _ _ _ Hinv) as [-> _].
+        exists (ca, P), pool, (ca, P), (make_lin_entry (t, h) (ls_inv op) :: pool).
+        split; [reflexivity |]. split; [reflexivity |]. split; [intros ls Hl; right; exact Hl |].
+        split; [auto | auto].
+      - intros k k' op r s p2 Hne HI Hret _. destruct s as [[σ p] γ].
+        destruct HI as (ca & P & pool & Hp & _). cbn [ps_poss ps_mem ps_ghost fst snd] in *. subst p.
+        destruct k as [t h]. destruct (pret_inv _ _ _ _ _ _ _ Hret) as (pool2 & -> & Hrem).
+        exists (ca, P), pool, (ca, P), pool2. split; [reflexivity |]. split; [reflexivity |].
+        split; [| split; [auto | auto]]. intros ls Hl. eapply lin_remove_other_lookup; [exact Hrem | | exact Hl].
+        intros Heq. apply Hne. symmetry. exact Heq.
+      - intros s (ca & P & pool & Hp & _ & Hwf & _). exists (ca, P), pool. auto.
+      - exact counter_eihl_init.
+    Qed.
+
+    (** Copy-cat inclusion over [EIhl uδ], and over the plain [EI uδ]. *)
+    Theorem counter_complin_eihl : RCompLin Mc EHL ehσ0 CVFe (0, []).
+    Proof. exact (rlhl_complin_ei cδ 0 Ie Re Ge Mc ehσ0 counter_eihl_rlhl2). Qed.
+
+    Theorem counter_complin_ei : RCompLin Mc (RelaxedHoareSpec.EI CounterRelLin.uδ) (0, []) CVFe (0, []).
+    Proof. exact (rlhl_complin_eihl CounterRelLin.uδ cδ 0 Ie Re Ge Mc (0, []) counter_eihl_rlhl2). Qed.
+
+    (** Every complete overlay trace of the counter over [EI uδ] is
+        relaxed-linearizable to the sequential counter. *)
+    Corollary counter_eihl_rel_lin s :
+      MTraces (RelaxedHoareSpec.EI CounterRelLin.uδ) Mc (0, []) s -> PrefixView.complete s ->
+      RelaxedTraceLin.rel_lin (@PrefixView.sel OSig) s (RelaxedSig.semi_independent OSig) (RelaxedHoareSpec.seq_legal cδ 0).
+    Proof. exact (complin_ei_rel_lin cδ 0 Mc (RelaxedHoareSpec.EI CounterRelLin.uδ) (0, []) counter_complin_ei s). Qed.
+
+    (** Non-vacuity: the module-derived execution of
+        [CounterRelLin.inc_ooo_exec] (two overlapping [Inc]s of [t0]; the
+        younger returns [1] first, the older [0] afterwards) also runs over
+        [EI uδ], hence over [EIhl uδ] ([hlift_ei]), so the conclusions
+        above are about non-empty trace sets with overlapping same-thread
+        calls. *)
+    Theorem inc_ooo_exec_ei :
+      exists c, module_execution_tagged (RelaxedHoareSpec.EI CounterRelLin.uδ) Mc
+                  (initial_tagged_module (RelaxedHoareSpec.EI CounterRelLin.uδ) (0, [])) CounterRelLin.inc_ooo_evs c /\
+        (forall e, In e (tm_calls c) -> ce_cell OSig e = DeadCall).
+    Proof.
+      set (V := RelaxedHoareSpec.EI CounterRelLin.uδ).
+      eexists. split.
+      - unfold CounterRelLin.inc_ooo_evs.
+        eapply tagged_module_execution_cons.
+        { apply (tagged_invoke V Mc t0 1 Inc (0, []) [] [] [] [CounterRelLin.fi 0; CounterRelLin.fr 0 0] 0).
+          - intros [].
+          - apply CounterRelLin.body_produces.
+          - split; [repeat constructor; intros [] | intros key Hk []]. }
+        eapply tagged_module_execution_cons.
+        { apply (tagged_invoke V Mc t0 2 Inc (0, []) _ _ _ [CounterRelLin.fi 1; CounterRelLin.fr 1 1] 1).
+          - intros [Heq | []]. discriminate Heq.
+          - apply CounterRelLin.body_produces.
+          - split; [repeat constructor; intros [] |].
+            intros key [<- | []] [Heq | []]. discriminate Heq. }
+        eapply tagged_module_execution_cons.
+        { apply (tagged_underlay V Mc (@Build_TaggedScheduledEvent USig OSig (t0, 1) (CounterRelLin.fi 0))).
+          - cbn. apply tagged_select_here.
+          - cbn. exists 0, 1. split; [split; reflexivity | reflexivity]. }
+        eapply tagged_module_execution_cons.
+        { apply (tagged_underlay V Mc (@Build_TaggedScheduledEvent USig OSig (t0, 2) (CounterRelLin.fi 1))).
+          - cbn. apply tagged_select_next; [| apply tagged_select_here].
+            right. split; [reflexivity |]. unfold must_precede. cbn. apply resolved_in_empty.
+          - cbn. exists 1, 2. split; [split; reflexivity | reflexivity]. }
+        eapply tagged_module_execution_cons.
+        { apply (tagged_underlay V Mc (@Build_TaggedScheduledEvent USig OSig (t0, 2) (CounterRelLin.fr 1 1))).
+          - cbn. apply tagged_select_next; [| apply tagged_select_here].
+            right. split; [reflexivity |]. unfold must_precede. cbn. intros [].
+          - cbn. exists [], [@RelaxedTraceLin.Build_Op USig (t0, 0) FAA 0]. split; reflexivity. }
+        eapply tagged_module_execution_cons.
+        { apply tagged_return.
+          - apply finish_here.
+          - intros [Heq | []]. discriminate Heq. }
+        eapply tagged_module_execution_cons.
+        { apply (tagged_underlay V Mc (@Build_TaggedScheduledEvent USig OSig (t0, 1) (CounterRelLin.fr 0 0))).
+          - cbn. apply tagged_select_here.
+          - cbn. exists [], []. split; reflexivity. }
+        eapply tagged_module_execution_cons.
+        { apply tagged_return.
+          - apply finish_next; [intros Heq; discriminate Heq | apply finish_here].
+          - intros []. }
+        apply tagged_module_execution_refl.
+      - intros e He. cbn in He. destruct He as [<- | [<- | []]]; reflexivity.
+    Qed.
+
+    Corollary ooo_trace_ei : MTraces (RelaxedHoareSpec.EI CounterRelLin.uδ) Mc (0, []) CounterCompLin.ooo_trace.
+    Proof. destruct inc_ooo_exec_ei as (c & Hex & _). exists CounterRelLin.inc_ooo_evs, c. split; [exact Hex | reflexivity]. Qed.
+
+    Corollary ooo_trace_eihl : MTraces EHL Mc ehσ0 CounterCompLin.ooo_trace.
+    Proof. exact (proj1 (hlift_ei CounterRelLin.uδ Mc (0, []) _) ooo_trace_ei). Qed.
+  End CounterEIhl.
+
+  (** [CounterEIhlFrame] (latest-review m-34): the counter of
+      [CounterEIhl] (same module [Mc], underlay [EIhl uδ], overlay [CVFe],
+      initial states), verified again with a rely and a guarantee whose
+      memory part mentions no value: "memory moves by [EIhl uδ] steps"
+      ([RelaxedHoareCompLinSpec.eihl_steps]).  The call's own FAA record
+      is tracked by ownership ([RelaxedHoareCompLinSpec.eihl_mine]), not
+      by the uniqueness of the counter's values.
+
+      - [KLinim k hu]: [k] owns the record of its FAA; established by
+        [eihl_mine_inv] at the FAA ([faa_updatem]), stable under the rely
+        by [eihl_mine_steps] ([KLinim_stable]), and used at the response
+        by [eihl_mine_res] ([res_updatem]).
+      - [Ifm]: [CounterEIhl.Ie] without its clauses on concrete keys and
+        on values; the coupling [ecnt = ca] of the two counters stays (an
+        invariant, not a rely clause).
+      - [counter_frame_rlhl2]: every field of [RLHL2Hyps], by the rules
+        ([counter_frame_provable], through [method_sound]); closed.
+      - [counter_frame_complin_eihl], [counter_frame_complin_ei],
+        [counter_frame_rel_lin]: as in [CounterEIhl].
+      - Non-vacuity: [ooo_rtrace_frame], [ooo_rel_lin_frame] apply the
+        instance to the module-derived overlapping execution
+        [CounterEIhl.inc_ooo_exec_ei].
+      - [Rfm_any_mem]: the rely admits every memory step.
+
+      Scope: as [CounterEIhl] (I=∅ at both levels, a single-future body,
+      the module is the FAA-to-[Inc] copy-cat).  Only the memory part of
+      the rely and the guarantee is specification-independent; the
+      invariant still couples the concrete and the abstract counter. *)
+
+  Module CounterEIhlFrame.
+    Import Counter CounterHL RelaxedHoareCompLin RelaxedHoareCompLinSpec CounterEIhl.
+
+    Abbreviation uδ := CounterRelLin.uδ.
+
+    (** The invariant: [CounterEIhl.Ie] without its three clauses on
+        values and concrete keys (distinct concrete keys, abstract values
+        below the counter, distinct abstract values), plus
+        [eihl_rec_used] (every pending FAA record has a used key).  The
+        coupling of the two counters ([ecnt = ca]) stays. *)
+    Definition Ifm : EA := fun s => exists ca P pool,
+      ps_poss s = EOk (ca, P) pool /\ ecnt (ps_mem s) = ca /\ lin_pool_well_formed pool /\
+      (forall t', inv_keys t' pool = gkeys t' (ps_ghost s)) /\ Forall Jwf (ps_ghost s) /\
+      (forall o, In o P -> lin_lookup (okey o) (@ls_lini OSig Inc) pool) /\
+      NoDup (map okey P) /\
+      eihl_rec_used uδ (ps_mem s).
+
+    (** Rely of [k]: memory moves by any [EIhl uδ] steps (no value, no
+        key, no operation is mentioned); [k]'s pool entries and abstract
+        records are kept. *)
+    Definition Rfm (k : CallKey OSig) : PRel EHL CVFe := fun s s' =>
+      eihl_steps uδ (ps_mem s) (ps_mem s') /\
+      exists v pool v' pool', ps_poss s = EOk v pool /\ ps_poss s' = EOk v' pool' /\
+        (forall ls, lin_lookup k ls pool -> lin_lookup k ls pool') /\
+        (forall o, okey o = k -> In o (snd v) -> In o (snd v')).
+
+    (** Guarantee of [k]: memory moves by [EIhl uδ] steps; the pool
+        entries and abstract records of every other call are kept. *)
+    Definition Gfm (k : CallKey OSig) : PRel EHL CVFe := fun s s' =>
+      eihl_steps uδ (ps_mem s) (ps_mem s') /\
+      exists v pool v' pool', ps_poss s = EOk v pool /\ ps_poss s' = EOk v' pool' /\
+        (forall k' ls, k' <> k -> lin_lookup k' ls pool -> lin_lookup k' ls pool') /\
+        (forall o, okey o <> k -> In o (snd v) -> In o (snd v')).
+
+    Lemma Gfm_in_Rfm k k' s s' : k' <> k -> Gfm k' s s' -> Rfm k s s'.
+    Proof.
+      intros Hne (Hm & v & pool & v' & pool' & Hp & Hp' & Hlk & HP). split; [exact Hm |].
+      exists v, pool, v', pool'. split; [exact Hp |]. split; [exact Hp' |]. split.
+      - intros ls Hl. apply Hlk; [intros Heq; apply Hne; symmetry; exact Heq | exact Hl].
+      - intros o Hk. apply HP. rewrite Hk. intros Heq. apply Hne. symmetry. exact Heq.
+    Qed.
+
+    (** The rely admits every memory step of [EIhl uδ], whatever the
+        values (contrast [CounterEIhl.Re], which forbids removing a record
+        whose value is one of [k]'s abstract values). *)
+    Lemma Rfm_any_mem k σ σ' v pool γ γ' :
+      eihl_steps uδ σ σ' -> Rfm k (σ, EOk v pool, γ) (σ', EOk v pool, γ').
+    Proof.
+      intros Hs. split; [exact Hs |]. exists v, pool, v, pool. repeat split; auto.
+    Qed.
+
+    (** After the FAA of [k] on underlay handle [hu]: [k] owns the FAA
+        record of [(fst k, hu)], with the fetched value [c]
+        ([eihl_mine]), [c] is [k]'s abstract record, and [k] is at
+        [ls_lini].  Stable under [Rfm k] by [eihl_mine_steps]. *)
+    Definition KLinim (k : CallKey OSig) (hu : nat) : EA := fun s =>
+      exists c v pool, ps_poss s = EOk v pool /\
+        eihl_mine uδ (fst k, hu) (@RelaxedTraceLin.Build_Op USig (fst k, hu) FAA c) (ps_mem s) /\
+        In (cop k c) (snd v) /\ lin_lookup k (@ls_lini OSig Inc) pool.
+
+    Lemma KInve_stablem k : Stable Ifm (Rfm k) (KInve k).
+    Proof.
+      intros s s' (v & pool & Hp & Hl) (_ & v1 & pool1 & v1' & pool1' & Hp1 & Hp1' & Hlk & _) _.
+      rewrite Hp in Hp1. injection Hp1 as <- <-. exists v1', pool1'. split; [exact Hp1' | apply Hlk; exact Hl].
+    Qed.
+
+    Lemma KLinim_stable k hu : Stable Ifm (Rfm k) (KLinim k hu).
+    Proof.
+      intros s s' (c & v & pool & Hp & Hm & HP & Hl) (Hs & v1 & pool1 & v1' & pool1' & Hp1 & Hp1' & Hlk & HPk) _.
+      rewrite Hp in Hp1. injection Hp1 as <- <-. exists c, v1', pool1'.
+      split; [exact Hp1' |]. split; [exact (eihl_mine_steps uδ _ _ _ _ Hs Hm) |].
+      split; [apply HPk; [reflexivity | exact HP] | apply Hlk; exact Hl].
+    Qed.
+
+    Lemma KLinre_stablem k r : Stable Ifm (Rfm k) (KLinre k r).
+    Proof.
+      intros s s' (v & pool & Hp & Hl) (_ & v1 & pool1 & v1' & pool1' & Hp1 & Hp1' & Hlk & _) _.
+      rewrite Hp in Hp1. injection Hp1 as <- <-. exists v1', pool1'. split; [exact Hp1' | apply Hlk; exact Hl].
+    Qed.
+
+    Section CounterFrameProof.
+      Context (t : tid) (h : nat).
+      Local Abbreviation kc := (@pair tid (RelaxedSig.handle OSig) t h).
+
+      Abbreviation Pcm := (PostInvoke Ifm kc Inc (Ωc t)).
+
+      Lemma pinit_KInvm : Impl Ifm Pcm (KInve kc).
+      Proof.
+        intros [[σ p] γ] _ (p0 & γ0 & evs & (ca & P & pool0 & Hp0 & _) & Hinv & _).
+        cbn [ps_poss ps_mem ps_ghost fst snd] in Hp0, Hinv. rewrite Hp0 in Hinv.
+        destruct (pinv_inv _ _ _ _ _ _ Hinv) as [-> _].
+        exists (ca, P), (make_lin_entry kc (@ls_inv OSig Inc) :: pool0). split; [reflexivity | left; reflexivity].
+      Qed.
+
+      (** The FAA: the abstract invocation as in
+          [CounterEIhl.faa_updatee]; ownership of the new record by
+          [eihl_mine_inv]. *)
+      Lemma faa_updatem hu :
+        EvUpdate Ifm (Gfm kc) kc (Build_ThreadEvent t (@InvEv USig hu FAA)) (KInve kc) (KLinim kc hu).
+      Proof.
+        intros σ p γ γ' (v & pool & Hp & Hl)
+          (ca & P & pool1 & Hp1 & Hc & Hwf & HJ & HJwf & HPl & HPnd & Hru) Hge σ' Hstep.
+        cbn [ps_poss ps_mem ps_ghost fst snd] in *. rewrite Hp in Hp1. injection Hp1 as -> <-. subst p.
+        cbn in Hge. destruct Hge as (g1 & g2 & -> & -> & Hnb).
+        pose proof (eihl_rec_used_step uδ _ σ σ' Hstep Hru) as Hru'.
+        destruct (eihl_mine_inv uδ t hu FAA σ σ' Hstep Hru) as (r & st' & Hd & Hσ' & Hm).
+        destruct σ as [[n Pc] u]. unfold ecnt in Hc. cbn [fst snd] in Hc, Hd, Hσ'. subst n.
+        destruct Hd as [Hr Hst']. subst r st'.
+        apply Forall_app in HJwf as [HJwf1 HJwf2]. pose proof (Forall_inv_tail HJwf2) as HJwf2'.
+        destruct (emit_ready t h hu pool g1 g2 Hwf Hl HJ HJwf1 Hnb) as (pool' & Hu & Hwf' & HJ').
+        pose proof (lin_invoke_update_is_update _ _ _ _ _ Hu) as Hu2.
+        assert (HPk : forall o, In o P -> okey o <> kc).
+        { intros o Ho Hk. pose proof (HPl o Ho) as Hlo. rewrite Hk in Hlo.
+          pose proof (lookup_unique pool kc _ _ Hwf Hl Hlo) as Heq. discriminate Heq. }
+        exists (EOk (S ca, cop kc ca :: P) pool'). split; [| split; [| split]].
+        - apply rt_step. exists kc. apply (psa_inv CVFe t h Inc); [exact Hu |].
+          cbn. exists ca, (S ca). split; [split; reflexivity | reflexivity].
+        - exists ca, (S ca, cop kc ca :: P), pool'. cbn [ps_poss ps_mem ps_ghost fst snd].
+          split; [reflexivity |]. split; [exact Hm |]. split; [left; reflexivity |].
+          exact (lin_update_target _ _ _ _ _ Hu2).
+        - exists (S ca), (cop kc ca :: P), pool'. cbn [ps_poss ps_mem ps_ghost fst snd].
+          split; [reflexivity |]. split; [rewrite Hσ'; reflexivity |]. split; [exact Hwf' |].
+          split; [exact HJ' |]. split; [apply Forall_app; split; assumption |]. split.
+          + intros o [<- | Ho]; [exact (lin_update_target _ _ _ _ _ Hu2) |].
+            eapply lin_update_other_lookup; [exact Hu2 | exact (HPk o Ho) | exact (HPl o Ho)].
+          + split; [| exact Hru'].
+            constructor; [| exact HPnd]; intros Hin; apply in_map_iff in Hin as (o & Hk & Ho); exact (HPk o Ho Hk).
+        - split; [apply rt_step; exists (Build_ThreadEvent t (@InvEv USig hu FAA)); exact Hstep |].
+          exists (ca, P), pool, (S ca, cop kc ca :: P), pool'. split; [reflexivity |]. split; [reflexivity |].
+          split; [intros k' ls Hne Hlk; eapply lin_update_other_lookup; [exact Hu2 | exact Hne | exact Hlk] |].
+          intros o _ Ho. right. exact Ho.
+      Qed.
+
+      (** The response: by ownership ([eihl_mine_res]) the response
+          value is the fetched value [c]; no value of another call is
+          consulted. *)
+      Lemma res_updatem hu r :
+        EvUpdate Ifm (Gfm kc) kc (Build_ThreadEvent t (@ResEv USig hu FAA r)) (KLinim kc hu) (KLinre kc r).
+      Proof.
+        intros σ p γ γ' (c & v & pool & Hp & Hm & HP & Hl)
+          (ca & P & pool1 & Hp1 & Hca & Hwf & HJ & HJwf & HPl & HPnd & Hru) Hge σ' Hstep.
+        cbn [ps_poss ps_mem ps_ghost fst snd] in *. cbn in Hge. subst γ'.
+        pose proof (eihl_mine_res uδ (t, hu) _ FAA r σ σ' Hm Hstep) as Hx.
+        assert (Hcr : c = r) by exact (f_equal uval Hx). subst r.
+        pose proof (eihl_rec_used_step uδ _ σ σ' Hstep Hru) as Hru'.
+        assert (Hcnt : ecnt σ' = ecnt σ).
+        { destruct σ as [[n Pc] u], σ' as [[n' Pc'] u']. cbn in Hstep. destruct Hstep as ((P1 & P2 & _ & Hq') & _).
+          injection Hq' as -> _. reflexivity. }
+        rewrite Hp in Hp1. injection Hp1 as -> <-. subst p.
+        cbn in HP. destruct (in_split _ _ HP) as (Pa1 & Pa2 & HPs).
+        destruct (lin_update_exists kc (@ls_lini OSig Inc) (@ls_linr OSig Inc c) pool Hwf Hl) as (pool' & Hu).
+        assert (HPk : forall o, In o (Pa1 ++ Pa2) -> okey o <> kc).
+        { intros o Ho Hk. rewrite HPs, map_app in HPnd. cbn [map] in HPnd.
+          apply NoDup_remove_2 in HPnd. apply HPnd. rewrite <- map_app.
+          apply in_map_iff. exists o. split; [exact Hk | exact Ho]. }
+        assert (HPsub : forall o, In o (Pa1 ++ Pa2) -> In o P) by (intros o Ho; rewrite HPs; exact (in_remove_in _ _ _ _ Ho)).
+        exists (EOk (ca, Pa1 ++ Pa2) pool'). split; [| split; [| split]].
+        - apply rt_step. exists kc. apply (psa_ret CVFe t h Inc c _ _ _ _ Hu). cbn. exists Pa1, Pa2.
+          split; [exact HPs | reflexivity].
+        - exists (ca, Pa1 ++ Pa2), pool'. split; [reflexivity | eapply lin_update_target; exact Hu].
+        - exists ca, (Pa1 ++ Pa2), pool'. cbn [ps_poss ps_mem ps_ghost fst snd].
+          split; [reflexivity |]. split; [rewrite Hcnt; exact Hca |].
+          split; [eapply lin_update_well_formed; eauto |].
+          split; [intros t'; rewrite (inv_keys_update _ _ _ _ t' Hu); apply HJ |].
+          split; [exact HJwf |]. split.
+          + intros o Ho. eapply lin_update_other_lookup; [exact Hu | exact (HPk o Ho) | exact (HPl o (HPsub o Ho))].
+          + split; [rewrite HPs, map_app in HPnd; cbn [map] in HPnd; rewrite map_app; exact (NoDup_remove_1 _ _ _ HPnd) |].
+            exact Hru'.
+        - split; [apply rt_step; exists (Build_ThreadEvent t (@ResEv USig hu FAA c)); exact Hstep |].
+          exists (ca, P), pool, (ca, Pa1 ++ Pa2), pool'. split; [reflexivity |]. split; [reflexivity |].
+          split; [intros k' ls Hne Hlk; eapply lin_update_other_lookup; [exact Hu | exact Hne | exact Hlk] |].
+          intros o Hk Ho. cbn in Ho |- *. rewrite HPs in Ho. apply (in_remove_ne _ _ _ _ Ho).
+          intros ->. apply Hk. reflexivity.
+      Qed.
+
+      Definition sl_faam (hu : nat) : Slot EHL CVFe :=
+        mkSlot (inv_tev (E := USig) (F := OSig) kc empty_store hu FAA) (KInve kc) (fun _ _ => True)
+          (KLinim kc hu) (Gfm kc).
+
+      Definition sl_resm (hu : nat) (r : nat) : Slot EHL CVFe :=
+        mkSlot (res_tev (E := USig) (F := OSig) kc hu FAA r) (fun _ => True) (fun _ => KLinim kc hu)
+          (KLinre kc r) (Gfm kc).
+
+      (** The derivation of [CounterEIhl.counter_derivatione], with the
+          new assertions and relations. *)
+      Lemma counter_derivationm :
+        RProvable Ifm Rfm Gfm kc Pcm
+          (fun a Γ H => Close Ifm Rfm Gfm kc Pcm (KLinre kc) a Γ H /\ Ωc t (own_invs Γ)) [] empty_store (Mc Inc t).
+      Proof.
+        cbn. unfold body.
+        apply rp_future with (sl := sl_faam); [intros; reflexivity | |].
+        { intros hu _. constructor; cbn [sl_ev sl_start sl_in sl_post sl_guar sl_faam].
+          - auto.
+          - unfold pre_of. cbn [sl_ev sl_start sl_in sl_post sl_guar sl_faam].
+            intros σ p γ γ' [HK _]. apply (faa_updatem hu σ p γ γ' HK).
+          - exact pinit_KInvm.
+          - intros d sd _ Hd. destruct d; discriminate.
+          - apply KInve_stablem.
+          - intros d _. apply Stable_true.
+          - intros g sg Hg. destruct g; discriminate.
+          - intros d g sg _ Hg. destruct g; discriminate.
+          - intros y sy Hy. destruct y; discriminate.
+          - intros y sy d Hy. destruct y; discriminate. }
+        intros hu Hf. cbv beta.
+        apply rp_wait_pending with (sl := sl_resm hu); [left; reflexivity | intros; reflexivity | |].
+        { intros r. constructor; cbn [sl_ev sl_start sl_in sl_post sl_guar sl_resm].
+          - auto.
+          - unfold pre_of. cbn [sl_ev sl_start sl_in sl_post sl_guar sl_resm].
+            intros σ p γ γ' [_ Hin]. apply (res_updatem hu r σ p γ γ'). apply (Hin 0).
+            exact (dprec_faa_res t h hu r).
+          - intros s _ _. exact Logic.I.
+          - intros d sd _ Hd. destruct d as [| [|]]; try discriminate.
+            cbn in Hd. injection Hd as <-. cbn. intros s _ Hs. exact Hs.
+          - apply Stable_true.
+          - intros d _. apply KLinim_stable.
+          - intros g sg _. apply Stable_true.
+          - intros d g sg Hd Hg Hnb. exfalso. apply dprec_lt in Hd. cbn in Hd.
+            destruct g as [| g]; [| destruct g; discriminate]. assert (d = 0) by lia. subst d.
+            apply Hnb. apply before_refl.
+          - intros y sy Hy Hnb. exfalso. destruct y as [| y]; [| destruct y; discriminate].
+            apply Hnb. apply before_dprec. exact (dprec_faa_res t h hu r).
+          - intros y sy d Hy _ Hd. exfalso. apply dprec_lt in Hd. destruct y as [| y]; [lia |].
+            destruct y; discriminate. }
+        intros r H2 Hres. cbv beta. apply rp_ret. split.
+        - apply close_done with
+            (fin := fun d => match d with 1 => KLinre kc r | _ => fun _ => True end)
+            (fin0 := fun _ => True).
+          + eapply resolve_fresh_all_resolved; [constructor | exact Hres].
+          + constructor.
+            * intros d sd Hd. destruct d as [| [| d]]; cbn in Hd; try (destruct d; discriminate).
+              -- intros s _ _. exact Logic.I.
+              -- injection Hd as <-. intros s _ Hs. exact Hs.
+            * intros s _ _. exact Logic.I.
+            * intros d g sg Hd Hg Hnb. destruct d as [| [| d]]; [apply Stable_true | | cbn in Hd; lia].
+              exfalso. apply Hnb. destruct g as [| [| g]]; [| apply before_refl | destruct g; discriminate].
+              apply before_dprec. exact (dprec_faa_res t h hu r).
+            * intros g sg _. apply Stable_true.
+            * intros [| [| d]]; [apply Stable_true | apply KLinre_stablem | apply Stable_true].
+            * apply Stable_true.
+            * intros s _ _ Hfin. exact (Hfin 1 _ eq_refl Logic.I).
+        - exists hu. reflexivity.
+      Qed.
+
+      Lemma counter_PIm : forall s, Pcm s -> Ifm s.
+      Proof.
+        intros [[σ p] γ] (p0 & γ0 & evs & (ca & P & pool0 & Hp0 & Hc & Hwf & HJ & HJwf & HPl & HPnd & Hru) & Hinv & Hg & (hu & ->) & _).
+        cbn [ps_poss ps_mem ps_ghost fst snd] in *. subst γ. rewrite Hp0 in Hinv.
+        destruct (pinv_inv _ _ _ _ _ _ Hinv) as [-> Hfresh].
+        exists ca, P, (make_lin_entry kc (@ls_inv OSig Inc) :: pool0). split; [reflexivity |]. split; [exact Hc |].
+        split; [eapply lin_insert_well_formed; [constructor; exact Hfresh | exact Hwf] |]. split.
+        - intros t'. cbn [ps_ghost snd inv_keys]. rewrite HJ, gkeys_app. f_equal.
+          unfold ek, gkeys. cbn. destruct (Pos.eqb t t'); reflexivity.
+        - split; [apply Forall_app; split; [exact HJwf | constructor; [split; [reflexivity | exact Logic.I] | constructor]] |].
+          split; [intros o Ho; right; exact (HPl o Ho) |]. split; [exact HPnd | exact Hru].
+      Qed.
+
+      Lemma counter_retm r s : KLinre kc r s -> Ifm s -> NoOwn kc (ps_ghost s) -> RetCond Ifm Gfm kc Inc r s.
+      Proof.
+        intros (v & pool & Hp & Hl) HI _. destruct s as [[σ p] γ]. cbn [ps_poss ps_mem ps_ghost fst snd] in *.
+        subst p. exists (EOk v pool). split; [apply rt_refl |]. split; [exists v, pool; split; [reflexivity | exact Hl] |].
+        split; [exact HI |]. split; [apply r_refl |].
+        intros p2 Hret. destruct (pret_inv _ _ _ _ _ _ _ Hret) as (pool2 & -> & Hrem).
+        destruct HI as (ca & P & pool3 & Hp3 & Hc & Hwf & HJ & HJwf & HPl & HPnd & Hru). cbn in Hp3.
+        injection Hp3 as Hv Hpool. subst v pool3.
+        exists ca, P, pool2. cbn. split; [reflexivity |]. split; [exact Hc |].
+        split; [eapply lin_remove_well_formed; eauto |].
+        split; [intros t'; rewrite (inv_keys_remove _ _ _ _ t' Hrem); apply HJ |].
+        split; [exact HJwf |]. split; [| split; [exact HPnd | exact Hru]].
+        intros o Ho. eapply lin_remove_other_lookup; [exact Hrem | | exact (HPl o Ho)].
+        intros Hk. pose proof (HPl o Ho) as Hlo. rewrite Hk in Hlo.
+        pose proof (lookup_unique pool kc _ _ Hwf Hl Hlo) as Heq. discriminate Heq.
+      Qed.
+    End CounterFrameProof.
+
+    Theorem counter_frame_provable t :
+      MethodProvable Ifm Rfm Gfm Mc t Inc (fun _ => Ωc t) (fun h => KLinre (t, h)).
+    Proof.
+      constructor.
+      - intros h s Hs. exact (counter_PIm t h s Hs).
+      - intros h r s HQ HI Hno. exact (counter_retm t h r s HQ HI Hno).
+      - intros h. exact (counter_derivationm t h).
+    Qed.
+
+    Theorem counter_frame_methodsem t : MethodSem Ifm Rfm Gfm Mc t Inc.
+    Proof. eapply method_sound. exact (counter_frame_provable t). Qed.
+
+    Lemma counter_frame_init : Ifm (ehσ0, EOk (0, []) [], []).
+    Proof.
+      exists 0, [], []. cbn. split; [reflexivity |]. split; [reflexivity |].
+      split; [constructor |]. split; [reflexivity |]. split; [constructor |].
+      split; [intros o [] |]. split; [constructor |]. exact (eihl_rec_used_init uδ 0).
+    Qed.
+
+    (** latest-review m-34: every field of [RLHL2Hyps] holds for the
+        overlapping counter over [EIhl uδ], with a value-free memory part
+        of the rely and the guarantee. *)
+    Theorem counter_frame_rlhl2 : RLHL2Hyps Ifm Rfm Gfm Mc ehσ0 (0, []).
+    Proof.
+      constructor.
+      - intros t []. exact (counter_frame_methodsem t).
+      - intros k k' s s' Hne HG. exact (Gfm_in_Rfm k' k s s' Hne HG).
+      - intros k k' op tr ret s p' Hne _ HI Hinv. destruct s as [[σ p] γ].
+        destruct HI as (ca & P & pool & Hp & _). cbn [ps_poss ps_mem ps_ghost fst snd] in *. subst p.
+        destruct k as [t h]. destruct (pinv_inv _ _ _ _ _ _ Hinv) as [-> _].
+        split; [apply rt_refl |].
+        exists (ca, P), pool, (ca, P), (make_lin_entry (t, h) (ls_inv op) :: pool).
+        split; [reflexivity |]. split; [reflexivity |]. split; [intros ls Hl; right; exact Hl | auto].
+      - intros k k' op r s p2 Hne HI Hret _. destruct s as [[σ p] γ].
+        destruct HI as (ca & P & pool & Hp & _). cbn [ps_poss ps_mem ps_ghost fst snd] in *. subst p.
+        destruct k as [t h]. destruct (pret_inv _ _ _ _ _ _ _ Hret) as (pool2 & -> & Hrem).
+        split; [apply rt_refl |].
+        exists (ca, P), pool, (ca, P), pool2. split; [reflexivity |]. split; [reflexivity |].
+        split; [| auto]. intros ls Hl. eapply lin_remove_other_lookup; [exact Hrem | | exact Hl].
+        intros Heq. apply Hne. symmetry. exact Heq.
+      - intros s (ca & P & pool & Hp & _ & Hwf & _). exists (ca, P), pool. auto.
+      - exact counter_frame_init.
+    Qed.
+
+    (** Copy-cat inclusion over [EIhl uδ] and over the plain [EI uδ];
+        [classic] enters through [RelaxedHoareCompLin.rlhl_complin]
+        ([rinv_val]). *)
+    Theorem counter_frame_complin_eihl : RCompLin Mc EHL ehσ0 CVFe (0, []).
+    Proof. exact (rlhl_complin_ei cδ 0 Ifm Rfm Gfm Mc ehσ0 counter_frame_rlhl2). Qed.
+
+    Theorem counter_frame_complin_ei : RCompLin Mc (RelaxedHoareSpec.EI uδ) (0, []) CVFe (0, []).
+    Proof. exact (rlhl_complin_eihl uδ cδ 0 Ifm Rfm Gfm Mc (0, []) counter_frame_rlhl2). Qed.
+
+    (** Complete traces are relaxed-linearizable ([cc_rel_lin]: also
+        [eq_rect_eq], from [RelaxedGSim.gsim_rel_lin]). *)
+    Corollary counter_frame_rel_lin s :
+      MTraces (RelaxedHoareSpec.EI uδ) Mc (0, []) s -> PrefixView.complete s ->
+      RelaxedTraceLin.rel_lin (@PrefixView.sel OSig) s (RelaxedSig.semi_independent OSig) (RelaxedHoareSpec.seq_legal cδ 0).
+    Proof. exact (complin_ei_rel_lin cδ 0 Mc (RelaxedHoareSpec.EI uδ) (0, []) counter_frame_complin_ei s). Qed.
+
+    (** Non-vacuity: the module-derived execution
+        [CounterEIhl.inc_ooo_exec_ei] (two overlapping [Inc]s of [t0],
+        out-of-order returns) is an execution of the same module over the
+        same underlay; through this instance its trace is a copy-cat trace
+        and relaxed-linearizable.  [ooo_rel_lin_frame] lifts the execution
+        to [EIhl uδ] ([lift_exec]) and applies
+        [rlhl_rel_lin_ei_via_cc]. *)
+    Corollary ooo_rtrace_frame : RTraces CVFe (0, []) CounterCompLin.ooo_trace.
+    Proof. exact (counter_frame_complin_ei _ ooo_trace_ei). Qed.
+
+    Corollary ooo_rel_lin_frame :
+      RelaxedTraceLin.rel_lin (@PrefixView.sel OSig) CounterCompLin.ooo_trace (RelaxedSig.semi_independent OSig)
+        (RelaxedHoareSpec.seq_legal cδ 0).
+    Proof.
+      destruct inc_ooo_exec_ei as (c & Hex & Hdone).
+      destruct (lift_exec (RelaxedHoareSpec.EI uδ) Mc _ _ _ Hex [] ltac:(split; [constructor | split; [intros k [] | intros k []]]))
+        as (u & Hex').
+      exact (rlhl_rel_lin_ei_via_cc cδ 0 Ifm Rfm Gfm Mc ehσ0 counter_frame_rlhl2 _ _ Hex' Hdone).
+    Qed.
+  End CounterEIhlFrame.
+
   (** [WRCopyCat] (latest-review M-20 (b), M-19; the review's scratch
       session T2 and its I=∅ mirror).  A write [WX] (sets the cell to [1])
       and a read [RX] of one cell, as a sequential specification [rdelta];
@@ -6377,7 +7555,26 @@ Module RelaxedHoareChecks.
 
       Together they are the copy-cat-level relaxation witness: the
       semi-independence relation alone decides whether the trace is
-      accepted.  Not a module-derived witness (latest-review M-19). *)
+      accepted.  Not a module-derived witness (latest-review M-19).
+      Both signatures are well-formed ([WRSig_wf], [WRSig0_wf]).
+
+      What it is not (latest-review m-35): a memory-model behaviour.  It
+      is a mechanism witness for the copy-cat's frontier: a *single* cell
+      with [semi_independent := o1 <> o2] on [{WX, RX}], so that a read
+      may miss the same thread's pending write to the same location.  No
+      memory instance of the paper does this: COH forbids it, and TSO and
+      the buffered cell (memory/Cell.v) forward the pending write to the
+      read.  The module-derived, memory-shaped counterpart is in
+      examples/Relaxed/RelaxedHoareCounterXY.v (RLHL-3b, latest-review
+      M-19 item 5): [RelaxedHoareCounterXY.sb_exec] (a complete SB
+      execution of Counter_xy over the two-location SC cell with
+      semi-independence by location: each read passes its own thread's
+      pending FAA on the other location), [sb_si_decides] (the SB trace
+      is relaxed-linearizable under the counter relation and not under
+      the empty one) and [cxy_discriminates_rlhl2] (the same bodies have
+      an RLHL proof under the counter relation and none, for any [I],
+      [R], [G], under ∅).  This module stays as the copy-cat-level
+      mechanism check. *)
 
   Module WRCopyCat.
     Import RelaxedTraceLin RelaxedGSim ViewPossibility RelaxedHoareCompLin RelaxedHoareCompLinSpec.
@@ -6393,6 +7590,14 @@ Module RelaxedHoareChecks.
     Definition WRSig0 : RelaxedSig.t :=
       {| RelaxedSig.effect := WREff; RelaxedSig.handle := nat;
          RelaxedSig.semi_independent := fun _ _ => False; RelaxedSig.mode := fun _ => Local |}.
+
+    (** Both signatures are well-formed (latest-review m-35; the review's
+        scratch S3). *)
+    Lemma WRSig_wf : RelaxedSig.well_formed WRSig.
+    Proof. constructor; [intros x H; apply H; reflexivity | intros; exact Logic.I | intros; exact Logic.I]. Qed.
+
+    Lemma WRSig0_wf : RelaxedSig.well_formed WRSig0.
+    Proof. constructor; [intros x H; exact H | intros _ _ [] | intros _ _ []]. Qed.
 
     Definition rdelta (n : nat) (o : WROp) : wr_ar o -> nat -> Prop :=
       match o as o0 return wr_ar o0 -> nat -> Prop with WX => fun _ n' => n' = 1 | RX => fun r n' => r = n /\ n' = n end.

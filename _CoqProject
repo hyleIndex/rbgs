@@ -175,7 +175,25 @@ models/simlin/RelaxedHoareSpec.v
 models/simlin/RelaxedHoareGSim.v
 models/simlin/RelaxedHoareCompLin.v
 models/simlin/RelaxedHoareCompLinSpec.v
+models/simlin/RelaxedHoareInherit.v
+models/simlin/RelaxedHoareLayer.v
+models/simlin/RelaxedHoareAbsorb.v
+models/simlin/RelaxedHoareRun.v
+models/simlin/RelaxedHoareResig.v
+models/simlin/RelaxedHoareErrSpec.v
+models/simlin/RelaxedHoareReady.v
+models/simlin/RelaxedHoareLog.v
 examples/Relaxed/RelaxedHoareChecks.v
+examples/Relaxed/RelaxedHoareCounterXY.v
+examples/Relaxed/RelaxedHoareClientSB.v
+examples/Relaxed/RelaxedHoareLatchProg.v
+examples/Relaxed/RelaxedHoareLockErr.v
+examples/Relaxed/RelaxedHoareSL2Prog.v
+examples/Relaxed/RelaxedHoareSL2Exec.v
+examples/Relaxed/RelaxedHoareSL2Inv.v
+examples/Relaxed/RelaxedHoareSL2InvLog.v
+examples/Relaxed/RelaxedHoareSL2Write.v
+examples/Relaxed/RelaxedHoareSL2Read.v
 
 # View-based (timestamped) specifications and proofs, ported from CSL-Lin
 examples/View/ViewSpecs.v

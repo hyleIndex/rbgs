@@ -326,3 +326,645 @@ Append-only. Each `/rocq-loop` iteration adds one entry in the format given in `
   - Concern matrix: B3/B-post (i) text and next action; RLHL layering row ❌ → 🟡; prefix-notion row ⚠️ → 🟡.
 - **Next:** RLHL-3a iteration 2. Research-level items go to the author: M-20(c), m-8, M-15 write-snapshot, and the memory route under B-1.
 - **Author decisions during RLHL-3a iteration 2 (recorded in research-intent §8):** m-8 → add a TErr-like error clause (RLHL-3c); memory route → thread-aware buffered spec δ_mem, with the buffered cell shown to produce copy-cat traces; write-snapshot → plan an interval-spec overlay after RLHL-3c; M-20(c) → the paper defines correctness via copy-cat and presents REW as argued.
+
+## 2026-10-13 — loop RLHL-3a — iteration 2 (Writer + verification)
+
+- **HEAD:** the author committed `6aef511 "rlhl"` during this iteration. It contains the RLHL work so far and the `.rocq-review` records. The remaining uncommitted diff is in RLHL files only: 36 added declarations and removed header comment text, with no declaration removed.
+- **Writer:**
+  - New `RelaxedHoareCompLinSpec.v`: `gsim_rel_lin_traces`, `cc_gsim` (identity simulation), `cc_rel_lin`, `cc_trace_wf`, `complin_ei_rel_lin`, `rlhl_complin_ei_rel_lin`, `rlhl_rel_lin_ei_via_cc`, `HL`, `HL_handle_linear`, `hlift` (MTraces over VE ⟺ over HL VE), `EIhl`, `rlhl_complin_eihl`.
+  - In `RelaxedHoareCompLin.v`: `mtraces_prefix`, `rtraces_prefix`, `rlhl_sound_complin`.
+  - Checks: `CounterEI` (T1), `CounterEIhl` (`counter_eihl_rlhl2`, closed; `counter_complin_eihl`; non-vacuity executions), `WRCopyCat` (T2 and its I=∅ mirror `si_overtake_not_rtrace0`, `si_decides_overtake`).
+  - Headers fixed (m-30); m-8 documented.
+- **Verification (orchestrator):**
+  - Older tracked files: still header-only relative to `6e2b575`. Grep clean.
+  - The nine RLHL files rebuilt from scratch; only `DCPOs.v` fails.
+  - 697 lemmas: 663 closed, 12 `eq_rect_eq`, 17 `classic`, 5 both. All baseline.
+  - The 45 baseline theorems are identical.
+
+### Superseded review (archived summary before overwriting `latest-review.md`): RLHL-3a iteration-1 review
+- BLOCKER: B-1 (narrowed).
+- MAJOR: M-20 (meaning bridge), m-20 (EI not handle-linear; T1), M-22 (absorption/linking), M-19, M-15.
+- MINOR: m-30, m-8, m-32.
+- Verdict: continue, no redesign; one more cheap RLHL-3a round.
+
+## 2026-10-13 — loop RLHL-3a — iteration 2 (review)
+
+- **Review** (workflow; three lenses, skeptic per lens, synthesis):
+  - Counts: BLOCKER 1 (B-1, narrowed again); MAJOR 5 (m-8 promoted, M-22, M-19, M-14 promoted, M-21); MINOR 7 (M-20 demoted to MINOR, new m-33 to m-37, m-24, m-30 residual).
+  - Resolved: m-20 (HL, `hlift`, `rtraces_hlift`, `rlhl_complin_eihl`, `counter_eihl_rlhl2`), m-32, and the Coq part of M-20.
+  - Verdict: "The RLHL-3a claims are established … The stop rule for RLHL-3a's actionable items is met once the cheap fixes (m-34, m-35, the M-20 relabel, m-30) are done. Proceed to RLHL-3b … Decision: continue. No redesign."
+  - Rejected writer open issue: "a general EIhl instance would need an ownership notion in the proof state" (m-34 frame lemmas give a spec-independent rely).
+- **Factual checks by the orchestrator:** re-ran the complete lens scratch scripts. `never_produced` (m-33) is closed; `FrameCheck.mine_step` and `mine_res` (m-34) are closed. Copies are in `.rocq-review/scripts/RLHL3a2_*.v`. The other lens checks (S1, S3) were cited by the review as single-line `exact` proofs or `well_formed` checks; S3 will be re-checked when m-35 is added to the repository.
+- **Records:**
+  - `latest-review.md` overwritten with this review.
+  - Concern matrix: rows B3/B-post (Meaning, layering interface, Missing list), conservative extension 🟡 → ⚠️ (M-14), layering, prefix notion (relabel), rule figures (M-21 sub-items), nonempty-SI instance ❌ → 🟡 at copy-cat level, universal negatives, key freshness 🟡 → ✅, route ❌ → 🟡, HL WLOG ❌ → ✅, "sound and complete" (m-36), underlay errors 📝 → ❌ (m-8), Logic Soundness and Simulation rows; two new rows (run-to-completion m-33, thread-aware δ_mem m-37); §4 regressions for RLHL-3a iterations 1 and 2.
+  - research-intent §8: M-20 entry records `cc_rel_lin` and its orientation; m-8 entry records the needed implementation-side obligation (amendment not yet put to the author); B-1 memory entry records the m-37 gap.
+- **Research-level items for the author** (needed before RLHL-3c / RLHL-mem; RLHL-3b does not depend on them): m-8 amendment, m-37 (EIt vs tid-carrying ops), m-36 (completeness claim), m-33 (run to completion), M-14/M-21 paper wording.
+- **Next:** RLHL-3a iteration 3 (cheap fixes: m-34 frame kit, m-35 `WRSig_wf` + header, M-20 relabel, m-30 residual, and m-24 universal `read_pair` negative), then RLHL-3b.
+
+## 2026-10-13 — loop RLHL-3a — iteration 3 (Writer + verification)
+
+- **HEAD:** 6aef511. Changes are uncommitted.
+- **Task:** cheap actionable MINOR items of the iteration-2 review: m-34, m-35, M-20 relabel, M-22 header, m-30 residual, m-24; optionally the M-21 rule table.
+- **Writer** (all FIXED; paper parts NEEDS-AUTHOR):
+  - `RelaxedHoareCompLinSpec`: EIhl frame kit `eihl_rec_used`, `eihl_mine`, `eihl_steps`, `eihl_rec_used_{init,step,steps}`, `eihl_mine_{step,steps,res,inv}` (all closed).
+  - Checks `CounterEIhlFrame`: a value-free counter instance. `counter_frame_rlhl2` is closed; the memory part of R/G is `eihl_steps`. Corollaries `counter_frame_complin_ei` and `counter_frame_rel_lin`; non-vacuity `ooo_rtrace_frame`.
+  - Checks `ReadPairUniversal`: `read_pair_no_rlhl2` (∀ I R G; `classic`), `read_pair_no_rlhl2_gen` (side conditions `(σi X, 1) ≠ v0`, `σi X ≠ 1`), `pair_discriminates_rlhl2`, module-derived `rp_mtraces`.
+  - `WRCopyCat.WRSig_wf` / `WRSig0_wf` (closed).
+  - Headers: the `cc_rel_lin` label is now "ν;cc ⊆ rel_lin, the ⊇ half"; the `cc_gsim` role corrected (M-22); GSim item 10, item 15 and the end-to-end paragraph; M-21 rule table and further-differences list in `RelaxedHoare.v`.
+  - The Writer could not write `.rocq-review/writer-report-latest.md` (harness restriction); the orchestrator copied the report there verbatim.
+- **Verification (orchestrator):**
+  - 58 declarations added, none removed. All 42 removed `.v` lines (relative to the pre-iteration tree) are header-comment text.
+  - Grep: only baseline hits (`Assertion.v`, `AssertionOld.v`, `LazyCoin.v`, View examples).
+  - `make -n` lists only `DCPOs.v`.
+  - Statements checked with `Check`/`Print`. Notably `Rfm`/`Gfm` memory part = `eihl_steps uδ`, and `Ifm` keeps `ecnt = ca` and adds `eihl_rec_used`.
+  - `Print Assumptions` of the 27 new and key theorems matches the report.
+  - All 734 lemmas in the nine RLHL files: 692 closed, 12 `eq_rect_eq`, 23 `classic`, 7 both; nothing outside the baseline.
+  - The 45 baseline theorems are identical.
+
+### Superseded review (archived summary before overwriting `latest-review.md`): RLHL-3a iteration-2 review
+- BLOCKER: B-1.
+- MAJOR: m-8 (promoted; implementation-side error obligation), M-22, M-19, M-14 (promoted), M-21.
+- MINOR: M-20 (relabel), m-33, m-34, m-35, m-36, m-37, m-24, m-30.
+- Verdict: continue, no redesign; RLHL-3a stop rule met after the cheap fixes.
+
+## 2026-10-14 — loop RLHL-3a — iteration 3 (review); RLHL-3a closed
+
+- **Review** (workflow; three lenses, a skeptic per lens, a synthesis):
+  - Counts: BLOCKER 1 (B-1, unchanged); MAJOR 1 open in scope (M-19, now "ready"; m-8, M-22, M-14, M-21 carried unchanged); MINOR m-30 (range pointers), m-38 (new; `read_pair` core implicit), m-39 (new; absorption caveat at GSim item 10(a)), m-40 (new; research-level: I_RC lacks RMW rows, I_Counter_xy unprinted), m-41 (new; delta list incomplete), m-37 (narrowed), m-36 (two observations).
+  - Resolved (verified): m-34, m-35, m-24, M-20 (Coq relabel), M-22 (header), m-30 (`.v` headers apart from ranges), M-21 (Coq-side table).
+  - Writer claims accepted: σ0/v0 cannot be universally quantified in `read_pair_no_rlhl2_gen`; the ownership open issue is withdrawn; "Gfm's memory part is trivially met" is acceptable, because the invariant carries the values and it is sound to rely on.
+  - Verdict: "RLHL-3a can be closed … Decision: stop RLHL-3a and proceed to RLHL-3b. No redesign."
+- **Orchestrator:** the review proved nothing new in scratch sessions, so there is nothing to re-run. The claims it relies on (Print Assumptions, side conditions) match my iteration-3 verification.
+- **Records:** `latest-review.md` overwritten. Concern-matrix rows: B3/B-post (frame kit, value-free counter; next action RLHL-3b), conservative extension (m-41), rule figures (mapped, range :476-557, m-41), nonempty-SI instance (RLHL-3b plan), universal negatives 🟡 → ✅, EI route, "sound and complete" (+ implex.tex:3), thread-aware δ_mem (narrowed), Counter_xy (RLHL-3b target); new rows m-40 and m-39; §4 regressions for iteration 3. research-intent §8: B-1 memory entry, m-37 narrowing recorded.
+- **RLHL-3a outcome.** Closed after 3 iterations. Proved:
+  - the copy-cat soundness of RLHL for all traces (`rlhl_complin`, `rlhl_complin_eihl`);
+  - complete-trace meaning (`cc_rel_lin`);
+  - handle-linear WLOG (`hlift`);
+  - the EIhl frame kit;
+  - two SI=∅ counter instances;
+  - copy-cat-level relaxation witness (WRCopyCat);
+  - universal negatives.
+  
+  Open in RLHL-3a scope: MINOR documentation residuals (m-30 ranges, m-39, m-41, m-38), carried into RLHL-3b iteration 1.
+- **Next:** RLHL-3b (M-19), Counter_xy, as planned by the review. SI choice (a), by location / by counter, is used as a recorded simplification pending the author's decision on m-40.
+
+## 2026-10-14 — loop RLHL-3b — iteration 1 (Writer launched)
+
+- **Task:** M-19, following the review's plan. Counter_xy with E ≠ F:
+  - underlay: two-location SC cell (Rd/Faa) with SI_E by location, VE := `EIhl δ_mem`;
+  - overlay: {inc_x, inc_y, get_x, get_y} with SI_F by counter, VF := `EI δ_cxy`;
+  - instance `cxy_rlhl2` via `method_sound`, with a generic readiness-from-inheritance lemma (`emit_ready_SI`);
+  - module-derived complete SB witness, rel_lin under SI_F and ¬rel_lin under ∅;
+  - universal negative under SI = ∅;
+  - an ns_if premise discharged by stability (two-future variant) or DEFERRED;
+  - cheap documentation residuals m-30, m-39, m-41 (and m-38 optional).
+- **Recorded simplification:** SI choice (a) (by location / by counter) instead of the paper's RC version, pending the author's decision on m-40. This is stated in the brief and must appear in the file header.
+- **Pre-iteration snapshot** for verification: in the scratchpad (`pre3b1.*`).
+
+## 2026-10-14 — loop RLHL-3b — iteration 1 (Writer + verification)
+
+- **Writer:** M-19 FIXED, with item 7 option (a). Plus m-30, m-39, m-41 and the required part of m-38. m-40 and m-37 NEEDS-AUTHOR. B-1, M-22, m-8, M-14 and M-21 DEFERRED.
+  - New `models/simlin/RelaxedHoareInherit.v` (802 lines):
+    - `emit_ready_SI` (closed, no NNPP);
+    - generic renaming theorem `ren_rlhl2` (closed): the renaming copy-cat module has RLHL2Hyps over `EIhl δE` into `EI δF` under spec simulation Hδ, SI inheritance `~~SI_E(ρ o1, ρ o2) → SI_F(o1, o2)`, `lz`, arity injectivity Hinj, and single-future bodies; derived via `method_sound`;
+    - `ren_complin_ei`, `ren_rel_lin`.
+  - New `examples/Relaxed/RelaxedHoareCounterXY.v` (~1400 lines):
+    - `EM` (Rd/Faa on CX, CY; `by_location`), `FC = CxySig by_counter`, `F0 = CxySig (λ_ _. False)`, `δmem`, `δcxy` (Inc returns the old value);
+    - `cxy_rlhl2` (closed) and its corollaries `cxy_complin_ei`, `cxy_rel_lin`;
+    - `sb_exec` (∀ si; complete; module-derived), `sb_rel_lin`, `sb_rel_lin_direct`, `sb_not_rel_lin0` (closed; ∀ si), `sb_si_decides`;
+    - `cxy0_no_rlhl2` (∀ I R G), `cxy_discriminates_rlhl2`;
+    - `CounterAsRename.counter_ren_rlhl2`;
+    - `CounterXYZ.cxyz_rlhl2` (two-future body with an own Faa z; the genuine own-event premises are discharged by stability), `z_reorder_exec`.
+  - `ReadPairUniversal.read_pair_not_complin` (closed). Headers of `RelaxedHoare.v` / `RelaxedHoareGSim.v` (m-30, m-39, m-41).
+  - `_CoqProject` +2 entries; Makefile regenerated.
+  - The Writer flags as open: a stale WRCopyCat comment ("planned … in RLHL-3b"); the 7a premises are frame facts (z invisible to the overlay); the main instance and `ren_provable` are single-future; choice (a) is more permissive than the paper's RC reading (the paper's inc_x has no overtaking).
+- **Verification (orchestrator):**
+  - No declaration removed. The 9 removed lines in `RelaxedHoare.v`, `RelaxedHoareGSim.v` and `RelaxedHoareChecks.v` are header text, and the GSim item-10 sentence on the paper's premises is reflowed, not dropped. Other RLHL files are unchanged.
+  - Grep in the new files: clean. `make -n` lists only `DCPOs.v`.
+  - All 842 lemmas in the 11 RLHL files: 791 closed, 12 `eq_rect_eq`, 26 `classic`, 13 both; nothing outside the baseline.
+    - Closed: `emit_ready_SI`, `ren_rlhl2`, `cxy_rlhl2`, `sb_exec`, `sb_not_rel_lin0`, `sb_rel_lin_direct`, `sb_si_decides`, `counter_ren_rlhl2`, `cxyz_rlhl2`, `z_reorder_exec`, `read_pair_not_complin`.
+    - `classic`: `cxy_complin_ei`.
+    - `eq_rect_eq` + `classic`: `cxy_rel_lin`, `sb_rel_lin`, `cxy0_no_rlhl2`, `cxy_discriminates_rlhl2`, `ren_rel_lin`, `cxyz_rel_lin`.
+  - Statements checked with `Print`/`Check`: `EM`, `FC`, `F0`, `δmem`, `δcxy`, `M_cxy`/`M_cxy0` (the same `Mcxy si`), the initial states, `sb_evs`/`sb_trace` (four invocations, the two Rd's emitted before the two Faa's, eight responses; gets and incs all return 0), and `ren_rlhl2`.
+
+### Superseded review (archived summary before overwriting `latest-review.md`): RLHL-3a iteration-3 review
+- BLOCKER: B-1 (unchanged).
+- MAJOR: M-19 (ready); m-8, M-22, M-14 and M-21 carried.
+- MINOR: m-30 (ranges), m-38, m-39, m-40 (research-level), m-41, m-37 (narrowed), m-36.
+- Verdict: close RLHL-3a; proceed to RLHL-3b.
+
+## 2026-10-14 — loop RLHL-3b — iteration 1 (review)
+
+- **Review** (workflow; three lenses, a skeptic per lens, a synthesis; all BLOCKER/MAJOR upheld):
+  - BLOCKER B-1 (narrowed): the only verified nonempty-SI object is a one-to-one renaming over an SC cell. New sub-item (4′): a non-renaming object at nonempty SI whose invariant carries value content.
+  - MAJOR M-22 (carried; plan sharpened). In order: `mtraces_mono` → module trace-LTS and absorption (idF first) → semantic linking → m-8 on a spec with a precondition → an SB-with-Wait client of Counter_xy. `ren_rlhl2` does not give absorption, but it gives composable test layers.
+  - MINOR, new:
+    - m-42: stale headers in GSim:101-102, CompLinSpec:141-145, Checks WRCopyCat, and CounterXY difference (1);
+    - m-43: R_π mis-mapped to intra-call own events; the paper's R_π is other same-thread independent operations, which Coq supports via `h_guar_rely`;
+    - m-44: Hinj and the ¬¬ in Hsi carry no content; the header misstates Hinj;
+    - m-45: intra-call own-event interference exercised only as frame facts;
+    - m-46: choice (b), the (∅,∅) instance and an LB twin are cheap through `ren_rlhl2`, which decouples the Coq from m-40.
+  - Resolved: M-19, m-30, m-38, m-39, m-41.
+  - Verdict: "RLHL-3b can close. The documentation minors (m-42, m-43, m-44) are cheap; the orchestrator can check them by diff without another review iteration. m-46 is optional but recommended … Proceed to RLHL-3c. No redesign."
+- **Factual check by the orchestrator:** re-ran the review's complete choice-(b) script `cxyb_rlhl2`: Closed. Copy in `.rocq-review/scripts/RLHL3b1_m46_cxyb_rlhl2.v`.
+- **Records:**
+  - `latest-review.md` overwritten.
+  - Concern matrix:
+    - row 43: RLHL-3b results; missing list now has the non-renaming object; next action is the RLHL-3c order;
+    - row 64: end-to-end instances;
+    - row 65: anchors, `cprov_ret` documented;
+    - row 66 split into inter-call (🟡), intra-call (🟡 frame-level) and completeness/LB (⚠️);
+    - row 67 → ✅ for the inherited-SI class;
+    - row 71 residual m-43;
+    - row 72 ❌ → ✅ (M-19);
+    - row 73 negatives;
+    - row 76 → ✅;
+    - m-40 row: choice (b) closed, COH re-target option;
+    - m-39 row → ✅;
+    - Counter_xy row ❌ → 🟡;
+    - new rows `ren_rlhl2`, m-42, m-45, m-46;
+    - §4 entry for RLHL-3b iteration 1.
+- **Next:** RLHL-3b iteration 2, cheap: m-42, m-43, m-44 (docs, plus optional lemmas) and m-46 (choice (b), the (∅,∅) instance, the LB twin). Then RLHL-3c, starting with `mtraces_mono` and absorption for idF. Those do not depend on the escalated m-8 amendment.
+
+## 2026-10-14 — loop RLHL-3b — iteration 2 (Writer + verification)
+
+- **Task:** the MINOR findings m-42, m-43, m-44 and m-46 of the RLHL-3b iteration-1 review.
+- **Writer** (4.5 h): all FIXED, including the optional parts.
+  - m-42: stale headers in GSim, CompLinSpec, Checks (WRCopyCat and "No load-buffering example") and CounterXY difference (1).
+  - m-43: two readings of R_π in `RelaxedHoare.v`/CounterXY; `intro.tex:99`/`:106` mapped.
+  - m-44:
+    - Inherit header corrected;
+    - `ren_inj_of_dec` (closed), `ren_inj_generic` (`eq_rect_eq`);
+    - `ren_si_of_stable`/`_of_dec`/`_plain_of_nn` (closed), `ren_si_of_plain` (`classic`);
+    - `CounterXYZ.Gz_breaks_KInv` (closed).
+  - m-46:
+    - choice (b): `si_mb`, `si_cb`, `EMb`, `FCb`, `Mb`; `cxyb_rlhl2` (closed), `cxyb_rel_lin`;
+    - the (∅,∅) instance `cxy00_rlhl2` (closed);
+    - `sb_exec_gen` over every SI_E containing the two crossings (closed); `sb_exec_gen_loc` reproduces `sb_exec`, which itself is unchanged;
+    - `sb_rel_lin_b`;
+    - the LB twin: `lb_exec` (module-derived, complete; closed), `lb_si_decides` (rel_lin under by_counter, not under si_cb nor ∅; closed);
+    - `cxy_mixed_no_rlhl2` (∀ I R G for SI_E by location and SI_F = si_cb);
+    - `lb_not_trace_b`;
+    - `cxy_si_table`, the conjunction of three instances and two ∀ I R G negatives.
+- **Verification (orchestrator):**
+  - Against the pre-iteration snapshot (`pre3b2tree`):
+    - with comments stripped, `RelaxedHoare.v`, `RelaxedHoareGSim.v`, `RelaxedHoareCompLinSpec.v` and `RelaxedHoareChecks.v` are code-identical;
+    - in `RelaxedHoareInherit.v` and `RelaxedHoareCounterXY.v`, no code span was deleted or replaced (insertions only);
+    - the other RLHL files are unchanged.
+  - Grep clean. `make -n` lists only `DCPOs.v`.
+  - All 901 lemmas in the 11 RLHL files: 841 closed, 13 `eq_rect_eq`, 28 `classic`, 19 both; nothing outside the baseline.
+  - The 45 baseline theorems are identical.
+  - Statements checked: `si_mb`, `si_cb`, `by_location`, `by_counter`, `lb_trace` (four invocations; incs respond 0, then gets respond 1), `lb_exec`, `lb_si_decides`, `cxy_mixed_no_rlhl2`, `M_mixed = Mcxy si_cb`, `lb_not_trace_b`, `cxy_si_table`, `sb_exec_gen`, `sb_rel_lin_b`, `cxy00_rlhl2`.
+
+### Superseded review (archived summary before overwriting `latest-review.md`): RLHL-3b iteration-1 review
+- BLOCKER: B-1 (narrowed; sub-item (4′) non-renaming object).
+- MAJOR: M-22 (plan sharpened).
+- MINOR: m-42, m-43, m-44, m-45, m-46.
+- Verdict: RLHL-3b can close after the documentation minors; m-46 recommended; proceed to RLHL-3c.
+
+## 2026-10-14 — loop RLHL-3b — iteration 2 (review); RLHL-3b closes after comment residuals
+
+- **Review** (workflow; three lenses, skeptics, synthesis; 2.9 h):
+  - BLOCKER B-1 (carried; wording: "every nonempty-SI positive with a rel_lin consequence").
+  - MAJOR M-22 (carried).
+  - MINOR:
+    - m-42 residual (CompLinSpec instance list; `IntervalWindow.v`);
+    - m-43 residual: "coarser than R_π" should be "necessarily larger"; :626 is one reading; cite programlogic.tex:308; GSim :345 wording;
+    - m-46 residual: four table sentences say more than proved;
+    - new m-47 (research-level: what the LB datum supports for implex.tex:3 / relatedwork.tex:32);
+    - new m-48: `si_mb` is I_RC restricted to the 2Counter modes, not "ad hoc";
+    - new m-49 (optional: free cells, or the characterisation "RLHL2Hyps iff SI_E∘ρ ⊆ SI_F");
+    - new m-50 (optional: legacy lens checks are smoke tests);
+    - m-40 now purely a paper decision; m-45 carried.
+  - m-44 resolved; m-42/m-43/m-46 resolved apart from wording.
+  - Verdict: "RLHL-3b can close … Close RLHL-3b once the comment-only residuals (m-42, m-43, m-46, m-48) are checked by diff."
+  - Hand derivations, not kernel-checked:
+    1. `si_mb` = I_RC on the 2Counter modes;
+    2. under {(Get CX, Inc CY)} alone, LB is rel_lin. This bounds `lb_not_rel_lin_gen`'s premises.
+- **Records:**
+  - `latest-review.md` overwritten.
+  - Concern matrix:
+    - row 43 (SI-table results);
+    - inter-call R_π row ("necessarily larger"; one reading);
+    - LB row split from completeness (LB ⚠️ → 🟡 with m-47 caveats; completeness ⚠️);
+    - "sound and complete" row; R_π-only-independent row (paper point);
+    - m-40 row (both choices in repo; m-48);
+    - m-39 locator; `ren_rlhl2` row (side conditions); m-42 row → ✅ with residual; m-46 row → ✅ with residuals;
+    - new m-50 row; Counter_xy row;
+    - §4 entry for iteration 2.
+- **Next:** RLHL-3b iteration 3, comment-only (m-42, m-43, m-46, m-48 wording; m-50 header sentence), with the optional m-49 cells. The orchestrator checks it by diff (code-identical apart from any m-49 additions) and closes RLHL-3b without another review round, as the review advises. Then RLHL-3c from the design panel.
+
+## 2026-10-14 — loop RLHL-3b — iteration 3 (Writer + verification); RLHL-3b closed
+
+- **Writer** (13 min):
+  - Comment-only residuals m-42, m-43, m-46 (i)-(iv), m-48 and m-50: FIXED.
+  - m-49: new final section of `RelaxedHoareCounterXY.v`:
+    - free cells `cxy0cb_rlhl2`, `cxy0cnt_rlhl2`, `cxybcnt_rlhl2` (closed) and `cxyb0_no_rlhl2` (∀ I R G);
+    - generic `mgen_rlhl2` (closed);
+    - `cxy_si_char : ∀ r c, cxy_cell (siE_of r) (siF_of c) ↔ (∀ o1 o2, siE_of r (ρ o1) (ρ o2) → siF_of c o1 o2)` over the 3×3 family (`eq_rect_eq` + `classic`).
+  - The general iff over all relations: DEFERRED. The optional faithful modes on EMb/FCb (m-48): DEFERRED.
+- **Verification (orchestrator, by diff, as the review advised):**
+  - With comments stripped (string-aware), ten of the eleven RLHL files are code-identical to the pre-iteration snapshot. In `RelaxedHoareCounterXY.v` the old code is an exact prefix, and the new code is inserted only before the final `End`.
+  - `make -n` lists only `DCPOs.v`.
+  - All 910 lemmas: 848 closed, 13 `eq_rect_eq`, 28 `classic`, 21 both; nothing outside the baseline.
+  - The 45 baseline theorems are identical.
+  - Statements checked: `cxy_cell`, `siE_of`, `siF_of`, `cxy_si_char`, `cxyb0_no_rlhl2`, `mgen_rlhl2`.
+- **No further review round,** per the iteration-2 review ("Close RLHL-3b once the comment-only residuals … are checked by diff").
+- **Concern matrix:** m-42 row → ✅; SI table row extended with `cxy_si_char` and the free cells; m-50 row → ✅; inter-call R_π row (m-43 resolved in Coq); §4 entry for iteration 3.
+- **RLHL-3b outcome (closed after 3 iterations).**
+  - Proved:
+    - the generic readiness lemma `emit_ready_SI` and the renaming theorem `ren_rlhl2`;
+    - Counter_xy at nonempty SI, with spec meaning (`cxy_rlhl2`, `cxyb_rlhl2`);
+    - module-derived complete SB and LB witnesses;
+    - the full 3×3 SI characterisation (`cxy_si_char`): overlay SI alone decides provability, and SB vs LB;
+    - a two-future variant with genuine own-event premises (frame-level).
+  - Open, outside RLHL-3b: B-1 (memory link, client, non-renaming object), M-22 (RLHL-3c), m-45, m-47, m-40 (paper), m-36, m-37, m-8.
+
+## 2026-10-14 — RLHL-3c design panel (no Rocq changes)
+
+- **Workflow:** three read-only Plan agents (operational, trace-theoretic, incremental) and one skeptical `rocq-research-reviewer` synthesis; 8 h.
+- **Plan** saved to `.rocq-review/tasks/RLHL-3c.md`; individual designs in `tasks/RLHL-3c-designs/`.
+- **Route.** ModLTS composite plus trace-determinedness:
+  - `mtraces_mono` and `modlts_paths`: Closed in scratch sessions;
+  - generic absorption over `CCClosed` presentations (Design A), proved by a forward simulation into a FreeLTS target and then `exec_transport`;
+  - `VerImpl` in copy-cat form (`verimpl_vcomp` Closed in scratch);
+  - a modular SB client of Counter_xy;
+  - m-8 last.
+  
+  Absorption (3c.5) is the main risk: about 1200-2000 lines, 3-5 iterations. Fallback if it stalls: the TrLTS + `cc_rel_lin` client route, complete runs only.
+- **Sub-tasks:** 3c.1 (Layer) → 3c.4 (`CCClosed`, `ei_ccclosed`) → 3c.5 (absorb) → 3c.6 (Link) → 3c.7 (client part 2). 3c.2 (client spec part) and 3c.3 (`unabsorb`) can run in parallel. 3c.8 (m-8) is blocked on D5. 3c.9 (F-side counterexample) is research.
+- **Research-level decisions D1-D8** recorded in research-intent §7 for the author. Work proceeds provisionally with the recommended options; these are additive definitions, and no paper claim is made.
+- **Panel finding for the paper (D2):** saturation as printed (App. relaxedlin.tex:53-56) is probably false on the F-side without SI inheritance, and false on the E-side for handle-sensitive underlays.
+- **Next:** RLHL-3c.1 and 3c.2 in parallel. Each owns its new file; the orchestrator pre-registers both files in `_CoqProject`.
+
+## 2026-10-14 — loop RLHL-3c — iteration 1 (two Writers launched in parallel)
+
+- **Setup (orchestrator):**
+  - Created placeholder files `models/simlin/RelaxedHoareLayer.v`, `models/simlin/RelaxedHoareAbsorb.v` and `examples/Relaxed/RelaxedHoareClientSB.v` (header comment only).
+  - Registered them in `_CoqProject` after `RelaxedHoareInherit.v` and after `RelaxedHoareCounterXY.v`; Makefile regenerated; the stubs compile.
+  - Snapshot of the RLHL files and the old `_CoqProject` in the scratchpad (`pre3c1*`).
+- **Writer A (3c.1 + 3c.3, stretch 3c.4):** Layer (`mtraces_mono` … `modlts_trlts`), then `produced_inv_answered` and `unabsorb`; stretch goal `CCClosed`/`ei_ccclosed`/`absorb_needs_closure`.
+- **Writer B (3c.2):** spec-level SB client: `GS`, `Mcl_si`/`Mnw_si`, `mcl_trace`, `ei_sb_cycle`, `sb_client_spec`, `sb_nowait_si_decides`.
+- **Constraints:** disjoint file ownership; targeted `make` only; neither Writer edits `_CoqProject`/Makefile; B must not import Layer/Absorb.
+
+## 2026-10-14 — loop RLHL-3c — iteration 1 (Writers + verification)
+
+- **Writer A (3c.1, 3c.3, stretch 3c.4: all done):**
+  - `RelaxedHoareLayer.v` (355 lines): `LPaths`, `mtraces_mono`, `mtraces_ext`, `complin_mono_under`/`_over`, `FreeLTS`, `mtraces_free`, `exec_app`, `mod_step`, `ModLTS`, `modlts_paths`, `TrLTS`, `trlts_paths`, `modlts_trlts`, and `hlift_drop_via_mono` (a sanity re-derivation of half of `hlift`).
+  - `RelaxedHoareAbsorb.v` (1413 lines): `produced_inv_answered`, `unabsorb` for every VF. The route changed from the plan: `rtraces_of_ccwf` (a CCWF path of V is a copy-cat trace) plus `underlay_ccwf`/`underlay_rtraces` (every module execution's underlay trace is CCWF), then `modlts_paths` and `exec_transport`. Also `complin_unabsorb`, `rehandle`/`is_res`/`ccimg` (with snoc lemmas), `CCClosed`, `ei_ccclosed`, `eihl_ccclosed`, and `absorb_needs_closure` with `vf0_not_ccclosed`. `absorb` itself is PENDING (3c.5).
+  - Statements exactly as in the plan.
+- **Writer B (3c.2: done):** `RelaxedHoareClientSB.v` (1704 lines):
+  - `GS`, `Mcl_si`, `Mnw_si`, `mcl_trace`, `mnw_trace`;
+  - generic module facts: `exec_underlay_nodup`, `ucount_*`, `returned_emitted`, `forced_order`;
+  - the EI path lemma `ei_sb_cycle`;
+  - `SBShape`, `sb_cycle_of_shape`;
+  - `sb_client_spec` (exact plan statement), `sb_nowait_si_decides` (exact), `sb_spec_live` (both waiting calls return with (0,1)), `sb_wait_decides`.
+  - The (F3) chain inv(inc) → res(inc) → inv(get) is used; (F2) is not, even for same-thread calls. The mixed-SI no-wait case is only argued by hand.
+- **Verification (orchestrator):**
+  - All pre-existing RLHL files are byte-identical to the pre-iteration snapshot. `_CoqProject` differs only by the orchestrator's three placeholder entries.
+  - Grep clean in the three new files. `make -n` lists only `DCPOs.v`.
+  - All 1071 lemmas in the 14 RLHL files: 1009 closed, 13 `eq_rect_eq`, 28 `classic`, 21 both. The 161 new ones (Layer 20, Absorb 64, ClientSB 77) are all closed.
+  - The 45 baseline theorems are identical.
+  - Statements checked: `mtraces_mono`, `modlts_paths`, `modlts_trlts`, `ModLTS`/`mod_step`, `unabsorb`, `underlay_rtraces`, `rtraces_of_ccwf`, `CCWF`, `CCClosed`, `ei_ccclosed`, `absorb_needs_closure`, `sb_client_spec`, `sb_nowait_si_decides`, `sb_spec_live`, `Mcl_si`.
+
+## 2026-10-14 — STOPPED by the author
+
+- The RLHL-3c iteration-1 review workflow (`wf_1af4c861-0b6`) was stopped before it finished. RLHL-3c iteration 1 is therefore verified by the orchestrator only, not reviewed. `latest-review.md` is still the RLHL-3b iteration-2 review.
+- Nothing else is running. No commits.
+
+## 2026-10-15 — author decisions; RLHL-latch started
+
+- **Author:** accepted m-8 / D5 (i) (implementation-side error obligation); RLHL LatchSet over COH registers plus barriers first; "do latch set first". Recorded in research-intent §8.
+- **Plan:** an RLHL-latch design panel (read-only), then Writers for:
+  - error infrastructure;
+  - the COH+barrier memory spec;
+  - the LatchSet program and RLHL proof;
+  - witnesses and negatives for broken variants.
+- RLHL-3c 3c.5-3c.7 deferred. The RLHL-3c iteration-1 review is still pending (it was stopped).
+
+## 2026-10-15 — RLHL-latch design panel (no Rocq changes)
+
+- **Workflow:** (A) error infrastructure, (B) LatchSet object and proof, (C) adversarial semantic check; skeptical synthesis. 50 min.
+- **Plan** in `.rocq-review/tasks/RLHL-latch.md`; designs in `tasks/RLHL-latch-designs/`.
+- **Semantic findings (hand-checked by the synthesizer against `must_precede` and the evaluated `dto` table; not yet mechanized):**
+  - The correct LatchSet satisfies the target.
+  - All five broken variants fail, each with a concrete complete execution in which print returns `[0]` (legal results are `[]` and `[5]`).
+  - I_L is never used: LPs are `Lseq` accesses, so same-location F2 orders them.
+  - The trailing `mb` is not needed.
+  - Non-overlap in P1 is unnecessary.
+  - Module traces cannot be transported across overlay relations by conversion (needs L.8).
+  - The underlay is multi-copy atomic, so it does not support ARMv8 claims.
+- **Corrections to the reports:**
+  - LatchSet does not need `GSimRelErr`/`RLHL2HypsE`, because the underlay has `Error := False`.
+  - Report B's "trace reuse by conversion" claim is wrong (repl rejects it).
+- **Tasks:** L.1-L.11, about 7.5-11k lines, 14-20 Writer iterations. The reader proof L.5 is the go/no-go checkpoint.
+- **RD-1…RD-10** recorded in research-intent §7; proceeding provisionally with the recommendations.
+- **Next:** wave 1 in parallel on disjoint files:
+  - Writer A: L.1 generic `run` interpreter and `rp_run`, then L.2 the LatchSet program port;
+  - Writer B: L.8 resig transport;
+  - Writer C: L.10 error trace definitions plus the `m8_gap` negative half.
+
+## 2026-10-15 — author redirects RLHL target: two SeqLocks on COH with LB
+
+- Recorded in research-intent §8. RLHL-latch is paused after wave 1 (still running; its generic parts are reused).
+- Next: an RLHL-seqlock design panel (read-only, concurrent with wave 1).
+
+## 2026-10-15 — RLHL-latch wave 1 STOPPED by the author ("stop the latch set first")
+
+- Workflow `wf_e8f78ef1-d22` was stopped mid-run, with no Writer report.
+- **State left behind (orchestrator check):**
+  - all five files compile; no admits or axioms;
+  - 258 lemmas, all within {`eq_rect_eq`, `classic`};
+  - `make -n` lists only `DCPOs.v`.
+- **Files:**
+  - `RelaxedHoareRun.v` (1150 lines; `run`, `rp_run`, `run_method_provable`, `dprec_run`, `GAge` and preservation, `emit_ready_block`, EIhl Done monotonicity);
+  - `RelaxedHoareResig.v` (893; `resig`, configuration transport, `mtraces_resig(_iff)`);
+  - `RelaxedHoareErrSpec.v` (954; `MTracesE`, `RTracesClosed`, `RCompLinErr`, `Licensed`, `EIe`, `hliftE`, `mtraces_eie_ei`, `complin_err_rel_lin`, `pool_keys_trace`, part of `cc_license_indep` machinery);
+  - `RelaxedHoareLatchProg.v` (1018; LatchSet port, partial);
+  - `RelaxedHoareLockErr.v` (287; partial).
+- These files are unreviewed and their completeness relative to the plan is unverified. They are kept as they are, with nothing deleted. The generic three are candidates for reuse by RLHL-seqlock.
+- The RLHL-seqlock design panel (`wf_3099ab09-bbf`, read-only) is still running.
+
+## 2026-10-15 — RLHL-seqlock design panel (no Rocq changes)
+
+- **Workflow:** (A) object/proof, (B) adversarial, (C) reuse; skeptical synthesis. 3 h. Plan in `.rocq-review/tasks/RLHL-seqlock.md`; designs in `tasks/RLHL-seqlock-designs/`.
+- **Key finding:** realistic writers (TicketLock, or a writer that reads `seq`) do not exhibit cross-SeqLock LB in this semantics, because `Rmb` orders later read-kind operations.
+  - TicketLock SeqLocks are predicted SC (no LB, no SB).
+  - A seq-reading writer (WRd) gives SB but not LB.
+  - Only a single writer with a blind `inc` (WInc, `inc ↦ DW`) gives LB.
+  - MP is forbidden in all variants.
+  - The read LP must be prophetic (final `rmb_b` via the ghost; report C's "past-determined" claim is refuted).
+- **Orchestrator re-ran the panel's scripts A, B and C:**
+  - `emit_ready_mixed`, `lb_cross`, `rmb_blocks_rd`, `rd_retry_prod`, `wr_guard_prod`, `rd_prod`, `wr_prod` and `lb_reorder_prefix` are all closed;
+  - copies of A and C are in `.rocq-review/scripts/`.
+- research-intent §8: rationale corrected.
+- **RS-1 (which writer) is decisive** and is put to the author.
+
+## 2026-10-15 — author decision RS-1 = WRd only; RLHL-seqlock wave 1
+
+- Recorded in research-intent §8; addendum appended to `tasks/RLHL-seqlock.md`.
+- Placeholders `RelaxedHoareReady.v` and `RelaxedHoareSL2Prog.v` registered; snapshot `presltree`.
+- Wave 1: Writer A does .0 (Run/Resig headers) and .1 (Ready); Writer B does .2 (SL2Prog, WRd).
+
+## 2026-10-15 — author requirement: use RLHL in full
+
+- Route L only (MethodProvable derivations via `run_method_provable`/`rp_run`); route S excluded; checkpoint escalates to the author. Recorded in research-intent §8 and the plan (Addendum 2). The running wave 1 (.0/.1/.2) is unaffected.
+
+## 2026-10-15 — loop RLHL-seqlock — wave 1 (Writers + verification)
+
+- **Writer A:**
+  - .0: Run.v gets a 157-line K/S/P/R header; Resig.v gets a provenance and plan-check paragraph. Code unchanged. All L.1/L.8 plan items are present, including the smoke tests `ren_run_provable`/`RunCounter` and `CounterXYResig`.
+  - .1: new `RelaxedHoareReady.v` (607 lines): `emit_ready_mixed`, `emit_ready_block_older_of_mixed`, `emit_ready_si_older`, `RecNB` (establish plus stability per transition), `emit_ready_rec` (three-way readiness), `OlderSub`, `GMove`, `GMovesIn`, `ghost_never_readded`, `gmove_recnb`, `gage_gmoves`.
+- **Writer B (.2):** new `RelaxedHoareSL2Prog.v` (1137 lines):
+  - underlay `E_S` and `δS`, with `sindep_coh` = I_COH;
+  - overlay `F2 si`, `slsi`, `slRA`, `δF`;
+  - the WRd writer and the reader via `run`; `M2`, `M2w`, `P1`, `mtraces_guard`/`_unguard`;
+  - blocking facts `rmb_blocks_rd`, `lb_blocking`, `sb_blocking`;
+  - productions `rd_prod`, `rd_retry_prod` (24 events, exact), `wr_guard_prod`, `wr_guard_none`;
+  - non-vacuity `sl2_write_read_mtraces`, `sl2_read_overtakes_write` (single-thread, not discriminating);
+  - targets `sl2rd_target` / `sl2rd_relin_target` as definitions only.
+- **Verification (orchestrator):**
+  - Against snapshot `presltree`: Run/Resig code-identical (comments only); Ready and SL2Prog new; all other RLHL files byte-identical. `_CoqProject` has only my two entries.
+  - Grep clean. A full `make` leaves only `DCPOs.v` failing; LatchProg rebuilt OK after Run.vo changed.
+  - `Print Assumptions` over Run/Resig/Ready/SL2Prog (244): Ready 45 and SL2Prog 55 closed; Run 73 closed + 1 classic; Resig 66 closed + 4 {eq_rect_eq, classic}.
+  - The 45 baseline theorems are identical.
+- **Open question raised by Writer B:** whether the target holds for every `si ⊇ slRA`. The orchestrator's reading of `lb_blocking`/`sb_blocking`: only (older write_i, younger read_j) LPs can be reordered, and a larger `si` only eases `invocation_ready`. So `si ⊇ slRA` is expected; this goes to task .4 as a design point, not an author decision.
+- **Next:** independent review of wave 1 (Run, Resig, Ready, SL2Prog) in parallel with wave 2 (.3 SL2Exec, .4 SL2Inv). The wave-2 files are new and do not modify the reviewed files.
+
+### Superseded review (archived summary before overwriting `latest-review.md`): RLHL-3b iteration-2 review
+- BLOCKER: B-1. MAJOR: M-22.
+- MINOR: m-42, m-43, m-46, m-47, m-48, m-49, m-50, m-40, m-45.
+- Verdict: close RLHL-3b after comment residuals (done in RLHL-3b iteration 3).
+- Note: the RLHL-3c iteration-1 review was stopped before completion, so no RLHL-3c review exists.
+
+## 2026-10-15 — loop RLHL-seqlock — wave 1 (review)
+
+- **Review** (workflow; three lenses, skeptics, synthesis):
+  - **MAJOR:**
+    - B-1 (carried, rated MAJOR this wave: the intro.tex:105-106 anchor was rewritten in the working tree);
+    - **M-23** (new, research-level): the WRd writer's closing write reuses the cached `v` instead of reloading `seq`. The SB datum and the need for `slRA` depend on this elision. With the Linux-literal reloading writer the object is SC on this underlay (no store forwarding). Author options: (a) keep and describe honestly; (b) model the reload and verify at ∅; (c) move SB to a store-forwarding underlay (m-37);
+    - **M-24** (new, actionable): the plan §2.4 read-value assertion is not stable (counterexample state given); fix in .4 before .5.
+  - **MINOR:** m-51 (state the target with route-L premises, `rlhl_sound_complin`-style), m-52 (Ready persistence dual; `ghost_emit_keeps_other`), m-53 (retry-loop readiness under `rp_run`: pilot, `before_run`, `div_method_provable`, longer `complete_tac`, move `lb2_not_trace_rd` to .7), m-54 (comment precision), m-55 (overlapping and retrying executions), m-56 (undocumented modelling choices), m-33 (extended), m-57 (`models/` importing `examples/`).
+  - **Confirmed:**
+    - `rp_run`/`run_method_provable` are genuine derived RLHL rules (`RProvable_coind` with `rp_futureD`/`rp_wait_pending` premises, full `NewSlotOK` including `ns_if_*`), so route L counts as "RLHL in full";
+    - Resig transport faithful; `sindep_coh` = I_COH; `slRA` = LRA shape; `lb_blocking`/`sb_blocking` correct;
+    - `si ⊇ slRA` suffices with no upper bound (overlay SI read only positively).
+  - Verdict: "Continue to wave 2; no redesign is needed", but M-23 needs the author's reconfirmation and M-24 must be fixed in .4.
+- **Wave 2 (.3 Exec, .4 Inv)** was launched before this review finished. Its Writers do not know M-23/M-24; their output will be checked against them.
+- M-23 is put to the author.
+
+## 2026-10-15 — author decision on M-23: keep the cached v (option (a)); recorded in research-intent §8
+
+## 2026-10-15 — loop RLHL-seqlock — wave 2 (Writers + verification)
+
+- **Writer A (.3, `RelaxedHoareSL2Exec.v`, 1038 lines): GO.**
+  - `sb2_exec_rd`: a complete module-derived SB execution, both reads (0,0); also in the `_ij` form.
+  - `sb2_rel_lin_slRA`, `sb2_not_rel_lin0`, `sl2rd_no_rlhl2_gen`.
+  - `sl2rd_no_rlhl2_empty`: extra hypothesis `∃ i j, tw i ≠ tw j` (two writer threads needed for SB).
+  - `lb2_not_rel_lin`, `lb2_rel_lin_slsi`, `mp2_not_rel_lin` (stronger: no `complete` premise).
+  - `lb2_not_trace_rd_of_rel_lin`: conditional on .7.
+  - Negatives only via `rlhl_complin_eihl` and `cc_rel_lin`.
+- **Writer B (.4, `RelaxedHoareSL2Inv.v`, 1916 lines):**
+  - frozen `Isl`/`Rsl`/`Gsl`/`Osl`/`Qsl`;
+  - all `RLHL2Hyps` fields except `h_sem`; `mp_PI`, `mp_ret`, `ready_read`, `ready_write`; the stability kit; per-event maintenance; run entry points;
+  - the `div` case closed;
+  - `sl2rd_rlhl2_of_provable`/`_of_methods`, and `sl2rd_target_of_methods` (∀ si ⊇ slRA).
+- **NEEDS-AUTHOR (Writer B, argued, not mechanized):** the reader as written (untagged) has no `MethodProvable` derivation for any I R G. This agrees with review M-24. Reason:
+  - the read's values come from untagged responses that can be emitted after the LP;
+  - the proof state forgets consumed record values and does not record which call owns an emitted underlay key, so the rely admits steps consuming the reader's own record;
+  - value facts are usable only in the response's own precondition.
+  
+  Options: (a) tag `rmb_a` on the `rd Sq_i` response and `rmb_b` on the `rd Sx`/`rd Sy` responses (a program change; hand-checked sufficient); (b) extend the proof state or presentation with response ownership or value history; (c) route S (excluded by the author).
+- **Verification (orchestrator):**
+  - only the two new files changed relative to `presl2tree`; grep clean; `make -n` leaves only `DCPOs.v`;
+  - 166 lemmas: Inv 125 closed, Exec 39 closed + 2 {eq_rect_eq, classic};
+  - statements of `sb2_exec_rd`, `sb2_not_rel_lin0`, `sl2rd_no_rlhl2_empty` and `sb2_trace_ij` checked.
+- The reader blocker is put to the author.
+
+## 2026-10-15 — author: evaluate first, then decide (reader blocker)
+
+- A read-only design evaluation is running (`wf_a84b7a71-b23`):
+  - (A) tag the reader barriers;
+  - (B) value-history / response-ownership extension;
+  - (C) adjudicate whether the untagged reader is derivable with the current logic.
+- No Writer runs meanwhile; .5/.6 wait for the decision. The writer derivation (.6) is not blocked, but it is held so that the frozen definitions stay stable until the decision.
+
+## 2026-10-15 — SeqLock reader blocker: design evaluation (no Rocq changes)
+
+- **Workflow:** (A) tags, (B) state/presentation extension, (C) adjudication; skeptical synthesis. 67 min. Report in `tasks/RLHL-seqlock-reader-eval.md`; evaluations in `tasks/RLHL-seqlock-reader-eval/`.
+- **Findings:**
+  - **Untagged reader over EIhl** with the frozen definitions: not derivable (rigorous argument; key lemmas closed). "For every I R G": argued only. The cause is the lossy `EIhl` presentation (consumed values forgotten), not the paper's rules, whose proof state carries the underlay trace (programlogic.tex:537).
+  - **M-24's repair (i)-(iv) refuted** (`m24_not_stable`, closed); M-24 is superseded by M-25 (research-level).
+  - **New BLOCKER B-6:** the frozen read postcondition `Qsl` cannot be reached at `Close` on paths whose iteration count disagrees with the ghost; this affects every option. Fix: `Qrd := Qsl ∨ ¬NoOwn`, and per-operation postconditions in the assembly lemmas. Optionally, at logic level, give `bw_sum` `NoOwn`.
+  - **Option B:** `EIhlv := Log (EIhl δ)`, a history presentation with an MTraces equivalence (`loglift`, closed) and `rlhl_complin_eihlv` (classic). It keeps the program and the logic unchanged, gives `RCompLin` for every prefix, and the reader derivation is hand-checked sufficient.
+  - **Option A (tags):** violates the dependency-only principle (research-intent:129) and is outside the impl.tex:120 policy. It transfers to the untagged program for complete traces only, and only via an unmechanized insensitivity theorem.
+  - **Recommendation: B.**
+- **Orchestrator re-ran the scripts:**
+  - B §7: 9 closed + `rlhl_complin_eihlv` classic;
+  - C §7: `fam_merge`, `doom_vacuous_after_consumption`, `m24_not_stable` closed;
+  - B-6 script: 4 closed.
+  
+  Copies in `.rocq-review/scripts/RLHLsl_reader*.v`.
+- The (A)/(B) decision is put to the author.
+
+## 2026-10-15 — author decision: option B (history presentation); wave 3 launched
+
+- research-intent §8 updated; plan Addendum 3.
+- Placeholder `RelaxedHoareLog.v` registered; snapshot `presl3tree`.
+- Wave 3: Writer A .L (`RelaxedHoareLog.v`); Writer B .B6 (SL2Inv additions, m-58, Ready m-52).
+
+## 2026-10-15 — loop RLHL-seqlock — wave 3 (Writers + verification)
+
+- **Writer A (.L, `RelaxedHoareLog.v`, 1244 lines):**
+  - **Port:** `Log`, `loglift` (MTraces equivalence), `log_handle_linear`, `complin_log_under`, `EIhlv`, `rlhl_complin_eihlv`, the `logval`/`logok` lemmas, `logval_unique` (replacing the SeqLock-specific `sl_logval_rd`).
+  - **m-59:** `liftGL` (base relation plus `log_steps`) and `evupdate_liftL`.
+  - **Side-field transfer:** `guar_rely_lift`, `invoke_rely_lift`, `return_rely_lift`, `ok_lift`, `init_lift`, `postinvoke_lift`, `retcond_lift`, `methodsem_lift`, `rlhl2_lift`, `rlhl2_lift_of_provable`.
+  - **Part 5:** `methodprovable_lift` (every derivation over VE lifts to `Log VE`).
+  - **Corollaries:** `rlhl2_eihlv_of_provable`, `rlhl_sound_complin_eihlv`, `rlhl_sound_rel_lin_eihlv`.
+  - **Smoke test** `RunCounterLog`: a transferred and a direct derivation over EIhlv; `counter_log_complin`/`_rel_lin`.
+- **Writer B (.B6, m-58, m-52):**
+  - SL2Inv Part 9: `Qrd`, `Qop`, `qrd_ret`, `qop_ret`, `owns_rmb_not_qsl`, the `_rd` versions of the read, assembly and target lemmas; `sl2rd_prov_target` (m-51 shape) with `sl2rd_prov_target_imp`. The old declarations are marked superseded.
+  - SL2Inv OPEN section rewritten (m-58).
+  - Ready Part 5: `ghost_emit_keeps_other`, `OwnKeep` closure, `GMoveBy`, `GMovesOther`, `owned_persists`, `retcond_or_owned`.
+- **Verification (orchestrator):**
+  - Against `presl3tree`, with comments stripped: SL2Inv/Ready/Log have insertions only (0 deleted or replaced code spans); other files unchanged.
+  - Full `make`: only `DCPOs.v` fails. Grep clean.
+  - `Print Assumptions` over Ready/Log/SL2Inv/SL2Exec (329): Ready 71 closed; Log 71 closed + 3 classic + 3 {classic, eq_rect_eq}; SL2Inv 140 closed; SL2Exec 39 closed + 2 {classic, eq_rect_eq}.
+  - The 45 baseline theorems are identical.
+- **Next, in parallel:**
+  - review of waves 2 and 3;
+  - wave 4: .6 writer derivation over EIhl (lifted later) in `RelaxedHoareSL2Write.v`, and .4v lifted kit over EIhlv in `RelaxedHoareSL2InvLog.v`.
+
+### Superseded review (archived summary before overwriting `latest-review.md`): RLHL-seqlock wave-1 review
+- MAJOR: B-1 (carried), M-23 (cached-v writer fidelity; author chose to keep it, honestly labelled), M-24 (superseded by M-25).
+- MINOR: m-51…m-57, m-33.
+- Verdict: continue, no redesign.
+
+## 2026-10-15 — loop RLHL-seqlock — waves 2-3 (review)
+
+- **Review** (workflow; three lenses, skeptics, synthesis). No BLOCKER.
+  - **MAJOR:**
+    - B-1 (carried);
+    - M-23 (carried): the author-mandated "cached v" relabel is not yet applied (SL2Prog.v:4/:453, the SL2Exec header, research-intent RS-1 entry, plan :210); the SB datum must say it depends on the cached-v encoding (SB without own reads);
+    - M-25 (supersedes M-24): the reader is not derived; option B plausible by hand; .5 is the go/no-go.
+  - **MINOR:**
+    - m-60: the ∅ negative's `∃ i j, tw i ≠ tw j` is unnecessary. The single-writer witness `sw_*` (lens scratch, re-run closed) proves it for every tw and gives per-pair necessity of slRA.
+    - m-61: stale trace.tex anchors (I_RA is now :96, store forwarding :94-107); SL2Inv :157 wording; Log :40-47 should say "restores the underlay projection of the paper's s"; SL2Prog :1117 si question answered.
+    - m-62: negatives over EIhl vs positive over EIhlv; state them at RCompLin level and derive both RLHL2Hyps negatives.
+    - m-63: the reader route is hand-sketched only, with six obligations (B-6 path, tight per-slot guarantees, `ns_if_old_in`/`bw_if` stability, phantom paths and NoOwn, consistent keys, `sl_logval_rd`); a looping validate-after-read pilot over EIhlv is recommended before .5.
+    - m-64: delta-table rows for `rp_run`, Log/EIhlv, the `Qrd` ¬NoOwn postcondition, and the ghost-prophetic LP.
+    - m-51 (EIhl target not citable; .4v provides the EIhlv one), m-53 (`before_run`, generic `div_method_provable`), m-55 (retry execution missing), m-54/m-56/m-57 (carried), m-33 (narrowed: impl.tex:172/:141 support commit-at-invocation; relaxedlin.tex:628 to qualify).
+  - **Closed:** B-6 (interface), M-24, M-26, m-52, m-58, m-59 (half).
+  - **Confirmed:** `sb2_exec_rd` is genuine and complete; the legality cycles are correct; the invariant and side fields are correct; `loglift` is exact; `liftGL` is right; `methodprovable_lift` and `rlhl2_eihlv_of_provable` are sound; an EIhlv target assembles today (lens scratch).
+  - Verdict: "Continue to .4v/.6 and the .5 checkpoint; no redesign."
+- **Records:** `latest-review.md` overwritten. research-intent RS-1 entry annotated per M-23 (below).
+- **Next** (after wave 4 is verified):
+  - a cleanup Writer: M-23 relabel in the `.v` headers, m-60 `sw_*`, m-61, m-62, m-64, m-55 retry execution, m-54/56/57;
+  - in parallel, a reader pilot plus .5 with the m-63 obligations in its brief.
+
+## 2026-10-15 — loop RLHL-seqlock — wave 4 (Writers + verification)
+
+- **Writer A (.6, `RelaxedHoareSL2Write.v`, 1316 lines):**
+  - `write_provable`: a closed syntactic RLHL derivation of the writer over EIhl, via `sl2_write_run_provable` → `run_method_provable` → `rp_run` → `RProvable_coind`;
+  - `write_provable_v` (lifted by `methodprovable_lift`), `write_other_provable_v`, `write_fits_eihlv`, `rlhl2_v_of_reads` (a fit check);
+  - the header lists the genuine own-interference premises (data writes in both directions, floating responses) and five awkward points of `RunCallOK`/`NewSlotOK`.
+- **Writer B (.4v, `RelaxedHoareSL2InvLog.v`, 1407 lines):**
+  - `IslV`/`RslV`/`GslV`/`QrdV`; side fields transferred;
+  - `SL2ReadV` (premise (a): the read over EIhlv with `QrdV ∧ X`), `SL2WriteB` (premise (b): the write over EIhl);
+  - `sl2rd_prov_target_v`, `sl2rd_v_of_methods(_v)`, `sl2rd_complin_target` (RCompLin over plain `EI δS`, every prefix), `sl2rd_relin_target`;
+  - the reader value kit (`KRd`, `EdgeG`/`EdgeD`/`Pkg`/`PkgT`, `GslFix`/`GslRes`, `KHas`, the stability lemmas, the per-event updates for G/A/X/Y/B/T/responses, `sl_read_close_rd`);
+  - gaps G1-G6 in the eval1 sketch identified and handled in the kit.
+- **Verification (orchestrator):**
+  - only the two new files changed; grep clean (the only hit is a header sentence); `make -n` leaves only `DCPOs.v`;
+  - 177 lemmas: Write 61 closed; InvLog 112 closed + 2 classic + 2 {classic, eq_rect_eq} (inherited);
+  - `write_provable` type-checks as `SL2WriteB` (premise (b) discharged).
+  
+  **Only `SL2ReadV` (.5) remains for the main theorem.**
+- **Next, wave 5:**
+  - Writer A: .5 reader (`RelaxedHoareSL2Read.v`), the checkpoint;
+  - Writer B: SL2Exec-only cleanup (M-23 disclosure in its header, m-60 `sw_*`, m-62 RCompLin-level negatives, m-55 retry execution, m-61 anchors).
+  
+  The header edits upstream of the reader (SL2Prog, RelaxedHoare.v, SL2Inv, Log) are deferred until after .5 to avoid rebuild races.
+
+## 2026-10-15 — loop RLHL-seqlock — wave 5 (Writers + verification): CHECKPOINT .5 PASSED; main theorem proved
+
+- **Writer A (.5 + .7, `RelaxedHoareSL2Read.v`, 1542 lines, under budget):**
+  - `read_provable_v : ∀ rc si tw, slRA ⊆ si → SL2ReadV rc si tw` (closed). It is a syntactic RLHL derivation of the untagged retrying reader over EIhlv via `sl2_read_run_provable_v` → `run_method_provable` → `rp_run`, using the SL2InvLog kit (G1-G6); `rnew` gives every `NewSlotOK` for all 12 slot positions of every iteration.
+  - `sl2_main : sl2rd_prov_target_v` (closed).
+  - `sl2_complin : sl2rd_complin_target` (RCompLin over plain `EI δS`, every prefix; classic).
+  - `sl2_rel_lin : sl2rd_relin_target` (complete traces; classic + eq_rect_eq).
+  - `lb2_not_trace_rd` (unconditional; classic + eq_rect_eq).
+  - m-63 handled: phantom-path NoOwn not needed (Close needs only `Pkg`/`PkgT` ∨ owns rmb).
+- **Writer B (SL2Exec cleanup):**
+  - M-23 disclosure in the header and comments;
+  - m-60: `sw_*` single-writer witness and `sl2rd_no_rlhl2_empty_any` (∅ negative for every tw);
+  - m-62: RCompLin-level negatives with EIhl and EIhlv corollaries;
+  - m-55: retry execution with rel_lin at slRA;
+  - m-61 anchors.
+  - The lens-1 `sw_*` script was not in `latest-review.md`; the Writer wrote its own.
+- **Verification (orchestrator):**
+  - Only SL2Read (new) and SL2Exec changed; SL2Exec has 0 deleted or replaced code spans.
+  - Grep clean (header sentences only). Full `make`: only `DCPOs.v` fails.
+  - 142 lemmas: SL2Read 71 closed + 1 classic + 2 {classic, eq_rect_eq}; SL2Exec 59 closed + 9 {classic, eq_rect_eq}.
+  - Statements checked: `read_provable_v`, `sl2_main`, `sl2_complin`, `sl2_rel_lin`, `sl2rd_relin_target`, `lb2_not_trace_rd`.
+  - **Chain confirmed in source:** `sl2rd_v_of_methods` → `rlhl2_eihlv_of_provable` → `rlhl2_lift_of_provable` → `RelaxedHoareGSim.rlhl2_of_provable` → `method_sound` on the MethodProvable derivations. No route S and no `ren_rlhl2`.
+  - The 45 baseline theorems are identical.
+- **Next:** a comment-only docs pass on the stale headers (SL2Prog M-23/m-54/m-56/Part 8; RelaxedHoare.v m-64 rows; SL2Inv; Log; Run; SL2InvLog; SL2Write; SL2Exec), then a final review of the SeqLock development.
+
+## 2026-10-15 — RLHL-seqlock docs pass (comment-only)
+
+- **Writer:** comment and header edits in SL2Prog (M-23, m-54, m-56, Part 8, m-61), RelaxedHoare.v (m-64 delta rows), SL2Inv, Log, Run, SL2InvLog, SL2Write and SL2Exec.
+  - Scratch-checked claims: `rc` is vacuous; `sl2_read_overtakes_write` is rel_lin at ∅; `rlhl2_v_of_reads` is discharged by `read_provable_v`.
+  - Notes that programlogic.tex line numbers refer to async-ccal commit 01484091 (the working tree is shifted by 42 lines from :466).
+- **Verification (orchestrator):**
+  - comment-stripped comparison against `predocstree`: all 8 edited files are comment-only;
+  - `make -n` leaves only `DCPOs.v`;
+  - the 45 baseline theorems are identical; the main statements re-checked.
+- **Next:** final review of the SeqLock development (waves 4-5 and docs).
+
+### Superseded review (archived summary before overwriting `latest-review.md`): RLHL-seqlock waves 2-3 review
+- MAJOR: B-1, M-23, M-25.
+- MINOR: m-60…m-64, m-51, m-53, m-55, m-54/56/57, m-33.
+- Verdict: continue; no redesign.
+
+## 2026-10-15 — loop RLHL-seqlock — FINAL review; task closed
+
+- **Review** (workflow; three lenses, skeptics, synthesis). No BLOCKER. "The RLHL-seqlock Coq task can be closed."
+  - **Confirmed:**
+    - "RLHL used in full" is true: `read_provable_v` and `write_provable` are syntactic derivations (`run_method_provable` → `rp_run` → `RProvable_coind`); every `RunStepOK` is discharged; `rnew` builds every `NewSlotOK` (each `ns_if_*` is a stability fact or refuted by order); `rclose` gives a genuine `BarrierWith`; `h_sem` only via `method_sound`; no MethodSem/route S/`ren_rlhl2` in SL2Read/Write/InvLog/Inv (grep: comments only).
+    - The final statements concern the original untagged `M2w` over plain `EI δS`, with no hidden hypotheses.
+    - The reader argument is sound (LP via the ghost; `pkgT_vals` and `logval_unique` at Close; the B-6 disjunct refuted by NoOwn; any number of iterations).
+    - The witnesses and negatives are genuine; `sl2rd_no_complin_pair` is tight per pair.
+  - **MAJOR:**
+    - B-1 (carried: the SeqLock provides only the object link).
+    - **M-28** (research-level): what B:215 may claim. The verified model (COH registers plus ordering-only Wmb/Rmb) and the mechanized logic do not exist in the paper. Before any citation, authors must address (a)-(i): define COH+rmb/wmb in trace.tex (MCA); state RCompLin all prefixes plus rel_lin complete, at slRA; name the writer honestly; state P1; qualify relaxedlin.tex:520/:628; present the mechanized RLHL; tags (m-54); mention M-22; decide RS-6. Citing without (a)-(c) and (f) is a BLOCKER.
+    - **M-29** (research-level plus actionable): the verified slRA contract is MCA-specific. The SB-with-own-reads outcome that store forwarding produces (x86-TSO, ARMv8) is not rel_lin under any si ⊆ slRA (`sbo_not_rel_lin`, closed). Citing the SeqLock as evidence about TSO/ARMv8/oMCA/forwarding is a BLOCKER; the "Scope = oMCA" decision must be reconciled with RD-8.
+  - **MINOR:** M-23 (records residue only), m-54 (tag-monotonicity), m-65 (prophecy wording: the committed iterations prophesy the call's own validation outcome), m-66 (SL2Read/Write P paragraphs vs M-21), m-67 (programlogic.tex numbering: HEAD 4a2db8e1, EStep now :579), m-68 (scratch-only facts → lemmas), m-69 (`sl2_no_mp`, `sl2_complin_unguarded` corollaries), m-70 (one N-instance object, shared barriers).
+- **Orchestrator re-ran:** `sbo_not_rel_lin` (closed), `sl2_no_mp` and `sl2_complin_unguarded` (baseline axioms), rc vacuity (Goal passes). Copies in `.rocq-review/scripts/RLHLsl_final_*.v`.
+- **Records:** `latest-review.md` overwritten; research-intent M-23 residue annotated; concern-matrix SeqLock rows updated.
+- **RLHL-seqlock outcome.** Closed in the Coq. Proved:
+  - `sl2_main` (closed);
+  - `sl2_complin` (RCompLin for every prefix, classic);
+  - `sl2_rel_lin` (complete traces);
+  - `lb2_not_trace_rd`;
+  - SB witness, the ∅ negative for every tw, per-pair tightness.
+  
+  Open: M-28 and M-29 (authors), the actionable minors (cleanup pass), B-1.
+
+## 2026-10-15 — RLHL-seqlock final cleanup (Writer + verification); RLHL-seqlock CLOSED
+
+- **Writer** (all actionable items of the final review; m-54 left optional):
+  - **M-29:** `sbo_not_rel_lin` and `sbo_complete` in SL2Exec; `sbo_not_trace_rd` (every si) in SL2Read; MCA-only sentences in SL2Prog, SL2Read and SL2Exec.
+  - **m-68:** `sindep_rc_vacuous` (SL2Prog); `ov_exec`, `ov_rel_lin`, `ov_rel_lin_empty` (SL2Exec); `rlhl2_v_of_reads_inst` (SL2Read).
+  - **m-69:** `sl2_complin_unguarded`, `sl2_rel_lin_unguarded`, and `sl2_no_mp` (every si, via resig).
+  - **Wording:** m-65 (prophecy, RelaxedHoare.v/Log.v); m-66 (SL2Read/Write/Inv P paragraphs: the mechanized RLHL, printed rules differ); m-67 (programlogic.tex anchors renumbered to async-ccal 4a2db8e1, commit named); m-70 (one N-instance object, shared barriers).
+- **Verification (orchestrator):**
+  - Against `precleantree`, with comments stripped: SL2Exec/SL2Prog/SL2Read have additions only (0 deleted or replaced code spans); CounterXY, SL2Inv, SL2InvLog, SL2Write, RelaxedHoare.v, Dag, GSim and Log are comment-only.
+  - Grep clean. `make -n` leaves only `DCPOs.v`.
+  - **All 2005 lemmas in the 27 RelaxedHoare* files:** 1908 closed, 39 classic, 13 eq_rect_eq, 45 both; nothing outside the baseline.
+  - The 45 baseline theorems are identical.
+- **RLHL-seqlock is CLOSED in the Coq.** Remaining items are for the authors:
+  - **M-28:** define COH+rmb/wmb (MCA) in trace.tex; state RCompLin for every prefix plus rel_lin on complete traces, at slRA; the honest writer name; P1 (`sl2_complin_unguarded`); qualify relaxedlin.tex:520/:628; present the mechanized RLHL; tags (m-54); M-22; RS-6.
+  - **M-29:** the SeqLock is an MCA-only data point; reconcile "Scope = oMCA" with RD-8.
+  - B-1 remains.

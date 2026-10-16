@@ -23,15 +23,23 @@
     The author decided (M-17) that RLHL-2 specifications take effect at
     the abstract invocation (the style of [RelaxedHoareChecks.Counter]);
     the same-thread order is then discharged through the ghost thread
-    frontier, not by helping.  For the over-every-underlay route this is
-    superseded (author decision on latest-review M-18, research-intent
-    §8): the intended RLHL-3 instance of
-    [RelaxedHoareGSim.rlhl_rel_lin_pres] is [VE := ViewLHL.VT nuE] with
-    the stamp-based overlay [VF := ViewLHL.VT nuF] and [Hsound :=
-    ViewLHL.vt_sound] (not done).  [EI] and [ei_hvf] stay valid, and
-    [RelaxedHoareGSim.rlhl_rel_lin_ei] uses them, but they apply to
-    invocation-ordered underlays (such as
-    [RelaxedHoareChecks.CounterHL.HVE]): over [ViewLHL.VT] an
+    frontier, not by helping.  Current route (author decision M-20,
+    research-intent §8, implemented in RLHL-3a): [EI δF] is the overlay
+    of the copy-cat soundness theorem [RelaxedHoareCompLin.rlhl_complin]
+    (every execution, complete or not); what copy-cat inclusion into
+    [EI δF] means for complete traces is
+    [RelaxedHoareCompLinSpec.cc_rel_lin] (relaxed linearizability to
+    [seq_legal δF s0], derived from [ei_hvf] below).  As an *underlay*
+    [EI] is not handle-linear (a re-invocation of a used key keeps a
+    second record, and a response may match the older one; see
+    Limitations below) and admits no [RLHL2Hyps] for the overlapping
+    counter ([RelaxedHoareChecks.CounterEI.EVE_not_handle_linear],
+    [counter_ei_unsat]); the layering interface is the handle-linear
+    [RelaxedHoareCompLinSpec.EIhl δE], connected to [EI δE] by
+    [RelaxedHoareCompLinSpec.hlift].  Earlier routes: the stamp-based
+    pair [VE := ViewLHL.VT nuE], [VF := ViewLHL.VT nuF] with [Hsound :=
+    ViewLHL.vt_sound] (author decision M-18) is a complete-trace
+    corollary only and has no instance; over [ViewLHL.VT] an
     effect-at-invocation overlay is not expected to have a [GSimRel] when
     same-thread operations are ordered, because [VT] accepts dead-end
     prefixes in which a younger same-thread call responds first
@@ -70,7 +78,10 @@
     Limitations.  [EI δ] needs no decidable equality on handles or
     operations; the response matches the pending record by [In], so a
     trace that invokes one key twice may match the older record (this
-    cannot happen on the well-formed traces [HVF] is about).  The
+    cannot happen on the well-formed traces [HVF] is about, nor in a
+    module execution, whose underlay keys are fresh; but the RLHL triple
+    quantifies over such re-invocations, which is why [EI] is not a
+    usable underlay, see above).  The
     specification is total in the sense of [δ]: an invocation whose [δ]
     has no successor blocks (no error transition, [Error := False]).
     Specifications whose effect is at the response, with a no-op

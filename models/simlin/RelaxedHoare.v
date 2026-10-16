@@ -118,7 +118,248 @@
       each instance (e.g. [keeps]) and, for the composition, by the
       [RLHL2Hyps] fields [h_guar_rely], [h_invoke_rely] and
       [h_return_rely] ([RelaxedHoareBase]).  A [ValidRGI] proof does not
-      translate into these. *)
+      translate into these.
+
+    ** The printed rules and their Coq counterparts (latest-review M-21)
+
+    Documentation only; nothing below is a theorem.  Lines refer to
+    ../async-ccal/drafts/relaxed-lin/Appendix/programlogic.tex, numbered
+    as in async-ccal commit 4a2db8e1 (review m-67).  (That commit inserts
+    a 42-line subsection after :468, so every line cited here from :511
+    on was 42 lower in the earlier commit 01484091, which older review
+    records use, e.g. Return :563 was :521 and EStep :579 was :537;
+    lines up to :468 have the same numbers in both.)  The printed logic
+    is not the mechanized one: the Coq rules are those of this file,
+    and the paper prints none of them.  The last
+    four rows (latest-review m-64) are devices that the RLHL SeqLock
+    ([RelaxedHoareSL2Read], [RelaxedHoareSL2Write]) relies on.
+
+    | Paper rule (line)           | Coq counterpart                     | Difference                            |
+    |-----------------------------|-------------------------------------|---------------------------------------|
+    | derived R, G (:518-526):    | one [R k], one [G k] per overlay    | [R k] covers every other call, also   |
+    | R = R[t] ∪ R[π],            | call key [k = (t, h)]               | same-thread calls that are not        |
+    | G = G[t] ∩ G[π]             |                                     | semi-independent of [k] (R[π]: only   |
+    |                             |                                     | independent ones, App. relaxedlin.tex |
+    |                             |                                     | :626)                                 |
+    | top-level judgement         | [MethodProvable I R G M t op Ω Q]:  | post [idle(t, π) ∧ I] becomes         |
+    | (:534-538)                  | [Pinit := PostInvoke I (t, h) op    | [RetCond] (LHL's Qlin and Qret) under |
+    |                             | (Ω h)], [mp_PI], [mp_ret]; premise  | [NoOwn]; footprint [Ω] and the ghost  |
+    |                             | [Invoke ∈ G] ↦ [h_invoke_rely]      | are new; every overlay handle [h];    |
+    |                             | ([RelaxedHoareBase.RLHL2Hyps])      | [h_invoke_rely] is weaker than        |
+    |                             |                                     | [Invoke ∈ G] (RelaxedHoareGSim, 1.)   |
+    | Prop. Logic Soundness       | [RelaxedHoareSound.method_sound];   | a global simulation in one step, not  |
+    | (:540-552)                  | [RelaxedHoareGSim.rlhl_gsim],       | thread-local; see RelaxedHoareGSim,   |
+    |                             | [rlhl_sound];                       | items 1-14                            |
+    |                             | [RelaxedHoareCompLin                |                                       |
+    |                             | .rlhl_sound_complin]                |                                       |
+    | EStep, syntactic (:557-559) | [rp_future] / [rp_futureD] (new     | the printed own-event premise is      |
+    |                             | invocation slot, [NewSlotOK]) and   | commented out (:558); Coq checks own  |
+    |                             | [rp_wait_pending] (a response slot  | events pairwise ([ns_if_*]); issue    |
+    |                             | for every response); derived, in    | and wait are separate rules           |
+    |                             | the blocking fragment: [cprov_call] |                                       |
+    | Atomic (:561)               | [RelaxedHoareBase.EvUpdate] (in     | one definition for Atomic, semantic   |
+    |                             | [ns_update]); [PUpdate] in          | EStep and Poss; it receives the ghost |
+    |                             | [cprov_call]'s premises, converted  | transition [ghost_emit]               |
+    |                             | to [EvUpdate] by [newslot_inv]      |                                       |
+    |                             | (invocation) and [newslot_res]      |                                       |
+    |                             | (response)                          |                                       |
+    | Return (:563)               | [rp_ret] with [Close]               | [Close] (unprinted) resolves the      |
+    |                             | ([close_resolve], [close_done]),    | futures never waited for; stability   |
+    |                             | then [mp_ret]                       | under [R k], not [R[t]]               |
+    | Iter (:565)                 | [rp_dowhile] ([doWhileR]);          | a do-while over [Prog], not [C^*]     |
+    |                             | [cprov_dowhile]                     | over Imp; invariant on the slot       |
+    |                             |                                     | context and the lazy store            |
+    | Choice (:567)               | none                                | [Prog] has no choice; nondeterminism  |
+    |                             |                                     | only through responses and handles    |
+    | Seq (:569)                  | [rp_bind] (derived through          | none beyond Imp vs [Prog]             |
+    |                             | [RProvable_coind]); [cprov_seq]     |                                       |
+    | EStep, semantic (:579)      | the [Step VE ev σ σ'] premise of    | the underlay is an LTS [VE], not      |
+    |                             | [EvUpdate]                          | membership in ν_E; no "σ'.s ∈ ⟦M⟧"    |
+    |                             |                                     | restriction (cyan): unreachable       |
+    |                             |                                     | states are covered too                |
+    | Poss (:581)                 | [poss_steps VF p p'] (existential   | one possibility, not a set            |
+    |                             | in [EvUpdate] and [RetCond])        |                                       |
+    | ReturnCommit (:583)         | last clause of [RetCond] (every     | none beyond the single possibility    |
+    |                             | [poss_return] keeps [I]); the       |                                       |
+    |                             | return clause of [GSimRel]          |                                       |
+    | consequence (:585)          | [rp_conseq], [cprov_conseq], [Impl] | none                                  |
+    | Invoke_t(f), idle(t, π),    | [poss_invoke] / [PostInvoke];       | no idle predicate                     |
+    | [P] (:592-599)              | [NoOwn] with [RetCond]; none        |                                       |
+    | (unprinted)                 | [rp_wait_resolved], [rp_tau],       | Coq-only rules and premises           |
+    |                             | [FutureD] tags, [Close], [ns_if_*], |                                       |
+    |                             | [Ω], the ghost,                     |                                       |
+    |                             | [newslot_guar_in_rely],             |                                       |
+    |                             | [barrier_guar_in_rely]              |                                       |
+    | loops over a step machine   | [RelaxedHoareRun.rp_run],           | Coq-only derived rule (by             |
+    | (unprinted; cf. Iter :565)  | [run_method_provable]; used by      | [RProvable_coind]) for a body         |
+    |                             | [write_provable]                    | [run next hs st]: a machine invariant |
+    |                             | (RelaxedHoareSL2Write) and          | on the machine state, the calls       |
+    |                             | [read_provable_v]                   | issued, the slot context and the lazy |
+    |                             | (RelaxedHoareSL2Read)               | store, re-established by every step   |
+    |                             |                                     | ([RunStepOK]); Iter (:565) maps only  |
+    |                             |                                     | to [rp_dowhile]                       |
+    | proof state s (:528-532, s  | [RelaxedHoareLog.Log VE],           | restores only the underlay projection |
+    | at :530); EStep, semantic   | [EIhlv δ := Log (EIhl δ)]: the      | of the paper's s; the overlay         |
+    | (:579)                      | state also logs the underlay events | invocations of s (:530) and the       |
+    |                             | ([loglift], [rlhl_complin_eihlv]);  | reachability clause σ'.s ∈ ⟦M⟧ (cyan) |
+    |                             | the SeqLock derivations are over    | of :579 are not represented; a        |
+    |                             | [EIhlv δS]                          | presentation of the underlay          |
+    |                             |                                     | justified by the trace equivalence    |
+    |                             |                                     | [loglift], not a change of the rules  |
+    | Return (:563): post         | [Qrd k i r] := [Qsl k (fR i) r] ∨   | a postcondition disjunct with no      |
+    | idle(t, π) ∧ I              | [¬ NoOwn k γ] (RelaxedHoareSL2Inv)  | paper counterpart: the call still     |
+    |                             | (lifted: [QrdV]); [qrd_ret], by     | owns a ghost entry (a path that       |
+    |                             | [retcond_or_owned]                  | returns before its footprint is used  |
+    |                             | (RelaxedHoareReady)                 | up; B-6); [bw_sum] may conclude it    |
+    |                             |                                     | before [NoOwn] is in scope, and       |
+    |                             |                                     | [mp_ret] refutes it by [NoOwn]        |
+    | single possibility vs       | the SeqLock read's linearization    | App. relaxedlin.tex:520 and :628 say  |
+    | possibility sets (App.      | point at its last [rmb], last read  | single possibilities are not          |
+    | relaxedlin.tex:520, :628;   | off the ghost ([isl_read_lp] of     | generally sufficient, especially when |
+    | Poss :581)                  | RelaxedHoareSL2Inv, [rd_rmb_update] | linearization points are              |
+    |                             | of RelaxedHoareSL2InvLog); one      | future-dependent. This LP is          |
+    |                             | possibility                         | future-dependent: the ghost stores no |
+    |                             |                                     | response values, but its remaining    |
+    |                             |                                     | invocations, committed at invocation, |
+    |                             |                                     | determine the outcome of the call's   |
+    |                             |                                     | own future validation (the SeqLock    |
+    |                             |                                     | read LP is such a future-dependent    |
+    |                             |                                     | LP). Sound by run-to-completion       |
+    |                             |                                     | (impl.tex:141, a method returns only  |
+    |                             |                                     | after all its underlay calls          |
+    |                             |                                     | completed; impl.tex:172, Inv picks    |
+    |                             |                                     | (r, t:u) in ⟦M^f⟧_t at invocation;    |
+    |                             |                                     | m-33, m-65)                           |
+
+    Further differences between the printed and the mechanized logic
+    (complementing RelaxedHoareGSim, items 1-14):
+    - Imp vs [Prog].  The paper verifies Imp commands compiled to the
+      future language (:69-93), whose dependency tags come from a
+      dependency policy (data, address, control; :97-200, with the
+      environment δ and the control set κ).  The Coq rules are over
+      [RelaxedLang.Prog] ([Future], [FutureD], [Wait], [Ret], [Tau]); the
+      tags of [FutureD] are written by hand, and no compilation from Imp
+      and no policy is mechanized.
+    - Proof state.  The paper's proof configuration is [(s, possibility
+      set)], with [s] the whole concrete trace (:528-532).  Coq's is
+      [(σ, p, γ)]: a state of the underlay LTS [VE], one possibility [p],
+      and the ghost [γ] of pending underlay invocations
+      ([RelaxedHoareBase.PState]).  With the history presentation
+      [VE := RelaxedHoareLog.EIhlv δ], [σ] also carries the underlay
+      projection of [s], not its overlay invocations (see the table).
+    - The two readings of own-thread interference (latest-review m-43).
+      The printed [R = R[t] ∪ R[π]] (:521-522) uses R[π], which
+      App. relaxedlin.tex:626 defines as "the rely condition that needs
+      to be followed when the *same thread* is executing some other
+      independent operation"; implex.tex:3 says the rely admits "the
+      verifying thread's own independent futures"; intro.tex:99 speaks
+      of "pending, independent operations within the verifying thread".
+      Each of these sentences fits either of two readings, both with a
+      Coq counterpart; attributing :626 to the first one is one reading
+      of two, not the paper's stated intent:
+      + Inter-call (one reading of relaxedlin.tex:626): other pending
+        operations of the same thread interfere with the call under
+        verification.  Coq: [R k] contains [G k'] for every other call
+        [k'], same-thread calls included ([RLHL2Hyps.h_guar_rely]; call
+        keys are [(t, h)]).  This is necessarily larger than an R[π]
+        restricted to independent operations: the module semantics runs
+        an older non-independent same-thread call's events while [k] is
+        pending.  [RelaxedModuleSemantics.tagged_invoke] checks only
+        [call_fresh], so [k] may be invoked while an older same-thread
+        call [k'] that is not semi-independent of [k] is pending (in
+        Counter_xy: [k] a [Get CX] while [k'], an [Inc CX] of the same
+        thread, is pending); F2 ([must_precede], which reads the
+        underlay relation) then forces [k']'s [Faa CX] before [k]'s
+        [Rd CX], so a [G k'] step happens while [k] is pending and the
+        stability of [k]'s assertions must absorb it.  It is
+        exercised at nonempty semi-independence by
+        [RelaxedHoareCounterXY.cxy_rlhl2], whose module-derived
+        executions [sb_exec] (a read crossing its own thread's pending
+        FAA) and [lb_exec] (an FAA crossing its own thread's pending
+        read) have same-thread pending calls that interfere and are
+        crossed, and by [cxyb_rlhl2], whose module-derived SB execution
+        is [sb_exec_gen] at [si_mb] ([sb_mtraces_b]; LB is not a trace
+        of that module, [lb_not_trace_b]); readiness by
+        [RelaxedHoareInherit.emit_ready_SI].
+      + Intra-call: the own underlay events of one call interfere with
+        each other.  The live prose for this reading is
+        programlogic.tex:308 ("treat the events a method emits out of
+        program order as interference by the thread's own independent
+        operations"); its closest printed counterpart is the
+        commented-out EStep premise (programlogic.tex:558), which
+        quantifies over every [e' ∈ M^O_E] with [I_E(e', e)], so the
+        identification is itself an interpretation.  Coq checks own
+        events pairwise ([ns_if_*], [bw_if]), never by putting them into
+        [R k].  The closest Coq counterparts of a coarse "own events in
+        the rely" reading, [newslot_guar_in_rely] and
+        [barrier_guar_in_rely] below, derive the [ns_if_*] premises from "the guarantee of
+        every own event is in [R k]", so every edge assertion must be
+        stable under *all* own events, including the ones the dependency
+        dag orders; the pairwise premises are finer than both.  They are
+        exercised with genuine premises only as frame facts
+        ([RelaxedHoareCounterXY.CounterXYZ.cxyz_rlhl2]: ownership and an
+        unchanged possibility; latest-review m-45).
+    - intro.tex:99 ("We build RLHL on LHL, extending its reasoning to
+      pending, independent operations within the verifying thread").
+      On the inter-call reading above (one of the two), the "pending,
+      independent operations within the verifying thread" are the other
+      same-thread calls ([h_guar_rely]; [cxy_rlhl2] with [sb_exec]);
+      readiness for an older pending same-thread call is
+      [invocation_ready], discharged by [emit_ready_SI] for overlay
+      relations inherited from the underlay.  "On LHL": see the M-14
+      paragraph above (rule-level only; no file imports [RGILogic]).
+    - intro.tex:106 ("We develop RLHL and a view-based proof interface
+      on top of LHL ... one layered verification").  "On top of LHL":
+      as for :99 (M-14).  "One layered verification" (LatchSet and the
+      write-snapshot object): not mechanized for RLHL.  There is no RLHL
+      layering theorem (absorption, linking and [mtraces_mono] are
+      missing, latest-review M-22), and LatchSet occurs only on the
+      window route: the window-composition tables
+      (examples/Relaxed/WindowTable.v, WindowComposition.v) and the
+      latch's racy layer in examples/Relaxed/IntervalWindow.v (Part 2,
+      interval inheritance under the default table); none of these uses
+      RLHL.
+    - [cprov_ret] (latest-review m-41).  It asks only [Entails P (Q a)].
+      LHL's [RGILogic.provable_ret] also asks [Q a ==>> I] ([HinvQ]),
+      the stability of [Q a] under the rely ([HstableQ]), and an error
+      disjunct ([Hperror]); none of these has a counterpart in
+      [cprov_ret].  In RLHL the invariant is re-established by every
+      event update ([EvUpdate]) and assumed, not proved, at return
+      ([mp_ret]); stability is asked of the final edges summarised into
+      [Q a] ([bw_R], [bw_R0] of [BarrierWith]), not of [Q a] itself; the
+      error premise has no counterpart (partial correctness).
+    - Claims about completeness and load buffering (latest-review m-41,
+      m-46).  implex.tex:3: "RLHL is complete with respect to relaxed
+      linearizability, and can specify patterns such as load buffering";
+      relatedwork.tex:32: "Load-buffering patterns are expressible".
+      Completeness is not mechanized (see the next item).  For load
+      buffering there is one RLHL-level datum, on a renaming over the SC
+      cell (examples/Relaxed/RelaxedHoareCounterXY.v):
+      [lb_exec] is a module-derived, complete LB execution of Counter_xy
+      with semi-independence by location; it is accepted under the
+      overlay relation [by_counter] through the instance [cxy_rlhl2]
+      ([lb_rel_lin]), it is not relaxed-linearizable under the relation
+      [si_cb] (matching the readiness of 2Counter.tex:41/:53) nor under
+      ∅ ([lb_not_rel_lin_gen]), so no [I], [R], [G] verify the same
+      bodies against [si_cb] over the by-location underlay [EM]
+      ([cxy_mixed_no_rlhl2]).  Over the narrower underlay relation
+      [si_mb] the same body text does verify against [si_cb]
+      ([cxyb_rlhl2]), and LB is not a trace of that module
+      ([lb_not_trace_b]).  No LB example over a relaxed memory from
+      [memory/], and none with a non-renaming body.
+    - relatedwork.tex:32 ("sound and complete with respect to the
+      criterion").  Only soundness is mechanized ([rlhl_sound],
+      [rlhl_sound_complin]).  Completeness is not, and with one
+      possibility it is not expected: a same-thread call whose
+      linearization depends on the future needs prophecy (latest-review
+      m-36).
+    - relatedwork.tex:34 (the mechanization is "developed directly on top
+      of the Rocq development of [lhl], reusing its SC proof architecture
+      and isolating the new timestamp reasoning in a small adapter").
+      This describes VLHL (examples/View/*TSO.v, [ViewLift]), not RLHL: no
+      [RelaxedHoare*.v] file imports [RGILogic] or [Assertion], and RLHL's
+      soundness proof ([RelaxedHoareSound], [RelaxedHoareGSim.RSim]) is
+      new (latest-review M-14). *)
 
 Require Import Stdlib.Lists.List.
 Require Import Stdlib.Arith.PeanoNat.

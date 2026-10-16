@@ -26,6 +26,18 @@
       ([ImplTracesClosed]): the tagged module semantics has no error
       transition and [GSimRel] no error clause, so underlay [Error] is
       invisible (partial correctness, as in [RelaxedHoareGSim] item 7).
+      For [VF := EI δ] (whose [Error] is [False]) this differs from
+      [CompLin] in a second way (latest-review m-8): a partial [δ] means
+      *blocking*.  An invocation for which [δ] has no successor has no
+      [EI] step, so the copy-cat cannot emit it and its overlay call can
+      never return; in [CompLin] such an invocation is an error
+      ([TErr]), and an error in the specification licenses every
+      continuation ([ImplTracesClosed]: undefined behaviour).  So an
+      implementation of a specification with a precondition (a lock
+      released when it is not held) satisfies [RCompLin] only if it also
+      blocks on misuse, or if [δ] has an explicit chaos state.  The
+      author decided (research-intent §8, after the RLHL-3a review) that
+      RLHL-3c adds a CompLin-style error clause; nothing here has one.
 
     ** Results
 
@@ -50,10 +62,31 @@
       through [RelaxedHoareGSim.rlhl_gsim].
     - [rlhl_complin_ei]: the same for [VF := RelaxedHoareSpec.EI δ] and
       [v0 := (s0, [])], the author's layering: each layer is verified over
-      the sequential-specification LTS of the layer below (as in LinCCAL),
-      so [VE] is meant to be [EI δE] of the layer below (the counter
-      instance uses [CounterHL.HVE], an atomic-at-invocation FAA LTS in
-      the same style, not literally [EI]).
+      the sequential-specification LTS of the layer below (as in LinCCAL).
+      That underlay must be the handle-linear
+      [RelaxedHoareCompLinSpec.EIhl δE], not the plain [EI δE]: [EI] is
+      not handle-linear and admits no [RLHL2Hyps] for overlapping
+      same-thread calls ([RelaxedHoareChecks.CounterEI.counter_ei_unsat],
+      review T1; latest-review m-20).  [EIhl] is connected to [EI] by
+      [RelaxedHoareCompLinSpec.hlift] ([rlhl_complin_eihl]: RLHL over
+      [EIhl δE] gives copy-cat inclusion over [EI δE]).  Whether this
+      layering replaces [ViewLHL.presentation_choice] depends on the
+      absorption, linking and monotonicity lemmas of RLHL-3c
+      (latest-review M-22), which do not exist.  The counter has
+      instances over [CounterHL.HVE] ([counter_complin]; an
+      atomic-at-invocation FAA LTS in the same style, not literally
+      [EIhl]) and over [EIhl uδ]
+      ([RelaxedHoareChecks.CounterEIhl.counter_eihl_rlhl2],
+      [counter_complin_ei]; and
+      [RelaxedHoareChecks.CounterEIhlFrame.counter_frame_rlhl2],
+      [counter_frame_complin_ei], whose rely constrains memory only by
+      "any [EIhl uδ] steps", latest-review m-34).
+    - [rlhl_sound_complin] (latest-review m-32): the same from
+      derivations ([RelaxedHoare.MethodProvable]) and the five side
+      conditions of [RelaxedHoareGSim.rlhl2_of_provable]; no [HVF], no
+      [Hcomplete].
+    - [mtraces_prefix], [rtraces_prefix] (latest-review m-32): the trace
+      sets are prefix-closed.
     - [cc_trace]: every method trace of the copy-cat is an invocation with
       some underlay handle followed by its response with the call's
       result.  Not used by [gsim_complin]; used by the counter checks.
@@ -62,7 +95,16 @@
       trace of [inc_ooo_exec] is a copy-cat trace; [junkF_not_rtrace]: the
       overlay junk trace [Inv(t0,1) Inv(t0,2) Res(t0,2,0)] is not, since
       (F2) orders the older call's increment first; this agrees with the
-      REW reading of prefixes, relaxedlin.tex:29, on this trace).
+      REW reading of prefixes, relaxedlin.tex:29, on this trace);
+      [RelaxedHoareChecks.WRCopyCat] (a younger read overtakes a pending
+      older write of its thread iff the two are semi-independent, review
+      T2 and its mirror; a mechanism witness on a single cell, not a
+      memory-model behaviour, latest-review m-35).
+    - A universal negative through [rlhl_complin] (latest-review m-24):
+      [RelaxedHoareChecks.ReadPairUniversal.read_pair_no_rlhl2] (no [I],
+      [R], [G] satisfy [RLHL2Hyps] for the unlocked double read: a
+      two-thread module execution returns a pair that no copy-cat trace
+      over [PairLTS] returns).
 
     ** Relation to the paper and to [CompLin], and differences
 
@@ -87,19 +129,32 @@
       research-intent §8); the paper's possibility sets and its
       Completeness proposition are out of scope.
     - Generic [VE]: nothing here is about a memory model.
+    - What [RTraces (EI δ)] means: for complete traces,
+      [RelaxedHoareCompLinSpec.cc_rel_lin] (every complete copy-cat trace
+      over [EI δ] from [(s0, [])] is relaxed-linearizable to [seq_legal δ
+      s0]; RLHL-3a item 5), so [rlhl_complin_ei] implies relaxed
+      linearizability of the complete traces
+      ([RelaxedHoareCompLinSpec.rlhl_complin_ei_rel_lin]).  This is the
+      soundness direction ν;cc ⊆ rel_lin, i.e. the ⊇ half of the paper's
+      rlx(ν) = ν;seqcopy (Appendix/relaxedlin.tex:47-50, a corollary about
+      sequential relaxed games, with rlx defined by rewriting); the
+      converse rel_lin ⊆ ν;cc is open and needed only for "every underlay
+      relaxed-linearizable" (latest-review M-20, M-22).  For prefixes
+      (traces with pending calls), [RTraces (EI δ)] is intended to be the
+      paper's REW notion (relaxedlin.tex:29-30); that agreement is
+      argued, not proved (latest-review M-20); the mechanized data points
+      are [junkF_not_rtrace] and [RelaxedHoareChecks.WRCopyCat].
     - Not here: vertical composition of two RLHL-verified layers (the
-      relaxed analogue of [CompLinVComp], RLHL-3c), and the link from
-      [RTraces (EI δ)] to [RelaxedTraceLin.rel_lin] for complete traces
-      (task RLHL-3a item 5, not done).  For complete executions,
-      [RelaxedHoareGSim.rlhl_rel_lin_ei] gives relaxed linearizability
-      directly from [RLHL2Hyps]; that [RTraces (EI δ)] contains only
-      relaxed-linearizable complete traces (which would make
-      [rlhl_complin_ei] imply it) is open.
+      relaxed analogue of [CompLinVComp], RLHL-3c), and the E-side
+      copy-cat absorption it needs (the paper's saturation proposition,
+      Appendix/relaxedlin.tex:53-56; latest-review M-22).
 
-    Assumptions: [reify], [cc_trace] and every other lemma of the
-    replay are closed (no [eq_rect_eq]: results are compared through
-    response events, [some_inj], [abs_res_step_any]).  [rinv_val],
-    [rinv_reify], [gsim_complin], [rlhl_complin], [rlhl_complin_ei] use
+    Assumptions: [reify], [cc_trace], [mtraces_prefix],
+    [rtraces_prefix] and every other lemma of the replay are closed (no
+    [eq_rect_eq]: results are compared through response events,
+    [some_inj], [abs_res_step_any]).  [rinv_val], [rinv_reify],
+    [gsim_complin], [rlhl_complin], [rlhl_complin_ei],
+    [rlhl_sound_complin] use
     [Classical_Prop.classic], once, in [rinv_val]: the copy-cat commits its
     result at the overlay invocation, so the replay must know whether the
     run has an abstract response for the call, which is not decidable

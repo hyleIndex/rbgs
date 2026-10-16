@@ -1,4 +1,182 @@
-(** * RLHL, part 8: what copy-cat trace inclusion means (header: see below) *)
+(** * RLHL, part 8: the meaning of copy-cat inclusion, and handle-linear underlays (RLHL-3a, iteration 2)
+
+    [RelaxedHoareCompLin] states RLHL soundness as copy-cat trace
+    inclusion, [RCompLin M VE σ0 VF v0], for every execution (author
+    decision M-20, research-intent §8).  This file answers two findings
+    of the RLHL-3a iteration-1 review: what [RTraces (EI δ)] means
+    (latest-review M-20, "item 5"), and which underlay presentation the
+    layering uses (latest-review m-20).
+
+    ** Part 1: traces of executions with a global simulation
+
+    Generic in [VE], [VF], [M] and a relation [S] with [GSimRel VE VF M S]
+    and [S (initial_tagged_module VE σ0) (PossOk v0 [])]:
+    - [gsim_trace_wf]: every overlay trace in [MTraces VE M σ0] is well
+      formed ([PrefixView.wf]).
+    - [gsim_complete_dead], [gsim_dead_complete]: the overlay trace of an
+      execution is complete iff every call of its final configuration has
+      returned.
+    - [gsim_rel_lin_traces]: [RelaxedGSim.gsim_rel_lin] on the trace set:
+      under [HVF], every complete trace in [MTraces VE M σ0] is
+      relaxed-linearizable.
+
+    ** Part 2: the identity simulation of the copy-cat over [EI δ]
+
+    [cc_gsim : GSimRel (EI δ) (EI δ) idF SCC] and [cc_init]: the relaxed
+    copy-cat [RelaxedHoareCompLin.idF], run over the effect-at-invocation
+    LTS [RelaxedHoareSpec.EI δ], is simulated by the possibilities over
+    [EI δ] itself.  Each call's underlay invocation is matched by the
+    abstract invocation of the call (same [δ] step, same result, the
+    record rekeyed from the underlay key to the overlay key, [rekey]),
+    its underlay response by the abstract response, its overlay return by
+    the abstract return.  The invariant [CCInv] lists the active calls
+    with their phase ([ph0]: nothing emitted, [ph1 x]: the invocation
+    emitted with concrete record [x], [ph2]: both emitted); the abstract
+    pool is [map a_lin G]; the order of the queue's pending invocations
+    agrees with the age of the calls ([sc_ord]).  The [invocation_ready]
+    check of an abstract invocation is discharged by the frontier: an
+    older pending invocation of the same thread is before it in the
+    queue, and the emitted one crosses it, so (F2) gives [~ ~
+    semi_independent], hence [semi_independent] by [Classical_Prop.NNPP]
+    (the only classical step; [semi_independent] is not decidable).
+    The simulation also sees the module's key freshness ([trace_fresh]),
+    which the RLHL triple does not.  What it is *not* (latest-review
+    M-22): [cc_gsim] is an identity [GSimRel (EI δ) (EI δ) idF].  Through
+    [RelaxedHoareCompLin.gsim_complin] it yields only [RTraces (EI δ) ⊆
+    RTraces (EI δ)], and through [RelaxedGSim.gsim_rel_lin] it yields
+    [cc_rel_lin].  It is not the absorption lemma [MTraces (Lift idF V)
+    N ⊆ MTraces V N] that layering needs, and no composition theorem for
+    [GSimRel] or [RCompLin] exists yet, so its role as a unit for
+    composition is hypothetical.
+
+    Results:
+    - [cc_rel_lin] (M-20 (a), item 5): every *complete* overlay trace in
+      [RTraces (EI δ) (s0, [])] is relaxed-linearizable to [seq_legal δ
+      s0] under the signature's [semi_independent].  No well-formedness
+      hypothesis ([cc_trace_wf]).  This is ν;cc ⊆ rel_lin, the soundness
+      direction.  In the orientation of Appendix/relaxedlin.tex:47-50
+      (rlx(ν) = ν;seqcopy) it is the ⊇ half (ν;cc ⊆ rlx(ν)), restricted
+      to concurrent complete traces and to an effect-at-invocation
+      presentation of ν.  The paper's corollary is about *sequential*
+      relaxed games, and its rlx is defined by rewriting (REW,
+      relaxedlin.tex:29), not by [rel_lin].
+    - Open: the converse, rel_lin ⊆ ν;cc (every complete [rel_lin] trace
+      is a copy-cat trace).  It is needed only for "every underlay
+      relaxed-linearizable" (verimpl, relaxedlin.tex:74; latest-review
+      M-22), not for the soundness direction.
+    - Not proved either: anything about traces with pending calls.  That
+      [RTraces (EI δ)] coincides with the paper's REW prefixes
+      (relaxedlin.tex:29-30) is argued, not proved (latest-review M-20);
+      the mechanized data points are
+      [RelaxedHoareChecks.CounterCompLin.junkF_not_rtrace] (REW rejects
+      it, so does the copy-cat) and [RelaxedHoareChecks.WRCopyCat]
+      ([si_overtake_rtrace]: a younger read of a thread overtakes the
+      thread's pending write when they are semi-independent;
+      [si_overtake_not_rtrace0]: not under the empty relation).  The
+      paper's prop:rhb-equiv ("for all s, s'", relaxedlin.tex:39-40) is
+      likewise not mechanized for prefixes.
+
+    ** Part 3: consequences for [RCompLin] and for the RLHL route
+
+    - [complin_ei_rel_lin], [rlhl_complin_ei_rel_lin]: [RCompLin] into
+      [EI δ], hence the RLHL hypotheses via
+      [RelaxedHoareCompLin.rlhl_complin_ei], give relaxed linearizability
+      of every complete overlay trace.  So the relaxed-linearizability
+      conclusion of the RLHL route follows from its copy-cat form.
+    - [rlhl_rel_lin_ei_via_cc] re-derives [RelaxedHoareGSim.rlhl_rel_lin_ei]
+      in its exact form through the copy-cat (the conversion of
+      [Hcomplete] into completeness of the trace uses the RLHL simulation,
+      [gsim_dead_complete]).
+
+    ** Part 4: handle-linear presentations and [HLift] (m-20)
+
+    - [HL VE]: [VE] with the list of invoked underlay keys; an invocation
+      step is enabled only on a key not in the list
+      ([HL_handle_linear : HandleLinear (HL VE) hl_used]).
+    - [hlift] (the review's HLift): for every module [M] and initial
+      state, [MTraces VE M σ0 s <-> MTraces (HL VE) M (σ0, []) s].  The
+      inclusion [⊆] uses the module's underlay-key freshness
+      ([trace_fresh] against [tm_used_underlay]; invariant [LiftOK]);
+      [⊇] forgets the list.  Corollaries: [rtraces_hlift] ([M := idF]:
+      [RTraces VF v = RTraces (HL VF) (v, [])]), [complin_hlift_under] and
+      [complin_hlift_over] ([RCompLin] is unchanged when either side is
+      replaced by its handle-linear presentation).
+    - [EIhl δ := HL (EI δ)], state [((s, P), used)];
+      [EIhl_handle_linear]; [hlift_ei].
+    - [rlhl_complin_eihl]: the decided layering interface (research-intent
+      §8, M-20 as corrected by m-20): RLHL hypotheses over [VE := EIhl
+      δE] from [(σ0, [])] give [RCompLin M (EI δE) σ0 (EI δF) (s0, [])].
+      Why [EIhl] and not [EI]: [EI] is not handle-linear and admits no
+      [RLHL2Hyps] for overlapping same-thread calls
+      ([RelaxedHoareChecks.CounterEI], review T1).  Instances:
+      [RelaxedHoareChecks.CounterEIhl] ([counter_eihl_rlhl2],
+      [counter_complin_ei]) and [RelaxedHoareChecks.CounterEIhlFrame]
+      ([counter_frame_rlhl2], [counter_frame_complin_ei]).
+    - A specification-independent frame for [EIhl] (latest-review m-34;
+      the review's scratch [FrameCheck], adapted).  [eihl_rec_used σ]:
+      every pending record of [σ] has a used key.  [eihl_mine key x0 σ]:
+      [eihl_rec_used σ], [key] is used, and every pending record with key
+      [key] is [x0] (the call owns its record; [x0] need not be present
+      any more).  [eihl_steps]: the reflexive-transitive closure of all
+      [EIhl δ] steps, of any thread and operation.
+      - [eihl_rec_used_init], [eihl_rec_used_step], [eihl_rec_used_steps]:
+        [eihl_rec_used] holds from [((s, []), [])] and is kept by every
+        step.
+      - [eihl_mine_step], [eihl_mine_steps]: [eihl_mine key x0] is kept by
+        every step, so an assertion "my record is [x0]" is stable under
+        the rely "any [EIhl δ] steps", which mentions no value.  The
+        reason is handle-linearity: an invocation step needs an unused
+        key, and [key] is used.
+      - [eihl_mine_inv] (own invocation establishes ownership): from an
+        [eihl_rec_used] state, the invocation step of [(t, h)] with
+        result [r] gives [eihl_mine (t, h) (Build_Op (t, h) o r)]; key
+        freshness is the step's handle-linearity premise.
+      - [eihl_mine_res]: a response step on [key] returns [x0].
+      [RelaxedHoareChecks.CounterEIhlFrame] uses the kit for a counter
+      instance whose rely and guarantee constrain memory only by
+      [eihl_steps].
+
+    Limitations.  Nothing here composes two layers: whether [EIhl]
+    layering replaces [ViewLHL.presentation_choice] depends on absorption,
+    linking and monotonicity (RLHL-3c, latest-review M-22).  The
+    [RLHL2Hyps] instances over [EIhl]: three proofs for the I=∅ counter
+    ([RelaxedHoareChecks.CounterEIhl.counter_eihl_rlhl2],
+    [RelaxedHoareChecks.CounterEIhlFrame.counter_frame_rlhl2], and
+    [RelaxedHoareCounterXY.CounterAsRename.counter_ren_rlhl2] from the
+    generic [RelaxedHoareInherit.ren_rlhl2]; the module-derived
+    overlapping execution [inc_ooo_exec_ei] is a non-vacuity witness);
+    and Counter_xy over the SC two-location cell
+    (examples/Relaxed/RelaxedHoareCounterXY.v; every instance but the
+    two-future variant is from [ren_rlhl2]): with empty semi-independence on both signatures,
+    [RelaxedHoareCounterXY.cxy00_rlhl2]; with nonempty semi-independence
+    on both signatures (RLHL-3b), [RelaxedHoareCounterXY.cxy_rlhl2]
+    (choice (a), by location / by counter; module-derived SB and LB
+    executions [sb_exec], [lb_exec]) and [cxyb_rlhl2] (choice (b),
+    [si_mb] / [si_cb]; module-derived SB execution [sb_exec_gen] at
+    [si_mb], as the trace [sb_mtraces_b]; LB is not a trace of this
+    module, [lb_not_trace_b]); the remaining positive cells of the
+    semi-independence table ([cxy0cb_rlhl2], [cxy0cnt_rlhl2],
+    [cxybcnt_rlhl2], instances of [mgen_rlhl2], latest-review m-49); and
+    the two-future variant of [cxy_rlhl2]
+    ([RelaxedHoareCounterXY.CounterXYZ.cxyz_rlhl2]).  All of them are
+    renamings or frame-level variants of one (latest-review B-1 (4')).
+    The first counter rely uses that the counter's values are unique;
+    this is a proof artifact, not a limitation of [EIhl]: the second
+    proof replaces it by the value-free frame above (latest-review
+    m-34).  [cc_rel_lin] needs the initial pending list
+    to be empty.  [EI]'s [Error] is [False], so a partial [δ] blocks (see
+    [RelaxedHoareCompLin], latest-review m-8).
+
+    Assumptions: [gsim_trace_wf], [gsim_complete_dead],
+    [gsim_dead_complete], [cc_init], every lemma of Part 4 ([hlift],
+    [HL_handle_linear], [EIhl_handle_linear], [complin_hlift_*], and the
+    frame lemmas [eihl_rec_used_*], [eihl_mine_*]) are
+    closed; [cc_gsim] and [cc_trace_wf] use [Classical_Prop.classic]
+    (through [NNPP] in [scc_underlay]), [rlhl_complin_eihl] uses it
+    through [RelaxedHoareCompLin.rinv_val]; [gsim_rel_lin_traces] uses
+    [Eqdep.Eq_rect_eq.eq_rect_eq] (from [RelaxedGSim.gsim_rel_lin]);
+    [cc_rel_lin], [complin_ei_rel_lin], [rlhl_complin_ei_rel_lin],
+    [rlhl_rel_lin_ei_via_cc] use both. *)
 
 Require Import Stdlib.Lists.List.
 Require Import Stdlib.Arith.PeanoNat.
@@ -983,6 +1161,97 @@ Module RelaxedHoareCompLinSpec.
     Corollary hlift_ei {F : RelaxedSig.t} (M : RelaxedModuleImpl E F) (σ0 : State (RelaxedHoareSpec.EI δ)) s :
       MTraces (RelaxedHoareSpec.EI δ) M σ0 s <-> MTraces EIhl M (σ0, []) s.
     Proof. exact (hlift (RelaxedHoareSpec.EI δ) M σ0 s). Qed.
+
+    (** *** A specification-independent frame (latest-review m-34)
+
+        Adapted from the review's scratch session [FrameCheck] ([RecUsed],
+        [Mine], [mine_step], [mine_res]).  Nothing below mentions [δ]'s
+        values: the lemmas hold for every [δ]. *)
+
+    (** Every pending record has a used key. *)
+    Definition eihl_rec_used (σ : State EIhl) : Prop :=
+      forall x, In x (snd (fst σ)) -> In (op_key x) (snd σ).
+
+    (** The call [key] owns its record [x0]: [key] is used and every
+        pending record with key [key] is [x0] ([x0] may have been
+        consumed). *)
+    Definition eihl_mine (key : CallKey E) (x0 : Op E) (σ : State EIhl) : Prop :=
+      eihl_rec_used σ /\ In key (snd σ) /\ forall x, In x (snd (fst σ)) -> op_key x = key -> x = x0.
+
+    (** Any number of [EIhl] steps, of any thread and operation. *)
+    Definition eihl_steps : State EIhl -> State EIhl -> Prop :=
+      clos_refl_trans _ (fun σ σ' => exists ev, Step EIhl ev σ σ').
+
+    Lemma eihl_rec_used_init (s : St) : eihl_rec_used ((s, []), []).
+    Proof. intros x []. Qed.
+
+    Lemma eihl_rec_used_step ev σ σ' : Step EIhl ev σ σ' -> eihl_rec_used σ -> eihl_rec_used σ'.
+    Proof.
+      destruct σ as [[s P] u], σ' as [[s' P'] u'].
+      destruct ev as [t [h o | h o r]]; cbn.
+      - intros (_ & (r & st' & _ & Heq) & ->) Hru. injection Heq as -> ->.
+        intros x [<- | Hx]; [left; reflexivity | right; exact (Hru x Hx)].
+      - intros ((P1 & P2 & HP & Heq) & ->) Hru. injection Heq as -> ->.
+        intros x Hx. apply Hru. rewrite HP.
+        apply in_app_or in Hx as [Hx | Hx]; apply in_or_app; [left | right; right]; exact Hx.
+    Qed.
+
+    Lemma eihl_rec_used_steps σ σ' : eihl_steps σ σ' -> eihl_rec_used σ -> eihl_rec_used σ'.
+    Proof.
+      induction 1 as [σ σ' (ev & Hs) | σ | σ σ1 σ' _ IH1 _ IH2]; intros H; auto.
+      exact (eihl_rec_used_step ev σ σ' Hs H).
+    Qed.
+
+    (** Ownership is kept by every step: an invocation step needs an
+        unused key (handle-linearity), and [key] is used. *)
+    Lemma eihl_mine_step key x0 ev σ σ' : Step EIhl ev σ σ' -> eihl_mine key x0 σ -> eihl_mine key x0 σ'.
+    Proof.
+      intros Hs Hm. pose proof (eihl_rec_used_step ev σ σ' Hs (proj1 Hm)) as Hru'.
+      destruct σ as [[s P] u], σ' as [[s' P'] u']. destruct Hm as (_ & Hk & Hx).
+      destruct ev as [t [h o | h o r]]; cbn in Hs, Hk, Hx |- *.
+      - destruct Hs as (Hnu & (r & st' & _ & Heq) & ->). injection Heq as -> ->.
+        split; [exact Hru' |]. split; [right; exact Hk |].
+        intros x [<- | Hx'] Hkx; [exfalso; apply Hnu; cbn in Hkx; rewrite Hkx; exact Hk | exact (Hx x Hx' Hkx)].
+      - destruct Hs as ((P1 & P2 & HP & Heq) & ->). injection Heq as -> ->.
+        split; [exact Hru' |]. split; [exact Hk |].
+        intros x Hx' Hkx. apply (Hx x); [| exact Hkx]. rewrite HP.
+        apply in_app_or in Hx' as [Hx' | Hx']; apply in_or_app; [left | right; right]; exact Hx'.
+    Qed.
+
+    Lemma eihl_mine_steps key x0 σ σ' : eihl_steps σ σ' -> eihl_mine key x0 σ -> eihl_mine key x0 σ'.
+    Proof.
+      induction 1 as [σ σ' (ev & Hs) | σ | σ σ1 σ' _ IH1 _ IH2]; intros H; auto.
+      exact (eihl_mine_step key x0 ev σ σ' Hs H).
+    Qed.
+
+    (** A response on [key] returns the owned record. *)
+    Lemma eihl_mine_res key x0 o (r : Sig.ar o) σ σ' :
+      eihl_mine key x0 σ ->
+      Step EIhl (Build_ThreadEvent (fst key) (@ResEv E (snd key) o r)) σ σ' -> x0 = Build_Op key o r.
+    Proof.
+      destruct key as [k h]. destruct σ as [[s P] u], σ' as [[s' P'] u']. intros (_ & _ & Hx). cbn.
+      intros ((P1 & P2 & HP & _) & _). cbn in HP, Hx. symmetry. apply Hx; [| reflexivity].
+      rewrite HP. apply in_or_app. right. left. reflexivity.
+    Qed.
+
+    (** The own invocation establishes ownership: from a state whose
+        records have used keys, the invocation step of [(t, h)] creates a
+        record that [(t, h)] owns.  Key freshness is the step's own
+        premise (the key is not in the used list). *)
+    Lemma eihl_mine_inv t h o σ σ' :
+      Step EIhl (Build_ThreadEvent t (@InvEv E h o)) σ σ' -> eihl_rec_used σ ->
+      exists r st', δ (fst (fst σ)) o r st' /\
+        σ' = ((st', Build_Op (t, h) o r :: snd (fst σ)), (t, h) :: snd σ) /\
+        eihl_mine (t, h) (Build_Op (t, h) o r) σ'.
+    Proof.
+      intros Hs Hru. pose proof (eihl_rec_used_step _ σ σ' Hs Hru) as Hru'.
+      destruct σ as [[s P] u], σ' as [[s' P'] u']. cbn in Hs |- *.
+      destruct Hs as (Hnu & (r & st' & Hd & Heq) & ->). injection Heq as -> ->.
+      exists r, st'. split; [exact Hd |]. split; [reflexivity |].
+      split; [exact Hru' |]. split; [left; reflexivity |].
+      intros x [<- | Hx] Hkx; [reflexivity |].
+      exfalso. apply Hnu. rewrite <- Hkx. exact (Hru x Hx).
+    Qed.
 
     Section RLHL.
       Import RelaxedHoareBase.

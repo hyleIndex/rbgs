@@ -1,450 +1,357 @@
-<!-- RLHL-3a iteration-1 review (2026-10-13), saved verbatim by the orchestrator. Produced by the review workflow (three rocq-research-reviewer lenses, a skeptic per lens, a synthesis). -->
+<!-- RLHL-seqlock final review (2026-10-15), saved verbatim by the orchestrator. Produced by the review workflow (three rocq-research-reviewer lenses, a skeptic per lens, a synthesis). -->
 
-# Research review — RLHL-3a iteration 1 — 2026-10-13
+# Research review — RLHL-seqlock final — 2026-10-15
 
 ## Scope
-- **Repository.** `/Users/index/Documents/GitHub/rbgs-rlhl`, branch `rlhl`, HEAD 6e2b575. All RLHL work is uncommitted.
-  - New in this task: `models/simlin/RelaxedHoareCompLin.v` (1141 lines) and `Module CounterCompLin` in the untracked `examples/Relaxed/RelaxedHoareChecks.v` (:5719-6247).
-  - `_CoqProject`: +1 line for this task (+8 in total for the RLHL work).
-  - Five tracked simlin files: header text only (`git diff --stat`: 54+/5-).
-- **Task.** RLHL-3a (`.rocq-review/tasks/RLHL-3.md`, Adjustment): CompLin-style copy-cat soundness over the sequential spec EI. This implements the author decision at research-intent §8 :119-124.
-- **Concerns in scope.** B-1, M-1, M-20/Q3, M-19, m-20 (handle-linearity WLOG), m-8, the layering plan (research-intent :123). New: M-22, m-30, m-32.
-- **How this report was made.** It merges three lens reviews (soundness-fidelity, K/S/P/R-paper-decisions, nonvacuity) and their verifications. I spot-checked the points where they disagreed (below).
+- **Repository:** `/Users/index/Documents/GitHub/rbgs-rlhl`, branch `rlhl`, HEAD `6aef511`. All RLHL work is uncommitted and builds. `make -n` leaves only `structures/DCPOs.v`, which is the known baseline failure.
+- **Paper:** async-ccal HEAD `4a2db8e1` ("sec3", 2026-10-15 22:34). Its `drafts/relaxed-lin` tree is clean, so the "working tree" equals HEAD.
+- **Under review:** waves 4-5 and the docs pass:
+  - `examples/Relaxed/RelaxedHoareSL2Write.v`, `RelaxedHoareSL2InvLog.v`, `RelaxedHoareSL2Read.v`;
+  - the `RelaxedHoareSL2Exec.v` additions;
+  - comment-only edits in SL2Prog, `models/simlin/RelaxedHoare.v` (m-64 delta rows), SL2Inv, Log, Run, SL2InvLog, SL2Write and SL2Exec.
+- **Concerns:** popl2027-reviews.md B:215, B:212, B:309-316 (B-1), B4 :533, B5 :537, meta :615. Carried findings: M-23, M-25, m-33, m-51, m-53…m-64.
+- **Method:** this report merges three lens reviews (soundness/fidelity; K/S/P/R and author decisions; non-vacuity and RLHL2 readiness) and their verifications. I re-checked the points where the lenses differed.
 
 ## Checks I ran
-- **Build and hygiene.**
-  - `make -n` reports `RelaxedHoareCompLin.vo` and `RelaxedHoareChecks.vo` up to date; the `.vo` files are newer than their `.v` files.
-  - grep for Admitted, admit, Axiom, Parameter, Unset…Checking, vm_compute, native_compute in `RelaxedHoare*.v` and `RelaxedHoareChecks.v`: no hits.
-  - `classic` is used once, at `RelaxedHoareCompLin.v:1070` (`rinv_val`).
-- **`About`.**
-  - `gsim_complin`: ∀ E F VE VF M S σ0 v0, `GSimRel VE VF M S → S (initial_tagged_module VE σ0) (PossOk v0 nil) → RCompLin M VE σ0 VF v0`. No other premise.
-  - `rlhl_complin`: `RLHL2Hyps I R G M σ0 v0 → RCompLin M VE σ0 VF v0`.
-- **`Print Assumptions`.**
-  - `classic` only: `gsim_complin`, `rlhl_complin_ei`, `CounterCompLin.counter_complin`, `ooo_copycat_trace`, `junkF_not_counter_trace`.
-  - Closed: `reify`, `cc_trace`, `junkF_not_rtrace`.
-- **`Check`.**
-  - `counter_complin : RCompLin Mc HVE hσ0 CVFe (0,nil)`.
-  - `junkF_not_rtrace : ~ RTraces CVFe (0,nil) junkF`.
-  - `ooo_trace` = [Inv1; Inv2; Res(2,1); Res(1,0)], all on thread t0.
-- **Source read.**
-  - `RelaxedHoareCompLin.v`: header :1-105, definitions :145-175, `rinv_val`/`rinv_reify`/`gsim_complin`/`rlhl_complin(_ei)` :1046-1141.
-  - `RelaxedModuleSemantics.v:240-280` and `:575-625`. `must_precede` constrains only same-thread pairs (through `tagged_can_cross`). The Inv/Inv case is `~semi_independent op1 op2`, with op1 the earlier one.
-  - `RelaxedHoareSpec.v:285-313`. `ei_step` has no freshness check, and a response matches its record by list membership.
-  - `RelaxedTraceLin.v:55-90`. The same-thread clause of `rhb` is `~indep (op o) (op o')` with o earlier, so it runs in the same direction as F2.
-  - `CompLin.v:100-170` (`TErr`, `ImplTraces`, `idImpl = Vis`, `ImplTracesClosed`).
-  - `RelaxedHoareGSim.v:200-226`: items 4-5 are stale.
-- **Repository-wide grep.**
-  - No `.v` file in models/, examples/ or interfaces/ imports `memory.*`.
-  - `RCompLin`/`RTraces`/`MTraces` are used only in the new file and in Checks.
-  - There is no `MLTS`, absorption, `mtraces_prefix` or `rlhl_sound_complin`.
-  - Nonempty SI exists in the RLHL instances `pair_rlhl2` (:2174), `xy_rlhl2` (:2996) and `log_rlhl2` (:6741), via `semi_independent := o1 <> o2` (:1916, :2808, :6306). The counter's SI is False (:623, :627).
-- **Paper and reviews (quotes verified).**
-  - Appendix/relaxedlin.tex:
-    - :2-9 seqcopy;
-    - :47-50 corollary rlx(ν_A) = ν_A;seqcopy_A;
-    - :53-56 saturation proposition (no proof);
-    - :58-61 the reduced correctness form;
-    - :665-667 Soundness, ν_E;cc_E;M[Threads] ⊆ ν_F;cc_F.
-  - relaxedlin.tex:
-    - :17-24 ihbrew;
-    - :29-30 REW;
-    - :39-40 prop:rhb-equiv, "For all s,s′";
-    - :62-69 the inlining equation;
-    - :74 verimpl, "for every underlay implementation relaxed-linearizable to ν_E";
-    - :88-99 vertical composition.
-  - intro.tex:105-106; overview.tex:339; implex.tex:170-176 (prop:rlhl-sc concludes ⊑rlxlin).
-  - popl2027-reviews.md:309-317 (Reviewer B) and :615 (meta-review).
-- **Scratch sessions I re-ran** (piped `rocq repl`; nothing written). Both are Closed and produced no Error.
+All checks were read-only: `PATH=/opt/homebrew/bin:$PATH`, Rocq 9.3.0, piped `rocq repl` with the `_CoqProject` `-R` flags. I wrote no files.
 
-  **T1** (from the lens-3 verifier). `EVE_not_handle_linear` (∀ used, ¬HandleLinear (EI uδ) used) and `counter_ei_unsat` (∀ I R G q0 m0, ¬RLHL2Hyps I R G Mc q0 (m0,[]) over VE := EI uδ, VF := CVFe) are both "Closed under the global context":
-```
-Require Import Stdlib.Lists.List Stdlib.PArith.PArith Stdlib.Arith.PeanoNat Stdlib.micromega.Lia Stdlib.Relations.Relation_Operators.
-Require Import models.EffectSignatures models.RelaxedSignature models.LinCCAL models.simlin.RelaxedLTS models.simlin.RelaxedLang models.simlin.RelaxedSemantics models.simlin.RelaxedModuleSemantics models.simlin.RelaxedPossibility models.simlin.RelaxedHoareBase models.simlin.RelaxedHoareDag models.simlin.RelaxedHoare models.simlin.RelaxedHoareSound models.simlin.RelaxedTraceLin models.simlin.RelaxedHoareSpec.
-Require Import examples.Relaxed.RelaxedHoareChecks.
-Import ListNotations.
-Module T1.
-  Import LinCCALBase RelaxedSig RelaxedLTSSpec RelaxedLang RelaxedSemantics RelaxedModuleSemantics RelaxedPossibility RelaxedHoareBase RelaxedHoareDag RelaxedHoare RelaxedHoareSound.
-  Import RelaxedHoareChecks.Counter RelaxedHoareChecks.CounterHL.
-  Definition EVE : LTS USig := RelaxedHoareSpec.EI RelaxedHoareChecks.CounterRelLin.uδ.
-  Theorem EVE_not_handle_linear used : ~ HandleLinear EVE used.
-  Proof.
-    intros Hhl.
-    assert (H1 : Step EVE (Build_ThreadEvent t0 (@InvEv USig 0 FAA)) (0, []) (1, [@RelaxedTraceLin.Build_Op USig (t0, 0) FAA 0])).
-    { cbn. exists 0, 1. split; [split; reflexivity | reflexivity]. }
-    assert (H2 : Step EVE (Build_ThreadEvent t0 (@InvEv USig 0 FAA)) (1, [@RelaxedTraceLin.Build_Op USig (t0, 0) FAA 0]) (2, [@RelaxedTraceLin.Build_Op USig (t0, 0) FAA 1; @RelaxedTraceLin.Build_Op USig (t0, 0) FAA 0])).
-    { cbn. exists 1, 2. split; [split; reflexivity | reflexivity]. }
-    exact (hl_fresh _ _ Hhl t0 0 FAA _ _ H2 (hl_inv_used _ _ Hhl t0 0 FAA _ _ H1)).
-  Qed.
-  Theorem counter_ei_unsat (I : Assn EVE CVFe) (R G : CallKey OSig -> PRel EVE CVFe) (q0 : State EVE) (m0 : nat) :
-    ~ RLHL2Hyps I R G Mc q0 (m0, []).
-  Proof.
-    intros HH. destruct q0 as [n0 l0].
-    pose proof (h_sem _ _ _ _ _ _ HH) as Hsem.
-    set (q1 := (S n0, @RelaxedTraceLin.Build_Op USig (t0, 0) FAA n0 :: l0) : State EVE).
-    assert (Hfirst : forall r : nat, exists A0 m2 p1,
-      CallTriple I R G key0 Inc r A0 /\ untag m2 = Build_ThreadEvent t0 (@ResEv USig 0 FAA r) /\
-      A0 [m2] (q1, p1, []) /\ I (q1, p1, []) /\ Good m0 p1 /\
-      exists v pool, p1 = @PossOk OSig CVFe v pool /\ lin_domain pool = [key0]).
-    { intros r. destruct (inc_trace_gen t0 0 r) as (tr & Hprod & Htr).
-      destruct (Hsem t0 Inc 0 tr r Hprod) as (A0 & Htri & Hinit0).
-      set (p0 := @PossOk OSig CVFe (m0, []) [make_lin_entry key0 (@ls_inv OSig Inc)]).
-      assert (Hpi : poss_invoke CVFe t0 0 Inc (@PossOk OSig CVFe (m0, []) []) p0) by (constructor; constructor; intros []).
-      destruct (Hinit0 (n0, l0) _ [] p0 (h_init _ _ _ _ _ _ HH) Hpi) as [HI0 HA0].
-      destruct tr as [| m1 [| m2 [| m3 tr]]]; try discriminate. cbn in Htr. injection Htr as H1 H2.
-      unfold ghost_new in HI0, HA0. cbn [app map] in HI0, HA0. rewrite H1, H2 in HI0, HA0.
-      cbn [inv_events te_ev map] in HI0, HA0.
-      pose proof Htri as [Hemit _ _].
-      destruct (Hemit [] m1 [m2] ltac:(constructor) (n0, l0) p0 _ [] ltac:(rewrite H1; cbn; exists [], []; split; [reflexivity | split; [reflexivity | constructor]]) HA0 HI0 q1 ltac:(rewrite H1; cbn; exists n0, (S n0); split; [split; reflexivity | reflexivity]))
-        as (p1 & Hps & HA1 & HI1 & _).
-      exists A0, m2, p1. split; [exact Htri |]. split; [exact H2 |]. split; [exact HA1 |]. split; [exact HI1 |].
-      split.
-      - eapply good_steps; [exact Hps |]. exists m0, [], [], (@ls_inv OSig Inc).
-        split; [reflexivity |]. split; [left; reflexivity |]. split; [reflexivity |].
-        split; [intros o [] | exact Logic.I].
-      - destruct (h_ok _ _ _ _ _ _ HH _ HI1) as (v & pool & Hp1 & _). cbn in Hp1. subst p1.
-        exists v, pool. split; [reflexivity |].
-        rewrite <- (poss_steps_ok_domain CVFe _ _ _ _ Hps). reflexivity. }
-    assert (HA : n0 = m0).
-    { destruct (Hfirst n0) as (A0 & m2 & p1 & [Hemit _ Hret] & Hm2 & HA1 & HI1 & HG1 & _).
-      destruct (Hemit [] m2 [] ltac:(constructor) q1 p1 [] [] ltac:(rewrite Hm2; reflexivity) HA1 HI1 (S n0, l0)
-                  ltac:(rewrite Hm2; cbn; exists [], l0; split; reflexivity))
-        as (p2 & Hps2 & HA2 & HI2 & _).
-      destruct (Hret _ HA2 HI2 ltac:(intros e [])) as (p3 & Hps3 & (v & pool & -> & Hl) & _).
-      exact (good_linr m0 v pool n0 (good_steps _ _ _ (rt_trans _ _ _ _ _ Hps2 Hps3) HG1) Hl). }
-    assert (HB : S n0 = m0).
-    { destruct (Hfirst (S n0)) as (A0 & m2 & p1 & [Hemit0 Hstab0 Hret0] & Hm2 & HA1 & HI1 & HG1 & v & pool & -> & Hdom).
-      destruct (inc_trace_gen t0 0 0) as (tr1 & Hprod1 & Htr1).
-      destruct (Hsem t0 Inc 1 tr1 0 Hprod1) as (A1 & [Hemit1 _ _] & Hinit1).
-      set (p1' := @PossOk OSig CVFe v (make_lin_entry key1 (@ls_inv OSig Inc) :: pool)).
-      assert (Hpi : poss_invoke CVFe t0 1 Inc (@PossOk OSig CVFe v pool) p1').
-      { constructor. constructor. unfold lin_fresh. rewrite Hdom. intros [H | []]. discriminate H. }
-      destruct (Hinit1 q1 _ [] p1' HI1 Hpi) as [HI1' HA1'].
-      pose proof (h_invoke_rely _ _ _ _ _ _ HH key1 key0 Inc tr1 0 (q1, @PossOk OSig CVFe v pool, []) p1'
-                    ltac:(discriminate) Hprod1 HI1 Hpi) as HR.
-      pose proof (Hstab0 [m2] _ _ HA1 HR HI1') as HA0'. cbn [ps_mem ps_ghost snd fst] in HA0'.
-      destruct tr1 as [| n1 [| n2 [| n3 tr1]]]; try discriminate. cbn in Htr1. injection Htr1 as H1 H2.
-      cbn [ps_mem ps_ghost snd fst] in HA0', HI1', HA1'.
-      unfold ghost_new in HI1', HA1', HA0'. cbn [app map] in HI1', HA1', HA0'. rewrite H1, H2 in HI1', HA1', HA0'.
-      cbn [inv_events te_ev map] in HI1', HA1', HA0'.
-      set (q2 := (S (S n0), @RelaxedTraceLin.Build_Op USig (t0, 0) FAA (S n0) :: @RelaxedTraceLin.Build_Op USig (t0, 0) FAA n0 :: l0) : State EVE).
-      destruct (Hemit1 [] n1 [n2] ltac:(constructor) q1 p1' _ [] ltac:(rewrite H1; cbn; exists [], []; split; [reflexivity | split; [reflexivity | constructor]]) HA1' HI1' q2 ltac:(rewrite H1; cbn; exists (S n0), (S (S n0)); split; [split; reflexivity | reflexivity]))
-        as (p2 & Hps2 & _ & HI2 & HG2).
-      pose proof (h_guar_rely _ _ _ _ _ _ HH key1 key0 _ _ ltac:(discriminate) HG2) as HR2.
-      pose proof (Hstab0 [m2] _ _ HA0' HR2 HI2) as HA2.
-      destruct (Hemit0 [] m2 [] ltac:(constructor) q2 p2 [] [] ltac:(rewrite Hm2; reflexivity) HA2 HI2 (S (S n0), @RelaxedTraceLin.Build_Op USig (t0, 0) FAA n0 :: l0)
-                  ltac:(rewrite Hm2; cbn; exists [], (@RelaxedTraceLin.Build_Op USig (t0, 0) FAA n0 :: l0); split; reflexivity))
-        as (p3 & Hps3 & HA3 & HI3 & _).
-      destruct (Hret0 _ HA3 HI3 ltac:(intros e [])) as (p4 & Hps4 & (v4 & pool4 & -> & Hl) & _).
-      assert (HG2' : Good m0 p2) by exact (good_steps _ _ _ Hps2 (good_invoke1 _ _ _ HG1 Hpi)).
-      exact (good_linr m0 v4 pool4 (S n0) (good_steps _ _ _ (rt_trans _ _ _ _ _ Hps3 Hps4) HG2') Hl). }
-    lia.
-  Qed.
-End T1.
-Print Assumptions T1.EVE_not_handle_linear.
-Print Assumptions T1.counter_ei_unsat.
-```
-  **T2** (from the lens-3 verifier). `si_overtake_rtrace` is Closed: in the copy-cat over EI, a younger read overtakes an older pending semi-independent write of the same thread and reads 0.
-```
-Require Import Stdlib.Lists.List Stdlib.PArith.PArith.
-Require Import models.EffectSignatures models.RelaxedSignature models.LinCCAL models.simlin.RelaxedLTS models.simlin.RelaxedLang models.simlin.RelaxedSemantics models.simlin.RelaxedModuleSemantics models.simlin.RelaxedTraceLin models.simlin.RelaxedGSim models.simlin.RelaxedHoareSpec models.simlin.RelaxedHoareCompLin.
-Import ListNotations.
-Module T2.
-  Import LinCCALBase RelaxedSig RelaxedLTSSpec RelaxedLang RelaxedSemantics RelaxedModuleSemantics RelaxedHoareCompLin.
-  Inductive WROp := WX | RX.
-  Definition wr_ar (o : WROp) : Type := match o with WX => unit | RX => nat end.
-  Canonical Structure WREff : Sig.t := {| Sig.op := WROp; Sig.ar := wr_ar |}.
-  Definition WRSig : RelaxedSig.t := {| RelaxedSig.effect := WREff; RelaxedSig.handle := nat; RelaxedSig.semi_independent := fun o1 o2 => o1 <> o2; RelaxedSig.mode := fun _ => Local |}.
-  Definition rdelta (n : nat) (o : Sig.op (RelaxedSig.effect WRSig)) : Sig.ar o -> nat -> Prop :=
-    match o as o0 return Sig.ar o0 -> nat -> Prop with WX => fun _ n' => n' = 1 | RX => fun r n' => r = n /\ n' = n end.
-  Definition t1 : tid := 1%positive.
-  Definition sw : list (ThreadEvent WRSig) :=
-    [Build_ThreadEvent t1 (@InvEv WRSig 1 WX); Build_ThreadEvent t1 (@InvEv WRSig 2 RX); Build_ThreadEvent t1 (@ResEv WRSig 2 RX 0)].
-  Definition EV : LTS WRSig := RelaxedHoareSpec.EI rdelta.
-  Definition trW := [@cc_inv_ev WRSig t1 1 WX; @cc_res_ev WRSig t1 1 WX tt].
-  Definition trR := [@cc_inv_ev WRSig t1 2 RX; @cc_res_ev WRSig t1 2 RX 0].
-  Definition k2 : CallKey WRSig := (t1, 2).
-  Definition candI : TaggedScheduledEvent WRSig WRSig := Build_TaggedScheduledEvent k2 (@cc_inv_ev WRSig t1 2 RX).
-  Definition candR : TaggedScheduledEvent WRSig WRSig := Build_TaggedScheduledEvent k2 (@cc_res_ev WRSig t1 2 RX 0).
-  Theorem si_overtake_rtrace : RTraces EV (0, []) sw.
-  Proof.
-    eexists. eexists. split.
-    - eapply tagged_module_execution_cons.
-      { apply (@tagged_invoke WRSig WRSig EV idF t1 1 WX (0, []) [] [] [] trW tt).
-        - intros [].
-        - apply idF_produces.
-        - split; [cbn; constructor; [intros [] | constructor] | intros k [<- | []] []]. }
-      eapply tagged_module_execution_cons.
-      { apply (@tagged_invoke WRSig WRSig EV idF t1 2 RX (0, []) _ _ _ trR 0).
-        - intros [H | []]. cbn in H. discriminate H.
-        - apply idF_produces.
-        - split; [cbn; constructor; [intros [] | constructor] |]. intros k [<- | []] [H | []]. discriminate H. }
-      eapply tagged_module_execution_cons.
-      { eapply (tagged_underlay EV idF candI).
-        - cbn. apply tagged_select_next.
-          { right. split; [reflexivity |]. cbn. intros H. apply H. discriminate. }
-          apply tagged_select_next.
-          { right. split; [reflexivity |]. cbn. intros (op' & ret' & Hres). exact Hres. }
-          apply tagged_select_here.
-        - cbn. exists 0, 0. split; [split; reflexivity | reflexivity]. }
-      eapply tagged_module_execution_cons.
-      { eapply (tagged_underlay EV idF candR).
-        - cbn. apply tagged_select_next.
-          { right. split; [reflexivity |]. cbn. intros H. discriminate H. }
-          apply tagged_select_next.
-          { right. split; [reflexivity |]. cbn. intros H. exact H. }
-          apply tagged_select_here.
-        - cbn. exists [], []. split; reflexivity. }
-      eapply tagged_module_execution_cons.
-      { apply (@tagged_return WRSig WRSig EV idF t1 2 RX 0).
-        - apply finish_here.
-        - cbn. intros [H | [H | []]]; discriminate H. }
-      apply tagged_module_execution_refl.
-    - reflexivity.
-  Qed.
-End T2.
-Print Assumptions T2.si_overtake_rtrace.
-```
-  Equivalent lens scripts: lens-1 S1 and lens-2 S5 are variants of T2, and lens-1 S2 is a variant of `EVE_not_handle_linear`. Each was reported Closed in its lens record, and I did not repeat them.
+**Statements (`About` / `Print`)**
+- `sl2_main : sl2rd_prov_target_v`, with `Arguments sl2_main rc si tw _`.
+- `sl2rd_complin_target` = ∀ rc si tw, (slRA ⊆ si) → `RCompLin (M2w rc si tw) (EI δS) (regs0, nil) (EI δF) (A0, nil)`.
+- `sl2rd_relin_target` = ∀ rc si tw s, slRA ⊆ si → `MTraces (EI δS) (M2w rc si tw) (regs0, nil) s` → `PrefixView.complete s` → `rel_lin sel s si (seq_legal δF A0)`.
+- `lb2_not_trace_rd` = ∀ rc si tw t1 t2, ¬`MTraces (EI δS) (M2w rc si tw) (regs0, nil) (lb2_trace si t1 t2)`.
+- None of these has a section hypothesis. All concern the original untagged `M2w` over plain `EI δS`, not EIhlv and not a tagged variant.
+
+**Print Assumptions**
+
+| Result | Axioms |
+|---|---|
+| `sl2_main`, `read_provable_v`, `RelaxedHoareSL2Write.write_provable` | none (closed) |
+| `sl2_complin` | `classic` |
+| `sl2_rel_lin`, `lb2_not_trace_rd` | `classic`, `eq_rect_eq` |
+
+The lens batch runs give the same picture:
+- SL2Read: 71 closed, 1 {classic}, 2 {classic, eq_rect_eq}.
+- SL2Write: 61 closed.
+- SL2Exec: 59 closed, 9 {classic, eq_rect_eq}.
+- SL2InvLog: 112 closed, 4 inherited.
+- No other axiom appears.
+
+**Source**
+- `SL2Read.v:1485-1531`: `read_provable_vti` applies `sl2_read_run_provable_v`, with `rinv_init` and `rstep_ok`. `sl2_main` = `sl2rd_v_of_methods` applied to `read_provable_v` and `write_provable`.
+- A grep for `MethodSem`, `method_sound`, `ren_rlhl`, `CallTriple` and `h_sem` in SL2Read, SL2Write, SL2InvLog and SL2Inv finds comments only.
+- `M2w` and `P1` (SL2Prog.v:601-610) and `mtraces_guard` (:643) are as described.
+- `RelaxedHoareLayer.mtraces_mono` (:148) and `RelaxedHoareAbsorb.unabsorb` (:930) exist. `absorb` is still PENDING (Absorb.v:19).
+- HVF is not needed on the CompLin route (CompLin.v:86).
+
+**Scratch sessions (stdin only, all accepted)**
+- (a) Lens 2's `sbo_not_rel_lin`, full script in M-29. Result: Closed under the global context.
+- (b) Lens 3's `sl2_no_mp` ({eq_rect_eq, classic}) and `sl2_complin_unguarded` ({classic}), full script in m-69.
+- (c) rc vacuity: `Goal forall o o2, sindep true o o2 <-> sindep false o o2. Proof. intros [l|l v| |] [l2|l2 v2| |]; unfold sindep; cbn; reflexivity. Qed.`
+
+**Paper**
+- `git diff 01484091 4a2db8e1 -- Appendix/programlogic.tex` gives the hunks `@@ -35,7 +35,7 @@` and `@@ -463,9 +463,51 @@`, so lines from :466 on move by +42.
+- EStep is at :537 at 01484091 and at :579 at HEAD. HEAD :537 is a different rule.
+- trace.tex:75 and overview.tex:164: COH with no barriers. trace.tex has no rmb or wmb.
+- trace.tex:96-107: I_RA, and SB with own reads, which "Ordinary registers cannot explain".
+- intro.tex:111: the oMCA focus applies "to the memory instances and their comparison theorems, rather than to every relaxed object".
+- relaxedlin.tex:520 and :628: "Single possibilities are not generally sufficient … future-dependent".
+- No main.tex input mentions SeqLock.
+
+**Records**
+- research-intent.md:178 still says that the reloading writer "is SC on this underlay". :165 says "Linux seqcount style". RD-8 (:119) sets the paper scope to MCA + barriers.
+- concern-matrix row 45 (B5) lists only `SeqLockModule`, and the matrix has no SL2 entry.
 
 ## Verdict
-RLHL-3a delivers the author's decision, and its formulation is the right one.
+The kernel-checked claims in scope hold exactly as stated, within the baseline {classic, eq_rect_eq}. **No BLOCKER. No redesign. The RLHL-seqlock Coq task can be closed.** The paper must not cite the result until the authors decide M-28 and M-29.
 
-**What holds.**
-- **No hidden hypotheses.** `gsim_complin` and `rlhl_complin` are universal over every execution, complete or not, and over every VE and VF. They use `classic` once (`rinv_val`), for a case split that does not weaken the statement.
-- **The replay is sound.** `reify` is Closed. Its frontier admissibility follows from TValid: F2 is the same-thread clause, in the same direction as `must_precede`; F1 is per handle; F3 is vacuous because the copy-cat's tags are empty.
-- **MTraces is exactly "every prefix"**, like `CompLin.ImplTraces`. It is prefix-closed, because each module event contributes at most one overlay event.
-- **`idF` is the paper's seqcopy** (Appendix/relaxedlin.tex:2-9).
-- **The counter checks are genuine, and the copy-cat is neither too strict nor too lax at the mechanism level.** Junk is rejected for every copy-cat execution (`junkF_not_rtrace`, Closed), and semi-independent overtaking is admitted (T2, Closed).
+1. **"RLHL used in full": true.**
+   - `read_provable_v` and `write_provable` are genuine syntactic derivations: `run_method_provable` → `rp_run` → `RProvable_coind`.
+   - Every `RunStepOK` is discharged (`rstep_ok`/`wstep_ok`). `rnew` builds every `NewSlotOK` field: each `ns_if_*` premise is either a stability fact by class or is refuted by order (`bef_pos`, `fe_le`). `rclose` gives a genuine `BarrierWith`.
+   - The writer is moved from EIhl to EIhlv by `methodprovable_lift`, a rule-by-rule coinductive transport, not route S.
+   - The only route to `h_sem` is `method_sound`, inside `rlhl2_of_provable`.
+   - Caveat: this is the mechanized RLHL, not the printed rules (M-21; see also m-66).
+2. **The final statements are exactly as claimed** (see Checks).
+3. **The reader argument is sound.**
+   - The LP is at the rmb after which the call owns no rmb in the ghost (`isl_read_lp`).
+   - `PkgAt`/`PkgT` plus `rok` force r0 = q = r0′, so the logged values at Close are the LP's `A i` (`pkgT_vals`, `logval_unique`).
+   - The B-6 disjunct is refuted at `mp_ret` by `NoOwn`.
+   - `rinv` over `length cs` covers any number of iterations.
+   - The prophecy is sound by commit-at-invocation (impl.tex:141, :172), but it should be named as such (m-65).
+4. **The witnesses and negatives are genuine.**
+   - `sb2_exec_rd_ij`, `sw_exec_ij` and `retry_exec` are module-derived, complete executions over `EI δS`.
+   - `sl2rd_no_complin_pair` is presentation-free and tight per pair when (vx, vy) ≠ (0, 0). The EIhl and EIhlv RLHL2Hyps negatives are corollaries of it.
+   - `retry_exec` is a liveness/non-vacuity witness, not a discriminating one.
+   - The M-23 caveat appears at every SB and single-writer citation in the Coq.
+5. **B:215.** It may be claimed only as a partial answer: an RLHL-verified SeqLock over COH registers plus ordering-only barriers, with the M-28 caveats. M-29 adds that the verified contract is provably false under store forwarding. Still open: B:212, B:309-316 (B-1), M-22, m-8, m-36, m-37.
+6. **Headers are accurate except for:**
+   - m-65: the prophecy wording;
+   - m-66: the SL2Read/SL2Write P paragraphs contradict M-21;
+   - m-67: the mixed programlogic.tex numbering. "Working tree" now means HEAD 4a2db8e1, and SL2Read's ":537, rule EStep" is wrong at HEAD.
+7. **Closure:** close the task. Before the paper cites it, the authors must decide M-28 and M-29. Recommended Writer follow-ups: m-65…m-69.
 
-**What does not yet hold.**
-- (i) No theorem says what `RTraces (EI δ)` means, relative to `rel_lin` or REW (M-20, narrowed).
-- (ii) The recorded layering interface "VE := EI δE" is mechanically refuted for RLHL2Hyps (T1; m-20 escalated to MAJOR).
-- (iii) No absorption/saturation, linking or monotonicity lemmas exist, and RLHL-3c needs all of them (M-22).
-- B-1 remains a BLOCKER against the paper and Reviewer B, narrowed to: memory VE, client, composition, and a nonempty-SI instance with a specification meaning.
-
-**Recommendation: continue, no redesign.** One more cheap RLHL-3a round is worthwhile: item 5 via an identity GSimRel, EIhl plus HLift, the headers, and adopting T1/T2. Then RLHL-3b and RLHL-3c.
-
-**Severity decisions.** No BLOCKER or MAJOR finding was withdrawn. I applied the verifier corrections. One verifier downgrade is overridden: the lens-1 verifier downgraded "EI is not handle-linear" to MINOR because "the consequence is only argued". T1 `counter_ei_unsat` mechanizes that consequence, and I re-ran it (Closed), so the item stays MAJOR.
+Precision fixes made during verification (no finding was withdrawn):
+- Lens 1's B-1 parenthetical "mtraces_mono missing" is stale.
+- Lens 2's M-29 cited `sindep_rc_vacuous` as a repository lemma; it exists only in scratch. trace.tex:392 restricts the comparison, not the COH definition.
+- Lens 2's M-28 overstated the clash with intro.tex:111. The clash is with the author decision "Scope = oMCA" and with response A2.
+- "IRIW with rmbs excluded" is argued, not kernel-checked.
 
 ## Findings
 
 ### BLOCKER
-
-- **[B-1] (continues, narrowed) RLHL soundness now covers every execution, in copy-cat form, over the underlay LTS used in the derivation. Reviewer B's chain is still missing: no memory VE, no object with its client, no vertical composition, and no nonempty-SI instance with a specification meaning.** (research-level for the claims; RLHL-3b/3c and the memory route are actionable)
-  - **Where.** `RelaxedHoareCompLin.v:1106-1139`; `RelaxedHoareChecks.v:5719-6247`; `RelaxedHoareGSim.v:852-872` (`rlhl_sound`, complete traces).
-  - **K.** `gsim_complin`, `rlhl_complin_ei` and `counter_complin` depend on `classic`; `reify` and `junkF_not_rtrace` are Closed.
-  - **S.**
-    - For every VE and VF, every overlay trace of M over VE is an overlay trace of `idF` over VF. The statement fixes one VE, has one possibility and no error clause.
-    - The only instance on the decided EI route is `Mc` over `HVE` into `EI cδ`. There SI = ∅ at both levels, and `Mc` is itself the FAA→Inc copy-cat. In effect this is SC linearizability with overlapping same-thread calls.
-    - `pair_rlhl2`, `xy_rlhl2` and `log_rlhl2` (SI := o1≠o2) now also yield RCompLin, since there is no HVF premise. But their overlays take effect at the response and fail HVF (`pair_not_hvf`, Checks:3902), so those inclusions have no specification meaning.
-  - **P.**
-    - Appendix/relaxedlin.tex:665-667 (Soundness).
-    - relaxedlin.tex:74 and overview.tex:339 ("over any underlay relaxed-linearizable to ν_E").
-    - intro.tex:105 ("soundness with respect to RC11 … mechanized in Rocq").
-    - intro.tex:106 ("one layered verification" of LatchSet and write-snapshot).
-    - relaxedlin.tex:88-99 (Vertical Composition).
-  - **R.** Reviewer B :313-316: "the program logic, its soundness proof against a weak memory model such as RC11, and the verification of a concurrent object alongside the verification of its client program". Meta-review :615: "the lack of a demonstration of client verification".
-  - **Differences.**
-    - The incomplete-trace part is now met, in the shape of P's Soundness, but without cc_E (M-22).
-    - The weak-memory, client and layering parts are absent.
-    - P's "any underlay" quantification is not covered.
-    - The only window-route vertical link is example-specific: `SeqLockTower.tower_link`, at witness level, for complete traces only.
-  - **Evidence (bottom layer, argued; the verifier upheld it with a refinement).** x86-TSO store forwarding is not a copy-cat trace over a thread-oblivious EI register δ, for any SI. The scenario: t0 runs Inv w x:=1; Inv r x; Res r 1, and then t1 runs Inv r x; Res r 0. The copy-cat forces eff(w) < eff(r_t0) < Res r_t0 < Inv r_t1 < eff(r_t1), so t1 must read 1. `ei_step`'s δ has no thread argument (RelaxedHoareSpec.v:296-302).
-  - **Required.**
-    1. RLHL-3b (M-19).
-    2. RLHL-3c (M-22, m-20, M-20).
-    3. A memory route: either memory LTS traces ⊆ `RTraces` of a thread-aware buffered δ_mem (ops carry tids, flushes nondeterministic inside δ), or a non-EI memory VF/VE. Both fit `gsim_complin`, which is generic.
-    4. Until then, the paper may claim at most: "RLHL derivations imply that every (possibly incomplete) overlay trace of M over the underlay LTS used in the derivation is a trace of the relaxed copy-cat over the overlay LTS; for effect-at-invocation overlays of a sequential specification this is instantiated only for an I=∅ counter."
+None.
 
 ### MAJOR
 
-- **[M-20] (continues, narrowed: the author decision is implemented; the residual is the *meaning* of RCompLin) No theorem relates `RTraces (EI δ)` to `rel_lin` (complete traces) or to REW (prefixes). The research record states the REW identity as fact.** (actionable (a)(b)(d); research-level (c))
-  - Merges lens-1 M-23, lens-2 M-20 and lens-3 M-20.
-  - **Where.** `RelaxedHoareCompLin.v:90-97` (item 5 "open") and :62-65; research-intent.md:122 ("This is the paper's REW notion").
-  - **K.**
-    - `junkF_not_rtrace` (Closed) is a negative point.
-    - `ooo_copycat_trace` (`classic`) is a positive point, but it is linearizable in program order (W = [o1:0; o2:1]) at I=∅, so it is not a relaxation witness.
-    - T2 (Closed) is the positive SI-overtaking point.
-    - No general statement exists.
-  - **S.** `rlhl_complin_ei` concludes `RTraces (EI δ)`; `rlhl_rel_lin_ei` separately concludes `rel_lin` for complete traces. Neither implies the other in Coq.
-  - **P.**
-    - implex.tex:170-176 (prop:rlhl-sc concludes ⊑rlxlin).
-    - Appendix/relaxedlin.tex:47-50 (rlx(ν) = ν;seqcopy).
-    - relaxedlin.tex:29-30 (REW) and :39-40 (prop:rhb-equiv "for all s, s′").
-  - **R.** Reviewer B :309 ("difficult to trust them without a full formalization").
-  - **Evidence (argued by all three lenses; I re-derived it).**
-    - **Complete well-formed traces: RTraces(EI δ) = rel_lin (seq_legal δ s0).**
-      - ⊆: take the effect order as W. Real time gives eff < res < inv < eff. Same-thread non-SI pairs are ordered by F2 = ¬SI(earlier, later), which equals rhb's ¬indep(op o, op o′).
-      - ⊇: greedy placement of effect points in W order.
-    - **Prefixes.** Copy-cat drop-closure equals REW's ihbrew (ii) closure.
-    - **Non-well-formed traces.** `rel_lin` accepts some (for example a lone response, RelaxedTraceLin.v:79), so the equality needs wf.
-    - **K.** `rl_prefix` is stricter for non-total δ.
-    - **Consequence.** After vertical composition only `RTraces (EI δtop)` is available, so the end-to-end conclusion means relaxed linearizability only through this bridge.
-  - **Required.**
-    - (a) `cc_rel_lin`: every complete wf `RTraces (EI δ) (s0,[]) s` satisfies `rel_lin s (semi_independent F) (seq_legal δ s0)`. Recommended route: an explicit `GSimRel (EI δ) (EI δ) idF S_cc`, then `gsim_rel_lin` and `ei_hvf`, plus a small lemma that a complete idF trace makes every call DeadCall. This GSimRel sees `trace_fresh`; the RLHL2Hyps route over EI is blocked (T1). Alternative route: invert `reify` and reuse `transfer` and `ei_hvf`. Then derive `rlhl_complin_ei ⇒ rlhl_rel_lin_ei`.
-    - (b) Adopt T2 and its I=∅ negative mirror as regressions.
-    - (c) Research-level: either the paper defines incomplete-trace correctness as ν;cc and presents REW as an argued characterization, or Coq proves the REW agreement. In both cases, restrict prop:rhb-equiv to complete traces or prove it for prefixes.
-    - (d) research-intent:122: change to "argued; data points `junkF_not_rtrace`, T2".
+- **[B-1] (carried; status updated) Reviewer B's chain of logic, soundness against RC11, object and client is still not mechanized. The SeqLock now provides the object link only.** (research-level)
+  - **Where:** SL2Read.v:1515-1531 and its header R (:189-194); SL2Prog.v E_S/δS; popl2027-reviews.md:313-316, :533, :615; concern-matrix rows 43 and 44.
+  - **K:** `sl2_main` is closed, `sl2_complin` uses {classic} and `sl2_rel_lin` uses {classic, eq_rect_eq}. No RelaxedHoare*/SL2* file imports `memory/`.
+  - **S:**
+    - `RCompLin` holds over the sequential MCA register specification `EI δS`. This is not ν_COH;cc_E: `absorb` (⊇) and linking are pending, while `mtraces_mono` and `unabsorb` are done.
+    - No client theorem exists. ClientSB.v:138 says it is not the a=b client.
+    - `M2w` sends a write by any thread other than `tw i` to `div`. The B4 client "whose writers invoke write(v,v) … even with concurrent writers" (:533) therefore cannot be stated on a single instance with several writers.
+  - **P:** intro.tex:105 limits the RC11 claim to coherence. The main text has no SeqLock.
+  - **R:** B asks for "the program logic, its soundness proof against a weak memory model such as RC11, and the verification of a concurrent object alongside the verification of its client program" (:313-316). The meta-review (:615) names "the lack of a demonstration of client verification".
+  - **Assessment:** the Coq does not overclaim (SL2Read:193-194).
+  - **Required:**
+    - Never cite the SeqLock for B:309-316 or B4. If that happens, this becomes a BLOCKER.
+    - Next steps: (i) a property-level a=b corollary of `sl2_complin`; (ii) the module-level client through RLHL-3c (absorb and linking, M-22); (iii) the memory route (m-37).
+    - For B4, decide between one writer thread per instance and a lock-protected writer, and change the response wording to match.
 
-- **[m-20 → MAJOR] (escalated) The recorded layering interface "VE := EI δE, like HVE" is refuted for RLHL: EI is not handle-linear, and RLHL2Hyps has no model over literal EI for the correct overlapping counter.** (actionable)
-  - Merges lens-1 M-24, lens-2 M-23(i) and lens-3 m-20.
-  - **Where.** research-intent.md:123; `RelaxedHoareCompLin.v:51-56`; `RelaxedHoareSpec.v:296-302`; concern-matrix :74, :77.
-  - **K.** T1 (re-run by me, Closed):
-    - `EVE_not_handle_linear`: ∀ used, ¬HandleLinear (EI uδ) used;
-    - `counter_ei_unsat`: ∀ I R G q0 m0, ¬RLHL2Hyps I R G Mc q0 (m0,[]) over VE := EI uδ.
-  - **S.** The triple quantifies over the re-used-key schedule of `counter_ow_unsat`, which the module semantics excludes (`trace_fresh`).
-    - EI keeps a duplicate record, and key0's response can match key1's record.
-    - `invocation_ready` then forces n0 = m0 and S n0 = m0.
-    - Over HVE (handle-linear, never removes records) the counter is provable (`counter_hl_rlhl2`), which isolates handle-linearity as the cause.
-    - `gsim_complin` itself is unaffected; the defect is in the plan.
-  - **P/R.** No paper statement. Reviewer B's layered object-plus-client requirement depends on this interface.
-  - **Verifier disagreement resolved.**
-    - The lens-1 verifier (MINOR, "consequence argued") and the lens-2 verifier ("EI keeps both records") predate the mechanization.
-    - T1 shows the obstruction transfers precisely because EI keeps both records.
-  - **Required.**
-    1. Define `EIhl δ` (state (s, P, used); invocation only on unused keys) and prove `HandleLinear (EIhl δ)`.
-    2. Prove `HLift`: MTraces (EI δ) M = MTraces (EIhl δ) M, from `trace_fresh`/`tm_used_underlay`. Optionally also prove `RTraces (EI δ) = RTraces (EIhl δ)`.
-    3. Correct research-intent:123 and the CompLin header (:51-56) to read "VE := EIhl δE".
-    4. Adopt T1 next to `counter_ow_unsat`.
+- **[M-28] (new; lens 1 M-28 + lens 2 M-29 + lens 3 M-28) What B:215 may claim. The verified model (COH registers plus ordering-only Wmb/Rmb) and the mechanized logic do not exist in the paper.** (research-level)
+  - **Where:** SL2Prog.v:129-213 (Scope, P); SL2Read.v header; trace.tex:52, :75, :165-187; overview.tex:164; Appendix/SeqLock.tex:3, :47; relaxedlin.tex:520, :628; impl.tex:120-141, :172; concern-matrix row 45.
+  - **K:** see Checks.
+  - **S:** for every rc (vacuous), every tw and every si ⊇ slRA:
+    - `RCompLin` holds for every reachable prefix;
+    - `rel_lin` holds for complete traces;
+    - the result is tight in si (`sl2rd_no_complin_pair`);
+    - it is non-vacuous (`sb2_exec_rd_ij`, `sw_exec_ij`, `retry_exec`).
+  - **Model and object restrictions:**
+    1. A sequential, MCA register file. `δS` makes the barriers no-ops, and they order only through `WindowTable.dto` and same-location order. All modes are `Local`.
+    2. One writer thread per instance, enforced by refusal (`div`), not by a precondition or an error clause (m-8, m-69).
+    3. The cached-v writer: SB is shown without own reads (M-23).
+    4. The reader is untagged with hand-written tags. The κ-policy reader (impl.tex:141) is covered only by an argued tag-monotonicity (m-54).
+    5. The LP is ghost-prophetic with a single possibility (m-33, m-65).
+    6. The logic is the mechanized RLHL (`rp_run`, Close, `ns_if_*`/`bw_if`, the ghost, Ω, `Qrd`'s ¬NoOwn disjunct, the EIhlv history). The printed EStep own-event premise is commented out at HEAD :558 (M-21).
+    7. Copy-cat EI specifications; agreement with REW is argued only (M-20). `MTraces (EI δS)` vs ν;cc is unproved (M-22).
+    8. The N instances form one object over one shared memory (m-70).
+  - **P:**
+    - The paper's COH has no barriers, and the four fence modes cannot express Wmb/Rmb (`paper_modes_fail`, `four_modes_force_local`).
+    - Appendix/SeqLock.tex is a different TicketLock/TSO object (RS-6 is open).
+    - relaxedlin.tex:520/:628 says single possibilities are insufficient for future-dependent LPs.
+  - **R:** B:215 says "No example verified on the COH model". B5 (:537) answers "consider adding a library case study over COH". A:151-154 asks about COH-with-fences and MCA.
+  - **Required (authors), before any citation:**
+    - (a) Define "COH + rmb/wmb" in trace.tex (the dto rows R/Rmb and W/Wmb, and same-location order), relate it to the fence-mode lattice, and say it is MCA.
+    - (b) State the result as copy-cat inclusion for all prefixes plus rel_lin for complete traces, at slRA (tight).
+    - (c) Name the writer "a single-writer seqcount whose closing increment reuses the opening read". Never call it the Linux seqcount.
+    - (d) State P1 by refusal (or cite the m-69 corollary).
+    - (e) Qualify relaxedlin.tex:520/:628 with the commit-at-invocation prophecy.
+    - (f) Present the mechanized RLHL, or say "a Rocq variant of RLHL".
+    - (g) Prove tag-monotonicity (m-54) or present the reader with its hand-written tags.
+    - (h) Mention M-22.
+    - (i) Decide RS-6.
+  - A citation for B:215 without (a)-(c) and (f) is a BLOCKER. So is citing the result as the mechanization of Appendix/SeqLock.tex.
 
-- **[M-22] (new) RCompLin fixes one VE. Layering needs lemmas that do not exist, chiefly E-side copy-cat absorption (the paper's saturation proposition) and a semantic linking for futures. Until then "layering replaces presentation_choice" and the "every underlay" judgement are unsupported.** (actionable; it is the RLHL-3c prerequisite)
-  - Merges lens-1 M-22, lens-2 M-23(ii)(iii) and lens-3 M-22.
-  - **Where.**
-    - `RelaxedHoareCompLin.v:69-78` (the header concedes the gap) and :163-175.
-    - research-intent.md:123.
-    - `RelaxedLang.v:61-74`: `Future` takes only a primitive op, and there is no fork.
-    - `CompLinVComp.v:42-62`: `substProg` inlines at a blocking `Vis`.
-  - **K.** Nothing is mechanized.
-  - **S.** MTraces V M depends on V only through `Step` on emitted underlay events (`tagged_underlay`). Method traces and results are committed at invocation. So monotonicity in V's path language holds (argued).
-  - **P.**
-    - Appendix/relaxedlin.tex:53-56 (saturation, stated without proof) and :58-61 (the reduced form ν_E;⟦M⟧ ⊆ rlx(ν_F)). `RCompLin M (EI δE) … (EI δF)` matches this reduced form; the missing piece, in both the paper and Coq, is saturation.
-    - relaxedlin.tex:62-69 (inlining), :74 (verimpl, "every underlay"), :88-99.
-  - **R.** Reviewer B :313-316 (object plus client).
-  - **Evidence (argued; two verifiers re-checked it).**
-    - Absorption, `MTraces (Lift idF V) N ⊆ MTraces V N`: re-time each N underlay event to the copy-cat's V-emission.
-      - F2 uses the same `semi_independent` on both sides.
-      - F3 is preserved through V-res < C-res < N-inv < V-inv.
-      - `owner_done` and `all_resolved` hold.
-    - This needs V to be invariant under per-thread injective renaming of underlay handles, because `idF_produces` picks arbitrary handles while N computes on its FutureRefs. EI and EIhl satisfy this.
-    - Over relaxed presentations no RLHL2Hyps exists for the counter (`counter_vt_no_rlhl2`, Closed; m-28). Absorption is therefore the only route to a relaxed underlay.
-  - **Required (RLHL-3c, in order).**
-    1. `Lift M VE σ0 : LTS F` (τ-closing internal underlay steps) with L(Lift) = MTraces.
-    2. `mtraces_mono` (path-language inclusion lifts).
-    3. `absorption` for renaming-invariant V, at least EI/EIhl.
-    4. HLift (m-20).
-    5. Item 5 (M-20). Its converse on prefixes is also needed if verimpl's "every underlay relaxed-linearizable to ν_E" is claimed.
-    6. The composite: MTraces (Lift M1 VE σ0) M2 ⊆ RTraces (EI δG).
-    7. A client semantics, for example a module into a one-operation "main" signature.
-    8. Name the absorption lemma as the Coq counterpart of Appendix/relaxedlin.tex:53-56.
-
-- **[M-19] (continues; title corrected) There is no nonempty-SI instance over a sequential-spec (EI/EIhl) overlay, and no relaxation witness at the module level.** (actionable, RLHL-3b)
-  - **Where.** `RelaxedHoareCompLin.v:16-18` ("this is where relaxation comes from"); Checks:623, :627; Checks:5727-5729 (`ooo_trace`).
-  - **K/S.**
-    - `pair_rlhl2`, `xy_rlhl2` and `log_rlhl2` have SI := o1≠o2, but their overlays are not specifications (HVF refuted or unproved).
-    - T2 gives only the copy-cat-level positive half.
-    - The I=∅ negative mirror is argued from F2 and not mechanized.
-  - **P.** intro.tex:99 ("pending, independent operations within the verifying thread").
-  - **R.** Reviewer B :309-312 ("workable reasoning principles").
-  - **Required.**
-    - An RLHL2Hyps instance with nonempty SI over EIhl, for example a pass-through over T2's W/R signature, or two counters.
-    - A three-level relaxation witness: positive under SI (T2), negative under ∅, and module-derived.
-    - A two-future body whose own-event premise needs a genuine stability proof.
-
-- **[M-15] (continues; one addition)** The decided EI layering covers sequential specifications only. intro.tex:106 attributes to RLHL an "interval-linearizable write-snapshot … one layered verification", and an interval-sequential write-snapshot is not `EI δ`: `ei_step` applies a single-operation δ once, at invocation. `rlhl_complin` is generic in VF, so this is a scope consequence of the author's "Sequential spec, EI" decision, not a limitation of the theorem. (research-level) **Required:** drop or re-attribute the write-snapshot claim, or record that it needs an interval-spec VF with its own item-5 analogue. The other M-15 items are unchanged.
+- **[M-29] (new; lens 2's M-28) The verified contract (slRA over atomic pair registers) is MCA-specific. The SeqLock-level SB-with-own-reads outcome that store forwarding produces is not rel_lin under any si ⊆ slRA.** (research-level, with an actionable part)
+  - **Where:** SL2Prog.v:131-136, :196-205; SL2Read.v:173-179; research-intent §8 "Scope = oMCA" (:125) vs RD-8 (:119); trace.tex:94-107; popl2027-reviews.md:38-40 (A), :437 (A2), :615.
+  - **K:** `sbo_not_rel_lin` is closed under the global context in the scratch session; I re-ran it. The trace is t1: W₁(1,1); R₁ ↦ (1,1); R₂ ↦ (0,0), and t2 is symmetric. All six calls overlap. The (fW i, fR i) and (fR, fR) edges are not in slRA, so two legality edges close a cycle.
+  - **S:**
+    - On x86-TSO, smp_rmb/wmb are compiler barriers, so each reader forwards its own buffered seq, x and y, and reads the other instance from memory. This is a standard hand argument; I agree with it.
+    - On ARMv8, rfi ∉ obs and DMB LD orders nothing from W to R, so the same outcome is allowed.
+    - So the slRA contract cannot be carried to a buffered or oMCA underlay by the planned memory route without changing the contract, for example to a buffered pair register over a thread-aware EI (m-37).
+  - **P:** trace.tex:107 makes exactly this point for registers. The headers say only that the underlay "lacks" forwarding.
+  - **R:** A:38-40 says "Even TSO cannot be explain merely by store-load reorderings … but rewrites also store-forwarding". The meta-review names "the handling of store forwarding".
+  - **Required:**
+    - (actionable) Add `sbo_not_rel_lin` to SL2Exec (script below), and add to the SL2Prog and SL2Read S/P paragraphs: "the verified contract is falsified under store forwarding (trace: kernel-checked; hardware: argued)".
+    - (authors) Reconcile the "Scope = oMCA" decision with RD-8 for this example, and present the SeqLock as an MCA-only data point, as response A2 promised.
+    - Citing the SeqLock as evidence about TSO, ARMv8, oMCA or forwarding is a BLOCKER.
+  - **Script** (complete; run from stdin from the repo root with the `_CoqProject` -R flags):
+    ```
+    From Stdlib Require Import List Arith.PeanoNat micromega.Lia.
+    Require Import models.LinCCAL models.RelaxedSignature models.simlin.RelaxedLTS models.simlin.RelaxedTraceLin.
+    Require Import models.simlin.RelaxedHoareSpec models.view.PrefixView.
+    Require Import examples.Relaxed.RelaxedHoareSL2Prog examples.Relaxed.RelaxedHoareSL2Exec.
+    Import ListNotations. Import LinCCALBase. Import RelaxedSig. Import RelaxedLTSSpec. Import RelaxedHoareSL2Prog. Import RelaxedHoareSL2Exec.
+    Ltac in_tac := cbn; solve [repeat (first [left; reflexivity | right])].
+    Ltac nodup_keys := cbn; repeat constructor; cbn; let H := fresh in intros H; repeat (destruct H as [H | H]; [discriminate H |]); exact H.
+    Ltac inv_here := eexists; split; reflexivity.
+    Definition sbo (si : FOp -> FOp -> Prop) (t1 t2 : tid) : list (ThreadEvent (F2 si)) :=
+      [Build_ThreadEvent t1 (@InvEv (F2 si) 0 (fW 1 1 1)); Build_ThreadEvent t1 (@InvEv (F2 si) 1 (fR 1)); Build_ThreadEvent t1 (@InvEv (F2 si) 2 (fR 2));
+       Build_ThreadEvent t2 (@InvEv (F2 si) 3 (fW 2 1 1)); Build_ThreadEvent t2 (@InvEv (F2 si) 4 (fR 2)); Build_ThreadEvent t2 (@InvEv (F2 si) 5 (fR 1));
+       Build_ThreadEvent t1 (@ResEv (F2 si) 1 (fR 1) (1, 1)); Build_ThreadEvent t1 (@ResEv (F2 si) 2 (fR 2) (0, 0));
+       Build_ThreadEvent t2 (@ResEv (F2 si) 4 (fR 2) (1, 1)); Build_ThreadEvent t2 (@ResEv (F2 si) 5 (fR 1) (0, 0));
+       Build_ThreadEvent t1 (@ResEv (F2 si) 0 (fW 1 1 1) tt); Build_ThreadEvent t2 (@ResEv (F2 si) 3 (fW 2 1 1) tt)].
+    Definition oWi (si : FOp -> FOp -> Prop) (t1 : tid) := @RelaxedTraceLin.Build_Op (F2 si) (t1, 0) (fW 1 1 1) tt.
+    Definition oRi (si : FOp -> FOp -> Prop) (t1 : tid) := @RelaxedTraceLin.Build_Op (F2 si) (t1, 1) (fR 1) (1, 1).
+    Definition oRj (si : FOp -> FOp -> Prop) (t1 : tid) := @RelaxedTraceLin.Build_Op (F2 si) (t1, 2) (fR 2) (0, 0).
+    Definition oWj (si : FOp -> FOp -> Prop) (t2 : tid) := @RelaxedTraceLin.Build_Op (F2 si) (t2, 3) (fW 2 1 1) tt.
+    Definition oRj' (si : FOp -> FOp -> Prop) (t2 : tid) := @RelaxedTraceLin.Build_Op (F2 si) (t2, 4) (fR 2) (1, 1).
+    Definition oRi' (si : FOp -> FOp -> Prop) (t2 : tid) := @RelaxedTraceLin.Build_Op (F2 si) (t2, 5) (fR 1) (0, 0).
+    Lemma sbo_sub si t1 t2 : forall e, In e (sbo si t1 t2) -> In e (evs_of [oWi si t1; oRi si t1; oRj si t1; oWj si t2; oRj' si t2; oRi' si t2]).
+    Proof. intros e He. cbn in He. repeat (destruct He as [<- | He]; [in_tac |]). destruct He. Qed.
+    Theorem sbo_not_rel_lin si indep t1 t2 : (forall o o', indep o o' -> slRA o o') ->
+      ~ RelaxedTraceLin.rel_lin (@PrefixView.sel (F2 si)) (sbo si t1 t2) indep (RelaxedHoareSpec.seq_legal (F := F2 si) δF A0).
+    Proof.
+      intros Hsub Hrl.
+      destruct (rel_lin_ops (sbo si t1 t2) indep _ [oWi si t1; oRi si t1; oRj si t1; oWj si t2; oRj' si t2; oRi' si t2] ltac:(nodup_keys) (sbo_sub si t1 t2) Hrl) as (W & (A' & Hrun) & Hnd & HW & Hin & Hord).
+      assert (H0 : In (oWi si t1) W) by (apply (Hin _ 0); [in_tac | inv_here]).
+      assert (H1 : In (oRi si t1) W) by (apply (Hin _ 1); [in_tac | inv_here]).
+      assert (H2 : In (oRj si t1) W) by (apply (Hin _ 2); [in_tac | inv_here]).
+      assert (H3 : In (oWj si t2) W) by (apply (Hin _ 3); [in_tac | inv_here]).
+      assert (H4 : In (oRj' si t2) W) by (apply (Hin _ 4); [in_tac | inv_here]).
+      assert (H5 : In (oRi' si t2) W) by (apply (Hin _ 5); [in_tac | inv_here]).
+      assert (B01 : RelaxedTraceLin.before W (oWi si t1) (oRi si t1)).
+      { apply Hord; [exact H0 | exact H1 |]. right. split; [reflexivity |]. exists 0, 1. split; [inv_here |]. split; [inv_here |]. split; [lia |]. intros H; apply Hsub in H; exact (H eq_refl). }
+      assert (B12 : RelaxedTraceLin.before W (oRi si t1) (oRj si t1)).
+      { apply Hord; [exact H1 | exact H2 |]. right. split; [reflexivity |]. exists 1, 2. split; [inv_here |]. split; [inv_here |]. split; [lia |]. intros H; apply Hsub in H; exact H. }
+      assert (B34 : RelaxedTraceLin.before W (oWj si t2) (oRj' si t2)).
+      { apply Hord; [exact H3 | exact H4 |]. right. split; [reflexivity |]. exists 3, 4. split; [inv_here |]. split; [inv_here |]. split; [lia |]. intros H; apply Hsub in H; exact (H eq_refl). }
+      assert (B45 : RelaxedTraceLin.before W (oRj' si t2) (oRi' si t2)).
+      { apply Hord; [exact H4 | exact H5 |]. right. split; [reflexivity |]. exists 4, 5. split; [inv_here |]. split; [inv_here |]. split; [lia |]. intros H; apply Hsub in H; exact H. }
+      destruct (In_nth_error _ _ H0) as (i0 & E0). destruct (In_nth_error _ _ H1) as (i1 & E1).
+      destruct (In_nth_error _ _ H2) as (i2 & E2). destruct (In_nth_error _ _ H3) as (i3 & E3).
+      destruct (In_nth_error _ _ H4) as (i4 & E4). destruct (In_nth_error _ _ H5) as (i5 & E5).
+      pose proof (before_idx W _ _ _ _ Hnd B01 E0 E1). pose proof (before_idx W _ _ _ _ Hnd B12 E1 E2).
+      pose proof (before_idx W _ _ _ _ Hnd B34 E3 E4). pose proof (before_idx W _ _ _ _ Hnd B45 E4 E5).
+      assert (i2 < i3).
+      { apply (leg_read_before A0 W A' i2 i3 (oRj si t1) (oWj si t2) 2 1 1 Hrun E2 E3 eq_refl eq_refl).
+        intros o ux uy Ho Hop. destruct (HW o Ho) as [<- | [<- | [<- | [<- | [<- | [<- | []]]]]]]; cbn in Hop; try discriminate Hop; injection Hop; intros; subst; cbn; congruence. }
+      assert (i5 < i0).
+      { apply (leg_read_before A0 W A' i5 i0 (oRi' si t2) (oWi si t1) 1 1 1 Hrun E5 E0 eq_refl eq_refl).
+        intros o ux uy Ho Hop. destruct (HW o Ho) as [<- | [<- | [<- | [<- | [<- | [<- | []]]]]]]; cbn in Hop; try discriminate Hop; injection Hop; intros; subst; cbn; congruence. }
+      lia.
+    Qed.
+    Print Assumptions sbo_not_rel_lin.
+    ```
 
 ### MINOR
 
-- **[m-30] (new) Headers and records contradict `rlhl_complin`.** (actionable)
-  - Stale text:
-    - `RelaxedHoareGSim.v:202-213` (item 4: "nothing is stated about executions with pending calls … prefix soundness … not done");
-    - `RelaxedHoareGSim.v:214-225` (item 5: "intended … VE := VT nuE, VF := VT nuF");
-    - `RelaxedHoareSpec.v:21-42`; `RelaxedHoareBase.v:187-200`;
-    - `RelaxedHoareCompLin.v:51-56` ("VE is meant to be EI δE");
-    - concern-matrix rows 43, 69, 70, 76 and :207.
-  - **Required.**
-    - Point these to `RelaxedHoareCompLin.rlhl_complin` for incomplete traces.
-    - Mark VT×VT as a complete-trace corollary only, and mark `implements`/`rl_prefix` as superseded for RLHL.
-    - Cite T1 for the EI/handle-linearity caveat.
+- **[M-23] (carried; Coq part fixed, downgraded to MINOR) Residue in the records.** (actionable for the orchestrator; author to confirm)
+  - **Where:** research-intent.md:178, which says the reloading writer "is SC on this underlay", and :165 ("Linux seqcount style").
+  - **K/S:** only "no SB" is argued (SL2Exec header, SL2Prog:4-18). SC is not proved. All `.v` headers are correct.
+  - **Required:** annotate :178 as "no SB (argued); SC not proved", as was done for RS-1 at :168, and annotate :165. Optionally add a `wnextL` contrast theorem.
 
-- **[m-8] (continues; new aspect relative to CompLin) There is no analogue of `TErr`/`ImplTracesClosed`.** (research-level)
-  - Merges lens-1 m-8, lens-2 m-31 and lens-3 m-31.
-  - **Where.** `RelaxedHoareCompLin.v:24-28`; `CompLin.v:120-125` and :151-168; `RelaxedModuleSemantics.v:578-610` (no error rule).
-  - **The difference.**
-    - Under EI (Error := False), a partial δ means the copy-cat blocks; it does not mean "undefined behaviour licenses any continuation".
-    - So an implementation of a spec with preconditions (for example, a lock released when not held) is RCompLin only if it also blocks on misuse, or if δ has a chaos state.
-    - Underlay `Error` is invisible.
-  - **Required.**
-    - Document "partial δ = blocking; differs from CompLin" (more precise than "underlay Error is invisible").
-    - The author decides whether RLHL-3c, with lock-based layers, needs an error clause.
+- **[m-54] (carried) Tag-monotonicity of `MTraces` is unproved.** (actionable)
+  - **Where:** SL2Prog.v:167-174.
+  - **Status:** the wording now says "argued, not proved", but the lemma is still missing.
+  - **Required:** a generic lemma that if tags are pointwise contained, then MTraces(more tags) ⊆ MTraces(fewer tags). With it, `sl2_complin` transfers to the κ-tagged reader. Otherwise keep M-28(g).
 
-- **[m-32] (new; lens 2) Cheap paper-facing corollaries are missing.** (actionable) I confirmed by grep that none of these exist.
-  - `rlhl_sound_complin`: derivations plus Hgr/Hir/Hrr/Hok/Hinit give RCompLin, with no HVF and no Hcomplete. The derivation route is already used by `counter_complin` (via `counter_hl_rlhl2`), but it is not stated generically.
-  - `mtraces_prefix`: MTraces VE M σ0 (s1++s2) → MTraces VE M σ0 s1.
+- **[m-65] (new; lens 1 m-65, lens 3 m-67, lens 2 m-66 Log part) The prophecy wording is misleading.** (actionable)
+  - **Where:** RelaxedHoare.v:213-228 (the single-possibility row: "no prophecy of responses"); RelaxedHoareLog.v:52-56 ("linearization points that depend on future responses under a single possibility remain out of reach").
+  - **S:** the ghost stores invocations only (Base.v:281). But the committed body trace fixes the number of iterations, and that number is determined by the values the later reads return (`rok`). So "owns no rmb afterwards" (`isl_read_lp`) prophesies the outcome of the call's own future responses. The SeqLock read LP is exactly the kind of LP that Log.v says is out of reach.
+  - **Required:** reword both passages along these lines: "the ghost stores no response values, but its remaining invocations, committed at invocation, determine the outcome of the call's own future validation; sound by run-to-completion (impl.tex:141, :172)". Cite relaxedlin.tex:520 and :628.
 
-**Status changes without a finding entry.**
-- **M-1:** superseded and closed for the RLHL route (copy-cat inclusion replaces `implements`/`rl_prefix`). A VLHL residual remains: prop:rlhl-sc (implex.tex:170) still rests on `vlhl_sound`/`presentation_choice`, complete traces only.
-- **M-18:** VT×VT is a complete-trace corollary only; superseded for prefixes.
-- **m-28:** still valid. It is now the reason that absorption (M-22) is the only route to relaxed underlays.
+- **[m-66] (new; lens 2) The SL2Read and SL2Write P paragraphs say the rules "are those of Appendix/programlogic.tex".** (actionable)
+  - **Where:** SL2Read.v:183-185; SL2Write.v:170-172.
+  - **Problem:** this contradicts RelaxedHoare.v:130-131 ("The printed logic is not the mechanized one … the paper prints none of them") on exactly the M-21 point. I verified both texts.
+  - **Required:** "the mechanized RLHL of RelaxedHoare.v (printed rules differ; see its table, M-21), in the run-interpreter form of RelaxedHoareRun".
 
-**Unchanged.** B-4, M-11, M-14, M-21 (add the row "Soundness, Appendix/relaxedlin.tex:665 ↔ `gsim_complin`/`rlhl_complin`"), m-12, m-15, m-22, m-23, m-24, m-27, m-29.
+- **[m-67] (new; m-61 residue) Mixed programlogic.tex numbering.** (actionable)
+  - **Where:** RelaxedHoare.v:126-133 and Log.v:41-52 carry the shift note. SL2Read:184-187, SL2Write:173, SL2InvLog:212-214, SL2Inv:180-183/:224-227, GSim:203/:336-346, Dag:32 and CounterXY:274 cite 01484091 numbering without the note.
+  - **Facts:** the "working tree" in the note is committed HEAD 4a2db8e1. SL2Read's ":537, rule EStep" points to a different rule at HEAD; EStep is now at :579.
+  - **Required:** renumber all programlogic.tex anchors to 4a2db8e1 and name the commit once, or add the note to every file that cites lines ≥ :476.
+
+- **[m-68] (new; lens 1 m-68, lens 2 m-67, lens 3 m-65 part) Facts described as "kernel-checked in a scratch file outside the build" cannot be reproduced.** (actionable)
+  - **Where:**
+    - SL2Prog.v:113-123 (overtakes trace rel_lin at ∅);
+    - SL2Prog.v:140-153 (rc vacuous);
+    - SL2Write.v:43-53 (`rlhl2_v_of_reads` discharged).
+  - **Status:** none of these is saved in `.rocq-review/scripts/`.
+  - **Required:** add `sindep_rc_vacuous` (script (c) in Checks), `ov_rel_lin_empty` and an `rlhl2_v_of_reads` instance as lemmas, add `sbo_not_rel_lin` (M-29), and cite them by name.
+
+- **[m-69] (new; lens 2 m-68, lens 3 m-65) The precondition-form and MP corollaries are not stated.** (actionable)
+  - **S:** `sl2_complin` concerns the non-receptive `M2w`. The P1-precondition form for the unguarded `M2` and the module-level MP exclusion are each two-line corollaries. I re-ran both.
+  - **Required:** add them (generalize `sl2_no_mp` to every si as `lb2_not_trace_rd` does). Paper text should cite the P1-precondition form. Script:
+    ```
+    Require Import examples.Relaxed.RelaxedHoareSL2Read. Require Import examples.Relaxed.RelaxedHoareSL2Exec.
+    Import RelaxedHoareSL2Prog.RelaxedHoareSL2Prog RelaxedHoareSL2Read.RelaxedHoareSL2Read RelaxedHoareSL2Exec.RelaxedHoareSL2Exec.
+    Lemma sl2_no_mp rc tw s : RelaxedHoareCompLin.RelaxedHoareCompLin.MTraces (RelaxedHoareSpec.RelaxedHoareSpec.EI (F := E_S rc) δS) (M2w rc slRA tw) (regs0, nil) s -> PrefixView.PrefixView.complete s -> ~ mp_shaped s.
+    Proof. intros Htr Hc Hmp. apply (mp2_not_rel_lin slRA slRA s slRA_slsi Hmp). exact (sl2_rel_lin rc slRA tw s (fun o o2 H => H) Htr Hc). Qed.
+    Lemma sl2_complin_unguarded rc si tw s : (forall o o2, slRA o o2 -> si o o2) -> RelaxedHoareCompLin.RelaxedHoareCompLin.MTraces (RelaxedHoareSpec.RelaxedHoareSpec.EI (F := E_S rc) δS) (M2 rc si) (regs0, nil) s -> P1 tw s -> RelaxedHoareCompLin.RelaxedHoareCompLin.RTraces (RelaxedHoareSpec.RelaxedHoareSpec.EI (F := F2 si) δF) (A0, nil) s.
+    Proof. intros Hsi Htr HP. apply (sl2_complin rc si tw Hsi). exact (mtraces_guard rc si tw _ _ s Htr HP). Qed.
+    ```
+    Results: `sl2_no_mp` uses {eq_rect_eq, classic}; `sl2_complin_unguarded` uses {classic}.
+
+- **[m-70] (new; lens 3 m-68) The "two SeqLocks" are one N-instance object over a shared memory, with `Local` modes.** (research-level)
+  - **Where:** SL2Prog.v GLoc (:277, global GBw/GBr), F2 (:442).
+  - **Facts:**
+    - Cross-instance order comes from the shared barriers, not from ⊗ (relaxedlin.tex:191).
+    - slRA coincides with I_cross for fW ↦ lfence, fR ↦ rfence (trace.tex:183-187; hand computation, unchecked).
+    - `paper_modes_fail` refutes those modes for the window-route SeqLock. For WRd they are unverified.
+  - **Required:** describe the object as "one object with N instances". Optionally, prove the slRA = I_cross lemma on a new signature.
+
+**Withdrawn:** none. All three lenses' BLOCKER/MAJOR findings were upheld at MAJOR.
 
 ## Responses to Writer disputes
-The Writer marked nothing DISPUTED. On its claims:
-- **"M-20/Q3 FIXED for RLHL-3a scope": partly accepted.** The decision is implemented, and the theorem is universal and sound. M-20 stays open, narrowed to the meaning bridge (item 5, REW).
-- **"M-1 DEFERRED": upgraded.** M-1 is closed for RLHL; only the VLHL residual remains.
-- **Open issue 1 (item 5 ≈ 500 lines, JInv-style): accepted, but there is a cheaper route.** An identity GSimRel for `idF` over EI, plus `gsim_rel_lin` and `ei_hvf`, derives it from the general theorem and is reusable for RLHL-3c.
-- **Open issue 2: accepted** (now m-30).
-- **Open issue 4 (cc_E unmechanized): accepted** (now M-22, with an argued proof plan).
-- **"No existing statement changed": accepted.** `git diff --stat` shows 54+/5- in five files; the orchestrator verified the diffs are comment-only, and the earlier `Check`s are unchanged.
+No item was marked DISPUTED.
+
+| Writer status | Response |
+|---|---|
+| M-23 FIXED | Accept for the Coq; the records residue stays as MINOR. |
+| M-25 | Accept: `read_provable_v` is genuine and closed. |
+| m-51, m-55, m-60, m-62, m-63 | Accept. The phantom-path NoOwn is indeed unnecessary, because Close needs only `Pkg`/`PkgT` ∨ an owned rmb. |
+| m-64 | Accept; the residue is m-65. |
+| m-56, m-61 | Accept; the residue is m-67. |
+| "Docs pass comment-only" | Accept. It is consistent with the unchanged statements and the current build. |
+| NEEDS-AUTHOR on research-intent:178 | Agree (M-23 residue). |
 
 ## Concern-matrix corrections
-- **:43 B3/B-post (i).** Add `gsim_complin`, `rlhl_complin`, `rlhl_complin_ei`, `counter_complin` (`classic`) and `reify` (Closed): every execution, copy-cat form, over the derivation's VE. Under Missing, replace "`implements`/prefixes (M-1, Q3)" with "absorption and linking (M-22), EIhl/HLift (m-20), item 5 (M-20), client, memory VE". The status stays ❌.
-- **:69 RLHL layering / `implements`:** ❌ → 🟡. Copy-cat prefix soundness exists. The `implements` route is superseded for RLHL. Composition is missing (M-22).
-- **:70 Prefix notion:** ⚠️ → 🟡 (decided: copy-cat over EI). Mechanized points: `junkF_not_rtrace`, T2. The equality with REW/rel_lin is argued (M-20). K differs for non-total δ; K and V matter only for VLHL.
-- **:72 nonempty SI:** stays ❌. Add T2 as the copy-cat-level positive half, and note that pair/xy/log have nonempty SI over non-spec overlays.
-- **:74 / :77 HL:** :77 stays ❌ but is now on the critical path (MAJOR). Add T1 (`EVE_not_handle_linear`, `counter_ei_unsat`). Required: EIhl plus HLift.
-- **:75-76 spec style / end-to-end route:** the M-18 VT×VT route is superseded for prefixes. The decided route is VF := EI δF (copy-cat inclusion) and VE := EIhl δE, giving 🟡.
-- **:82 m-8:** add the CompLin difference (partial δ means blocking).
-- **:83 Prop. Logic Soundness:** add `rlhl_complin` as the all-traces form (generic derivation corollary m-32 pending).
-- **:84 Simulation, Soundness (App. :665):** add `gsim_complin` (`classic`): copy-cat form, over M's VE, without cc_E (M-22).
-- **:88 Vertical composition:** stays ❌. List the M-22 prerequisites.
-- **:207 M-incomplete:** partially resolved by `gsim_complin` (copy-cat form). The `RelaxedTraceLin` side needs M-20.
-- **§4 regressions.**
-  - Closed: `reify`, `cc_trace`, `junkF_not_rtrace`.
-  - `classic`: `gsim_complin`, `rlhl_complin`, `rlhl_complin_ei`, `rinv_reify`, `counter_complin`, `ooo_copycat_trace`, `junkF_not_counter_trace`.
-  - After adoption: T1 (both theorems Closed) and T2 (Closed).
-- **research-intent §8.**
-  - :122: "REW … argued, not proved (M-20)".
-  - :123: "VE := EIhl δE (EI admits no RLHL2Hyps for overlapping same-thread calls, T1); replacing presentation_choice is conditional on M-22".
-- **Status summary.**
-  - Closed for RLHL: M-1.
-  - Narrowed: B-1, M-20.
-  - Escalated: m-20 → MAJOR.
-  - New: M-22, m-30, m-32.
-  - Extended: m-8, M-15.
-  - Superseded for prefixes: M-18.
+- **Row 43 (B3):** (iv) object via the logic ✓ (SL2; M-28/M-29 caveats). B-1(4′) is met: non-renaming, nonempty SI, value-carrying `Isl`. The client and the memory link are still ✗. In the Missing list, write "absorb (⊇), linking pending; `mtraces_mono`, `unabsorb` done". The row stays ❌.
+- **Row 44 (B4):** stays ❌. Note that P1 (one writer per instance) conflicts with the response's "even with concurrent writers".
+- **Row 45 (B5):** add the RLHL WRd SeqLock: `sl2_main` (closed), `sl2_complin` (classic), `sl2_rel_lin` (classic + eq_rect_eq), the witnesses `sb2_exec_rd_ij`, `sw_exec_ij`, `retry_exec`, and the tight negatives `sl2rd_no_complin_*`. Status: "🟡 partially addressed; MCA only; M-28, M-29".
+- **Row 32 (A2):** the SB datum is without own reads and depends on the cached v. Add M-29 (`sbo_not_rel_lin`): the slRA contract fails under forwarding.
+- **Row 64 (RLHL rules):** add the first looping, multi-call, value-carrying concurrent instance at nonempty SI. HVF is not needed on the CompLin route.
+- **Rows 67 and 92 (intra-call own events):** "frame-only" → value-level own interference is exercised by SL2Write (AW/GF) and SL2Read (Pkg/KOwns vs the own LP). The paper wording is still pending (M-21).
+- **Rows 68 and 83 (LB):** `lb2_not_trace_rd` is unconditional; WRd excludes LB, so it is not an LB datum.
+- **Row 69 (completeness):** unchanged ⚠️. Add: the lossy EIhl presentation is incomplete for validate-after-read (argued).
+- **Row 74 (printed rules):** add m-66.
+- **Row 75 (end-to-end nonempty SI):** add the SeqLock (non-renaming).
+- **Row 76 (universal negatives):** add `sl2rd_no_complin_{pair,missing,empty}`, `sl2rd_no_rlhl2_empty_any`, `sl2rd_no_rlhl2v_*`.
+- **Row 81 (single possibility):** add the ghost-prophetic read LP (m-33, m-65).
+- **Row 86 (run-to-completion):** consumers are the SeqLock read LP and P1-by-div. Add m-69.
+- **Row 89 (absorption):** `unabsorb` done; `absorb` pending.
+- **New or closed rows:**
+  - M-28 ⚠️ (author);
+  - M-29 ⚠️ (author, with an actionable part);
+  - m-65…m-70 📝;
+  - closed: M-25, M-23 (Coq part), m-51, m-55, m-60, m-62, m-63, m-64;
+  - m-33: the documentation half is done, the paper half is open;
+  - m-57 unchanged.
+- **research-intent.md:** :178 and :165 as in M-23. Record the tension between RD-8 (MCA + barriers) and "Scope = oMCA" for the SeqLock (M-29).
 
 ## Stronger or alternative approaches
-1. **Item 5 from the general theorem.** Build `GSimRel (EI δ) (EI δ) idF`, then use `gsim_rel_lin` and `ei_hvf`. This is the Coq ⊆ half of the corollary rlx(ν) = ν;seqcopy. The same construction is the unit law RLHL-3c needs.
-2. **One uniform interface.** Define "correct w.r.t. a spec LTS V" as overlay traces ⊆ `RTraces V`. Use it for object layers (RCompLin), for the memory layer (with a thread-aware buffered δ_mem, or a non-EI LTS), and for clients (a module into a one-operation "main" signature). Compose with `mtraces_mono` and absorption.
-3. **Prove absorption first.** It is the paper's own unproved saturation proposition, and it is the crux of every layering claim. State the handle-renaming invariance explicitly.
-4. **EIhl as the canonical inter-layer presentation**, with HLift, instead of a used-key ghost in the triple.
-5. **RLHL-3b cheaply.** Use T2's W/R signature (SI(W,R)) and verify a pass-through by RLHL over EIhl. That gives a nonempty-SI instance whose relaxation witness is module-derived.
-6. **Paper.** State Soundness as mechanized: M over the derivation's VE, with M's own frontier. Present saturation as a separate (pending) lemma. Cite rlx(ν) = ν;cc only after item 5.
+1. Add `sbo_not_rel_lin`, `sl2_no_mp`, `sl2_complin_unguarded` and the scratch facts as lemmas (m-68, m-69, M-29). This is cheap and turns comments into checked claims.
+2. Broken variants (no final rmb, missing wmb) with module-derived torn-read executions that refute `RCompLin` at every si. They would show that the proof uses the barriers essentially, which is strong evidence for B:215.
+3. A generic tag-monotonicity lemma for `MTraces` (m-54), so the result covers the κ-compiled reader.
+4. A `wnextL` reloading writer: a kernel-checked "no SB" (M-23) and, ideally, its RLHL proof reusing the reader unchanged.
+5. A property-level a=b corollary of `sl2_complin`, then the module-level client through absorb and linking (B-1, M-22).
+6. For oMCA: a buffered (Flush-lifted) pair-register overlay over a thread-aware EI (m-37). The current contract cannot transfer (M-29).
+7. Longer term: fold the history (Log) into PState generically (programlogic.tex EStep) instead of a per-VE presentation. Also derive the N-instance object from a single SeqLock by ⊗ with exported modes (m-70).
 
 ## Redesign assessment
-- **No redesign** of RCompLin, `reify`, `gsim_complin` or `rlhl_complin`. CompLin-style copy-cat inclusion is the right formulation: it resolves the M-1/M-20 deadlock, matches the paper's ν;cc shape, and is generic in VE and VF.
-- **Minimal plan correction, before RLHL-3b picks its VE.** The inter-layer underlay presentation must be handle-linear (EIhl, connected to EI by HLift). Layering must go through absorption plus monotonicity plus linking (M-22), not through a direct GSimRel over relaxed presentations (m-28).
-- **Bottom-layer caveat.** Faithful oMCA store forwarding cannot be the copy-cat over a thread-oblivious EI register. The memory layer needs a thread-aware δ or a non-EI LTS, which the generic theorem already admits.
+No redesign of the mechanization is needed. The pieces compose into a sound, kernel-checked, non-vacuous, si-tight end-to-end result about the original module over `EI δS`:
+- the RProvable rules and the `run` interpreter;
+- the ghost frontier;
+- the HL and Log presentations, both justified by closed trace equivalences;
+- `method_sound` → `rlhl_complin_eihlv`.
 
-**Relevant files**
-- /Users/index/Documents/GitHub/rbgs-rlhl/models/simlin/RelaxedHoareCompLin.v
-- /Users/index/Documents/GitHub/rbgs-rlhl/examples/Relaxed/RelaxedHoareChecks.v
-- /Users/index/Documents/GitHub/rbgs-rlhl/models/simlin/RelaxedHoareSpec.v
-- /Users/index/Documents/GitHub/rbgs-rlhl/models/simlin/RelaxedHoareGSim.v
-- /Users/index/Documents/GitHub/rbgs-rlhl/models/simlin/RelaxedModuleSemantics.v
-- /Users/index/Documents/GitHub/rbgs-rlhl/models/simlin/CompLin.v
+What remains is paper-side scope and research decisions:
+- the COH+barrier definition and how to present the mechanized logic (M-28);
+- MCA vs oMCA and store forwarding (M-29);
+- the carried items B-1, M-22, m-8, m-36, m-37.
+
+The RLHL-seqlock task can be closed. The paper may cite it only after M-28 and M-29 are decided.
+
+Relevant files:
+- /Users/index/Documents/GitHub/rbgs-rlhl/examples/Relaxed/RelaxedHoareSL2Read.v
+- /Users/index/Documents/GitHub/rbgs-rlhl/examples/Relaxed/RelaxedHoareSL2Write.v
+- /Users/index/Documents/GitHub/rbgs-rlhl/examples/Relaxed/RelaxedHoareSL2InvLog.v
+- /Users/index/Documents/GitHub/rbgs-rlhl/examples/Relaxed/RelaxedHoareSL2Exec.v
+- /Users/index/Documents/GitHub/rbgs-rlhl/examples/Relaxed/RelaxedHoareSL2Prog.v
+- /Users/index/Documents/GitHub/rbgs-rlhl/models/simlin/RelaxedHoare.v
+- /Users/index/Documents/GitHub/rbgs-rlhl/models/simlin/RelaxedHoareLog.v
 - /Users/index/Documents/GitHub/rbgs-rlhl/.rocq-review/research-intent.md
 - /Users/index/Documents/GitHub/rbgs-rlhl/.rocq-review/concern-matrix.md
-- /Users/index/Documents/GitHub/async-ccal/drafts/relaxed-lin/relaxedlin.tex
+- /Users/index/Documents/GitHub/async-ccal/drafts/relaxed-lin/trace.tex
+- /Users/index/Documents/GitHub/async-ccal/drafts/relaxed-lin/Appendix/programlogic.tex
 - /Users/index/Documents/GitHub/async-ccal/drafts/relaxed-lin/Appendix/relaxedlin.tex

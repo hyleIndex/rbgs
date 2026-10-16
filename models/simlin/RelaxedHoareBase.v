@@ -186,18 +186,30 @@
     fewer steps only removes obligations); it is a property of the chosen
     [VE] that an instance uses when it discharges [RLHL2Hyps] (in the
     counter: the guarantee "records only grow" holds because an
-    invocation is enabled only on an unused key).  The end-to-end
+    invocation is enabled only on an unused key).  The decided route
+    (author decisions M-20 and, after the RLHL-3a review, m-20;
+    research-intent §8) verifies a layer over the handle-linear
+    sequential-specification LTS of the layer below,
+    [VE := RelaxedHoareCompLinSpec.EIhl δE] (handle-linear by
+    construction, [RelaxedHoareCompLinSpec.EIhl_handle_linear]), with the
+    effect-at-invocation overlay [VF := RelaxedHoareSpec.EI δF]; the
+    conclusion is copy-cat trace inclusion for every execution
+    ([RelaxedHoareCompLin.rlhl_complin]), and [EIhl] is connected to the
+    plain [EI] by [RelaxedHoareCompLinSpec.hlift] /
+    [rlhl_complin_eihl].  The plain [EI δE] is *not* a valid underlay
+    for this: it is not handle-linear and admits no [RLHL2Hyps] for the
+    overlapping counter, for any [I], [R], [G]
+    ([RelaxedHoareChecks.CounterEI.EVE_not_handle_linear],
+    [counter_ei_unsat]; review T1), while over [EIhl] it has one
+    ([RelaxedHoareChecks.CounterEIhl.counter_eihl_rlhl2]).  Earlier routes: the end-to-end
     theorem over every underlay ([RelaxedHoareGSim.rlhl_rel_lin_pres])
     needs a complete presentation such as [ViewLHL.VT nuE], which is
-    handle-linear.  The intended RLHL-3 instance (author decision on
-    latest-review M-18, research-intent §8) is [VE := ViewLHL.VT nuE]
-    with the stamp-based overlay [VF := ViewLHL.VT nuF] ([Hsound :=
-    ViewLHL.vt_sound]); it is not done.  The effect-at-invocation
-    overlays [RelaxedHoareSpec.EI] apply to invocation-ordered underlays
-    and are not expected to have an instance over [ViewLHL.VT] for
-    ordered same-thread operations
-    ([RelaxedHoareChecks.CounterRelLin.vt_junk]; for the counter,
-    [RelaxedHoareChecks.CounterRelLin.counter_vt_no_rlhl2]).
+    handle-linear; the stamp-based pair [VE := ViewLHL.VT nuE],
+    [VF := ViewLHL.VT nuF] (author decision M-18) gives at most a
+    complete-trace corollary and has no instance; [EI] overlays are not
+    expected to have an instance over [ViewLHL.VT] for ordered
+    same-thread operations ([RelaxedHoareChecks.CounterRelLin.vt_junk];
+    for the counter, [RelaxedHoareChecks.CounterRelLin.counter_vt_no_rlhl2]).
 
     Scope: one possibility (no sets, no future-dependent linearization
     points); generic underlay LTS [VE] (nothing about a particular memory
@@ -892,7 +904,13 @@ Module RelaxedHoareBase.
       [fun _ _ => True] violates [hl_fresh] as soon as [VE] has an
       invocation step.  [ViewLHL.VT] is handle-linear with [used] = "the
       key is invoked in the view trace"
-      ([RelaxedHoareSpec.vt_handle_linear]).
+      ([RelaxedHoareSpec.vt_handle_linear]).  Every [VE] has a
+      handle-linear presentation with the same module traces:
+      [RelaxedHoareCompLinSpec.HL VE] adds the list of invoked keys
+      ([HL_handle_linear]), and [RelaxedHoareCompLinSpec.hlift] shows that
+      [M] has the same overlay traces over [VE] and over [HL VE]; [EI δ]
+      itself is not handle-linear
+      ([RelaxedHoareChecks.CounterEI.EVE_not_handle_linear]).
 
       See the file header for where this property enters: not in the
       triple, not in [method_sound], not in [RLHL2Hyps]; it is what makes

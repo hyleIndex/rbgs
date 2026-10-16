@@ -29,7 +29,8 @@
     [R k] ([ns_R_start], [ns_R_in], [bw_R]).  This is the mechanism that
     the paper describes in words: implex.tex:3, "the rely relation admits
     not only the environment but also the verifying thread's own
-    independent futures", and Appendix/programlogic.tex:302--308 (Lemma
+    independent futures", and Appendix/programlogic.tex:302--308 (lines
+    as in async-ccal commit 4a2db8e1, the same as in 01484091; Lemma
     "Overtaking is independent" and the remark after it, which treats
     "the events a method emits out of program order as interference by
     the thread's own independent operations"); here the call's own
