@@ -194,6 +194,19 @@ examples/Relaxed/RelaxedHoareSL2Inv.v
 examples/Relaxed/RelaxedHoareSL2InvLog.v
 examples/Relaxed/RelaxedHoareSL2Write.v
 examples/Relaxed/RelaxedHoareSL2Read.v
+# Weak Herlihy-Wing queue over RCMem (task WHWQ, .rocq-review/tasks/WHWQ.md)
+examples/Relaxed/WHWQ/WHWQSpec.v
+examples/Relaxed/WHWQ/POQueueR.v
+examples/Relaxed/WHWQ/POQueueRWitness.v
+examples/Relaxed/WHWQ/POQueueRSound.v
+examples/Relaxed/WHWQ/POQueueRExample.v
+examples/Relaxed/WHWQ/POQueueRD.v
+examples/Relaxed/WHWQ/WHWQProg.v
+examples/Relaxed/WHWQ/WHWQExec.v
+examples/Relaxed/WHWQ/WHWQInv.v
+examples/Relaxed/WHWQ/WHWQProof.v
+examples/Relaxed/WHWQ/WHWQDeq.v
+examples/Relaxed/WHWQ/WHWQTop.v
 
 # View-based (timestamped) specifications and proofs, ported from CSL-Lin
 examples/View/ViewSpecs.v
