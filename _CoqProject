@@ -166,6 +166,8 @@ examples/Stacks/EBStack_TopLevel.v
 models/view/UnderlayRefinement.v
 models/view/ViewLift.v
 models/view/ViewLiftTensor.v
+models/view/ViewLiftRG.v
+models/view/ViewLiftGhost.v
 models/view/ViewLiftAdequacy.v
 models/view/PrefixView.v
 models/view/ViewPossibility.v
@@ -222,6 +224,11 @@ examples/View/EBStackViewLift.v
 examples/View/ViewLiftSeqLock.v
 examples/View/ViewLiftMultiWriter.v
 examples/View/ViewLiftOMCA.v
+# The ticket-lock tower over TSO: two presentations of the lock
+examples/View/TicketTowerSpecs.v
+examples/View/TicketTowerSeqLock.v
+examples/View/TicketTowerLock.v
+examples/View/TicketTower.v
 
 # Buffered memory and its declarative characterization (Appendix L)
 memory/Prelude.v
